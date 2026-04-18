@@ -11,9 +11,9 @@
     --gold:#f0b429;--green:#22c55e;--red:#ef4444;--text:#e8eaf0;--muted:#6b7280;--dim:#9ca3af;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;padding:24px;}
-  .brand{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold);letter-spacing:2px;margin-bottom:24px;}
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:700px;margin-bottom:16px;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;padding:20px;}
+  .brand{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);letter-spacing:2px;margin-bottom:20px;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:860px;margin-bottom:16px;}
   label{display:block;font-size:11px;color:var(--dim);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:1px;}
   select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;margin-bottom:12px;outline:none;}
   .btn{background:var(--gold);color:#0a0c10;border:none;border-radius:8px;padding:11px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;width:100%;}
@@ -22,44 +22,96 @@
   .ok{background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
   .err{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
   .loading{background:rgba(240,180,41,0.08);color:var(--gold);border:1px solid rgba(240,180,41,0.2);}
-  .results{display:none;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:700px;}
-  .match-item{padding:11px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .section-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;}
+
+  /* Lista de partidos */
+  .match-item{padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;border-radius:8px;transition:background 0.2s;}
+  .match-item:hover{background:var(--surface2);}
   .match-item:last-child{border-bottom:none;}
   .match-teams{font-weight:600;font-size:13px;flex:1;}
   .match-teams small{display:block;font-size:10px;color:var(--muted);margin-top:2px;}
   .fid{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:2px 6px;border-radius:4px;}
   .mdate{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);text-align:right;}
-  .section-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;}
+  .analizar-btn{background:var(--gold);color:#0a0c10;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+  /* Card de análisis */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;max-width:860px;margin-top:16px;overflow:hidden;display:none;}
+  .card-header{background:linear-gradient(135deg,#0f1319,#151a24);border-bottom:1px solid var(--border);padding:20px 24px;}
+  .competition-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(240,180,41,0.1);border:1px solid rgba(240,180,41,0.25);border-radius:6px;padding:3px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+  .teams-row{display:flex;align-items:center;gap:12px;}
+  .team-name{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;line-height:1;}
+  .vs-sep{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
+
+  /* Filtros */
+  .filters-row{padding:12px 24px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;background:rgba(255,255,255,0.01);}
+  .filter-tag{background:rgba(240,180,41,0.08);border:1px solid rgba(240,180,41,0.2);border-radius:5px;padding:3px 9px;font-size:11px;color:#c99a2e;font-weight:500;}
+  .filter-code{font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:10px;margin-right:4px;}
+
+  /* Mercados */
+  .markets-section{padding:20px 24px;}
+  .market-row{display:grid;grid-template-columns:1fr 80px 70px;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
+  .market-row.aprobado{border-left:3px solid var(--green);}
+  .market-row.informativo{border-left:3px solid #374151;opacity:0.6;}
+  .market-name{font-weight:600;font-size:13px;}
+  .prob-num{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--green);text-align:center;}
+  .prob-label{font-size:9px;color:var(--muted);text-transform:uppercase;text-align:center;}
+  .risk-num{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;text-align:center;}
+  .risk-low{color:var(--green);}
+  .risk-med{color:#fbbf24;}
+  .risk-high{color:var(--red);}
+  .risk-label{font-size:9px;color:var(--muted);text-transform:uppercase;text-align:center;}
+
+  .card-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.2);}
+  .footer-brand{font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:16px;letter-spacing:2px;}
 </style>
 </head>
 <body>
 
 <div class="brand">⚡ ScoutBet</div>
 
+<!-- Buscador -->
 <div class="panel">
   <div class="section-title">🔍 Buscar partidos</div>
-
   <label>Liga</label>
   <select id="liga">
     {% for id, nombre in ligas.items() %}
     <option value="{{ id }}">{{ nombre }}</option>
     {% endfor %}
   </select>
-
   <label>Temporada</label>
   <select id="temporada">
-    <option value="2026">2026</option>
-<option value="2025">2025</option>
-<option value="2024">2024</option>
+    <option value="2024" selected>2024</option>
+    <option value="2023">2023</option>
   </select>
-
   <button class="btn" id="btn" onclick="buscar()">→ Buscar partidos</button>
   <div class="status" id="st"></div>
 </div>
 
-<div class="results" id="results">
-  <div class="section-title">Próximos partidos</div>
+<!-- Lista de partidos -->
+<div class="panel" id="lista-panel" style="display:none">
+  <div class="section-title">Partidos encontrados</div>
   <div id="lista"></div>
+</div>
+
+<!-- Card de análisis -->
+<div class="card" id="card">
+  <div class="card-header">
+    <div class="competition-tag" id="card-liga">🏆 Liga</div>
+    <div class="teams-row">
+      <div class="team-name" id="card-local">Local</div>
+      <div class="vs-sep">vs</div>
+      <div class="team-name" style="color:var(--muted)" id="card-visitante">Visitante</div>
+    </div>
+  </div>
+  <div class="filters-row" id="card-filtros"></div>
+  <div class="markets-section">
+    <div class="section-title">Mercados analizados</div>
+    <div id="card-mercados"></div>
+  </div>
+  <div class="card-footer">
+    <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;">Análisis automático ScoutBet</div>
+    <div class="footer-brand">ScoutBet</div>
+  </div>
 </div>
 
 <script>
@@ -68,48 +120,70 @@ async function buscar(){
   const temp = document.getElementById('temporada').value;
   const btn = document.getElementById('btn');
   btn.disabled = true;
-  show('loading', '⏳ Buscando partidos...');
-  document.getElementById('results').style.display = 'none';
+  show('loading','⏳ Buscando partidos...');
+  document.getElementById('lista-panel').style.display = 'none';
+  document.getElementById('card').style.display = 'none';
 
   try {
     const r = await fetch(`/partidos/${liga}/${temp}`);
     const data = await r.json();
     const fx = data.response || [];
-
-    if (!fx.length) {
-      show('ok', '✓ Sin partidos próximos para esta liga. Probá otra.');
-      btn.disabled = false; return;
-    }
-
-    show('ok', `✓ ${fx.length} partidos encontrados`);
-    renderizar(fx);
-    document.getElementById('results').style.display = 'block';
-  } catch(e) {
-    show('err', '✗ Error: ' + e.message);
-  }
+    if (!fx.length){ show('ok','✓ Sin partidos para esta liga/temporada.'); btn.disabled=false; return; }
+    show('ok', `✓ ${fx.length} partidos encontrados — hacé click en "Analizar"`);
+    renderLista(fx);
+    document.getElementById('lista-panel').style.display = 'block';
+  } catch(e){ show('err','✗ Error: '+e.message); }
   btn.disabled = false;
 }
 
-function renderizar(fx){
+function renderLista(fx){
   document.getElementById('lista').innerHTML = fx.map(f => {
     const d = new Date(f.fixture.date);
-    const fecha = d.toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
-    const hora = d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+    const fecha = d.toLocaleDateString('es-AR',{day:'2-digit',month:'short'});
+    const hora = d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
     return `<div class="match-item">
       <div class="match-teams">
         ${f.teams.home.name} <span style="color:var(--muted);font-weight:400">vs</span> ${f.teams.away.name}
-        <small>🏟 ${f.fixture.venue?.name || 'Por confirmar'}</small>
+        <small>🏟 ${f.fixture.venue?.name||'Por confirmar'} · ${fecha} ${hora}</small>
       </div>
-      <div class="mdate">${fecha}<br>${hora}</div>
-      <div class="fid">#${f.fixture.id}</div>
+      <button class="analizar-btn" onclick="analizar(${f.fixture.id}, '${f.league.name}')">→ Analizar</button>
     </div>`;
   }).join('');
 }
 
-function show(t, m){
-  const e = document.getElementById('st');
-  e.style.display = 'block'; e.className = 'status ' + t; e.textContent = m;
+async function analizar(fixtureId, liga){
+  show('loading', '⏳ Analizando partido...');
+  document.getElementById('card').style.display = 'none';
+  try {
+    const r = await fetch(`/analizar/${fixtureId}`);
+    const d = await r.json();
+    renderCard(d, liga);
+    document.getElementById('card').style.display = 'block';
+    document.getElementById('card').scrollIntoView({behavior:'smooth'});
+    show('ok', `✓ Análisis completado — ${d.filtros.length} filtros detectados`);
+  } catch(e){ show('err','✗ Error: '+e.message); }
 }
+
+function renderCard(d, liga){
+  document.getElementById('card-liga').textContent = '🏆 ' + liga;
+  document.getElementById('card-local').textContent = d.local;
+  document.getElementById('card-visitante').textContent = d.visitante;
+
+  document.getElementById('card-filtros').innerHTML = d.filtros.map(f =>
+    `<div class="filter-tag"><span class="filter-code">${f.codigo}</span>${f.descripcion}</div>`
+  ).join('') || '<div style="font-size:12px;color:var(--muted);padding:4px">Sin filtros detectados</div>';
+
+  document.getElementById('card-mercados').innerHTML = d.mercados.map(m => {
+    const riskClass = m.riesgo <= 10 ? 'risk-low' : m.riesgo <= 20 ? 'risk-med' : 'risk-high';
+    return `<div class="market-row ${m.tipo}">
+      <div class="market-name">${m.nombre}</div>
+      <div><div class="prob-num">${m.prob}%</div><div class="prob-label">prob.</div></div>
+      <div><div class="risk-num ${riskClass}">${m.riesgo}%</div><div class="risk-label">riesgo</div></div>
+    </div>`;
+  }).join('');
+}
+
+function show(t,m){const e=document.getElementById('st');e.style.display='block';e.className='status '+t;e.textContent=m;}
 </script>
 </body>
 </html>

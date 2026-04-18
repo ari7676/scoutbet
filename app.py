@@ -13,7 +13,7 @@ HEADERS = {
 
 LIGAS = {
     "128": "Liga Profesional Argentina",
-    "71":  "Brasileirao Serie A",
+    "71":  "Brasileirao",
     "13":  "Copa Libertadores",
     "14":  "Copa Sudamericana",
     "39":  "Premier League",
@@ -55,6 +55,37 @@ def forma(team_id, temporada):
     url = f"{BASE_URL}/fixtures?team={team_id}&season={temporada}&from=2024-10-01&to=2024-11-30"
     r = requests.get(url, headers=HEADERS)
     return jsonify(r.json())
+
+@app.route("/analizar/<fixture_id>")
+def analizar(fixture_id):
+    from analisis import calcular_filtros, calcular_mercados
+
+    # Traer datos del partido
+    fx = requests.get(f"{BASE_URL}/fixtures?id={fixture_id}", headers=HEADERS).json()
+    if not fx["response"]:
+        return jsonify({"error": "Partido no encontrado"})
+
+    f = fx["response"][0]
+    home_id = f["teams"]["home"]["id"]
+    away_id = f["teams"]["away"]["id"]
+    season = f["league"]["season"]
+
+    # Traer forma de ambos equipos
+    forma_home = requests.get(
+        f"{BASE_URL}/fixtures?team={home_id}&season={season}&from=2024-09-01&to=2024-11-30",
+        headers=HEADERS
+    ).json().get("response", [])
+
+    forma_away = requests.get(
+        f"{BASE_URL}/fixtures?team={away_id}&season={season}&from=2024-09-01&to=2024-11-30",
+        headers=HEADERS
+    ).json().get("response", [])
+
+    # Calcular filtros y mercados
+    resultado = calcular_filtros(fx, forma_home, forma_away)
+    resultado["mercados"] = calcular_mercados(75, resultado["ajuste_total"])
+
+    return jsonify(resultado)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -83,7 +83,7 @@ def analizar(fixture_id):
 
     # Calcular filtros y mercados
     resultado = calcular_filtros(fx, forma_home, forma_away)
-    resultado["mercados"] = calcular_mercados(75, resultado["ajuste_total"])
+    resultado["mercados"] = calcular_mercados(resultado["prob_base"], resultado["ajuste_total"])
 
     return jsonify(resultado)
 

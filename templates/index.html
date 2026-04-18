@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScoutBet</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10;--surface:#111318;--surface2:#181c24;--border:#1e2430;
+    --gold:#f0b429;--green:#22c55e;--red:#ef4444;--text:#e8eaf0;--muted:#6b7280;--dim:#9ca3af;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;padding:24px;}
+  .brand{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold);letter-spacing:2px;margin-bottom:24px;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:700px;margin-bottom:16px;}
+  label{display:block;font-size:11px;color:var(--dim);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:1px;}
+  select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;margin-bottom:12px;outline:none;}
+  .btn{background:var(--gold);color:#0a0c10;border:none;border-radius:8px;padding:11px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;width:100%;}
+  .btn:disabled{opacity:0.4;}
+  .status{margin-top:12px;padding:10px 14px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;display:none;}
+  .ok{background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
+  .err{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
+  .loading{background:rgba(240,180,41,0.08);color:var(--gold);border:1px solid rgba(240,180,41,0.2);}
+  .results{display:none;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:700px;}
+  .match-item{padding:11px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .match-item:last-child{border-bottom:none;}
+  .match-teams{font-weight:600;font-size:13px;flex:1;}
+  .match-teams small{display:block;font-size:10px;color:var(--muted);margin-top:2px;}
+  .fid{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:2px 6px;border-radius:4px;}
+  .mdate{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);text-align:right;}
+  .section-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<div class="brand">⚡ ScoutBet</div>
+
+<div class="panel">
+  <div class="section-title">🔍 Buscar partidos</div>
+
+  <label>Liga</label>
+  <select id="liga">
+    {% for id, nombre in ligas.items() %}
+    <option value="{{ id }}">{{ nombre }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Temporada</label>
+  <select id="temporada">
+    <option value="2026">2026</option>
+<option value="2025">2025</option>
+<option value="2024">2024</option>
+  </select>
+
+  <button class="btn" id="btn" onclick="buscar()">→ Buscar partidos</button>
+  <div class="status" id="st"></div>
+</div>
+
+<div class="results" id="results">
+  <div class="section-title">Próximos partidos</div>
+  <div id="lista"></div>
+</div>
+
+<script>
+async function buscar(){
+  const liga = document.getElementById('liga').value;
+  const temp = document.getElementById('temporada').value;
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  show('loading', '⏳ Buscando partidos...');
+  document.getElementById('results').style.display = 'none';
+
+  try {
+    const r = await fetch(`/partidos/${liga}/${temp}`);
+    const data = await r.json();
+    const fx = data.response || [];
+
+    if (!fx.length) {
+      show('ok', '✓ Sin partidos próximos para esta liga. Probá otra.');
+      btn.disabled = false; return;
+    }
+
+    show('ok', `✓ ${fx.length} partidos encontrados`);
+    renderizar(fx);
+    document.getElementById('results').style.display = 'block';
+  } catch(e) {
+    show('err', '✗ Error: ' + e.message);
+  }
+  btn.disabled = false;
+}
+
+function renderizar(fx){
+  document.getElementById('lista').innerHTML = fx.map(f => {
+    const d = new Date(f.fixture.date);
+    const fecha = d.toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
+    const hora = d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+    return `<div class="match-item">
+      <div class="match-teams">
+        ${f.teams.home.name} <span style="color:var(--muted);font-weight:400">vs</span> ${f.teams.away.name}
+        <small>🏟 ${f.fixture.venue?.name || 'Por confirmar'}</small>
+      </div>
+      <div class="mdate">${fecha}<br>${hora}</div>
+      <div class="fid">#${f.fixture.id}</div>
+    </div>`;
+  }).join('');
+}
+
+function show(t, m){
+  const e = document.getElementById('st');
+  e.style.display = 'block'; e.className = 'status ' + t; e.textContent = m;
+}
+</script>
+</body>
+</html>

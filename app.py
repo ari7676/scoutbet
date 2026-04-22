@@ -56,7 +56,25 @@ def index():
 
 @app.route("/partidos/<codigo>")
 def partidos(codigo):
-    data=fd_get(f"/competitions/{codigo}/matches",{"status":"SCHEDULED","limit":50})
+    from datetime import datetime, timedelta
+    hoy = datetime.utcnow()
+    desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
+    hasta = (hoy + timedelta(days=30)).strftime("%Y-%m-%d")
+    data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "limit": 80})
+    if "error" in data: return jsonify({"response": [], "error": data["error"]})
+    matches = []
+    for m in data.get("matches", []):
+        refs = m.get("referees", [])
+        score = m.get("score", {}).get("fullTime", {})
+        estado = m["status"]
+        resultado = None
+        if estado == "FINISHED":
+            resultado = f"{score.get('home', 0)}-{score.get('away', 0)}"
+        matches.append({"id": m["id"], "fecha": m["utcDate"], "home": m["homeTeam"]["name"], "home_id": m["homeTeam"]["id"],
+            "away": m["awayTeam"]["name"], "away_id": m["awayTeam"]["id"], "jornada": m.get("matchday"),
+            "competicion": data.get("competition", {}).get("name", ""), "estado": estado,
+            "arbitro": refs[0]["name"] if refs else None, "resultado": resultado})
+    return jsonify({"response": matches, "total": len(matches)})
     if "error" in data: return jsonify({"response":[],"error":data["error"]})
     matches=[]
     for m in data.get("matches",[]):

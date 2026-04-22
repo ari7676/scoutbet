@@ -13,7 +13,7 @@
   --text:#e8eaf0;--muted:#6b7280;--dim:#9ca3af;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:auto;}
 
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface);}
 .brand{display:flex;align-items:center;gap:8px;font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);letter-spacing:2px;}
@@ -157,9 +157,10 @@ select:hover{border-color:var(--gold);}
 .verd-aprobados{margin-top:10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--green);}
 
 @media(max-width:768px){
-  .layout{grid-template-columns:1fr;}
-  .sidebar{max-height:35vh;}
-  .main-panel{padding:16px;}
+  .layout{grid-template-columns:1fr;height:auto;overflow:auto;}
+  .sidebar{max-height:40vh;overflow-y:auto;}
+  .main-panel{padding:16px;height:auto;overflow:visible;}
+}
   .filtros-grid,.u3-grid,.jug-grid{grid-template-columns:1fr;}
 }
 </style>

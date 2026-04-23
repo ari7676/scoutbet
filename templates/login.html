@@ -1,0 +1,42 @@
+Login · HTML
+Copiar
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MatchIQ · Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060d1f;--surface:#0c1529;--surface2:#132040;--border:#1e3060;--gold:#d4a537;--text:#e8eaf0;--muted:#7b8494;--red:#ef4444;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px;width:100%;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,.5);}
+.brand{display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold);letter-spacing:3px;margin-bottom:6px;}
+.brand svg{width:28px;height:28px;}
+.sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px;}
+label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600;}
+input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:18px;}
+input:focus{border-color:var(--gold);}
+.btn{width:100%;background:var(--gold);color:#060d1f;border:none;border-radius:8px;padding:12px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;}
+.btn:hover{background:#b8922e;}
+.err{background:rgba(239,68,68,.1);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:18px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>MATCHIQ</div>
+  <div class="sub">Acceso restringido</div>
+  {% if error %}<div class="err">{{error}}</div>{% endif %}
+  <form method="POST">
+    <label>Usuario</label>
+    <input type="text" name="user" required autofocus>
+    <label>Contraseña</label>
+    <input type="password" name="pass" required>
+    <button class="btn" type="submit">Ingresar</button>
+  </form>
+</div>
+</body>
+</html>
+ 

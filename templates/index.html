@@ -226,12 +226,7 @@ function renderAnalisis(data,match){
  
   // HEADER
   h+=`<div class="card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div class="card-title" style="margin-bottom:4px">${data.match.home} <span style="color:var(--dim);font-size:15px">vs</span> ${data.match.away}</div><div class="card-sub" style="margin-bottom:0">${data.match.competicion}${data.match.jornada?' · J'+data.match.jornada:''}</div></div><div style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)">${fecha}${data.arbitro?'<br>🟨 '+data.arbitro:''}</div></div>
-  <div class="filtros-nuevos">
-    <div class="fn-item"><div class="fn-title">Forma reciente</div><div class="fn-vals"><span class="fn-home">${f.Forma.home_val}</span><span class="fn-away">${f.Forma.away_val}</span></div><div class="fn-desc">${f.Forma.desc}</div></div>
-    <div class="fn-item"><div class="fn-title">Historial directo</div><div class="fn-vals"><span class="fn-home">${f.Historial.home_val}</span><span class="fn-away">${f.Historial.away_val}</span></div><div class="fn-desc">${f.Historial.desc}</div></div>
-    <div class="fn-item"><div class="fn-title">Localía vs Visita</div><div class="fn-vals"><span class="fn-home">${f.Localia.home_val}</span><span class="fn-away">${f.Localia.away_val}</span></div><div class="fn-desc">${f.Localia.desc}</div></div>
-    <div class="fn-item"><div class="fn-title">Posición tabla</div><div class="fn-vals"><span class="fn-home">${f.Posicion.home_val}</span><span class="fn-away">${f.Posicion.away_val}</span></div><div class="fn-desc">${f.Posicion.desc}</div></div>
-  </div>
+  
   <div class="prob-labels"><span>${data.match.home}</span><span>Empate</span><span>${data.match.away}</span></div>
   <div class="prob-bar"><div class="pb-home" style="width:${p.home}%">${p.home}%</div><div class="pb-draw" style="width:${p.draw}%">${p.draw}%</div><div class="pb-away" style="width:${p.away}%">${p.away}%</div></div>
   <div class="prob-cuotas"><span>@${p.cuota_home}</span><span>@${p.cuota_draw}</span><span>@${p.cuota_away}</span></div>

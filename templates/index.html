@@ -14,7 +14,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .brand svg{width:22px;height:22px;}
 .tb-right{display:flex;align-items:center;gap:12px;}
 select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;min-width:200px;}
-select:hover{border-color:var(--gold);}
 .logout-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;color:var(--muted);font-size:11px;text-decoration:none;font-family:'JetBrains Mono',monospace;}
 .logout-btn:hover{color:var(--red);border-color:var(--red);}
 .status-bar{padding:8px 20px;font-size:12px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--border);background:var(--surface);color:var(--green);display:none;}
@@ -48,6 +47,7 @@ select:hover{border-color:var(--gold);}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
 .card-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--gold);margin-bottom:12px;}
 .card-sub{font-size:12px;color:var(--muted);margin-bottom:16px;font-family:'JetBrains Mono',monospace;}
+ 
 /* FILTROS NUEVOS */
 .filtros-nuevos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;margin-bottom:14px;}
 .fn-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
@@ -55,17 +55,26 @@ select:hover{border-color:var(--gold);}
 .fn-vals{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
 .fn-home{font-size:14px;font-weight:700;color:var(--cyan);}.fn-away{font-size:14px;font-weight:700;color:var(--green);}
 .fn-desc{font-size:11px;color:var(--dim);line-height:1.5;margin-top:6px;font-style:italic;}
-/* PROB */
+ 
 .prob-bar{display:flex;height:34px;border-radius:6px;overflow:hidden;margin:10px 0;font-size:13px;font-weight:700;}
 .pb-home{background:var(--green);display:flex;align-items:center;justify-content:center;color:#060d1f;min-width:40px;}
 .pb-draw{background:var(--muted);display:flex;align-items:center;justify-content:center;color:#fff;min-width:40px;}
 .pb-away{background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;min-width:40px;}
 .prob-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:4px;font-weight:600;}
 .prob-cuotas{display:flex;justify-content:space-between;font-size:11px;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-top:4px;font-weight:700;}
-/* RESUMEN */
-.resumen-box{background:var(--surface2);border-radius:10px;padding:16px 18px;margin-top:14px;border-left:3px solid var(--gold);font-size:13px;color:var(--dim);line-height:1.8;}
-.resumen-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-weight:700;}
-/* resto igual */
+ 
+.resumen-box{background:var(--surface2);border-radius:10px;padding:18px 20px;margin-top:14px;border-left:3px solid var(--gold);font-size:13px;color:var(--dim);line-height:1.8;}
+.resumen-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;font-family:'JetBrains Mono',monospace;font-weight:700;}
+ 
+/* TEAM STATS BOXES */
+.team-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
+.ts-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.ts-header{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gold);letter-spacing:1px;margin-bottom:12px;text-transform:uppercase;}
+.ts-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(30,48,96,.5);}
+.ts-row:last-child{border-bottom:none;}
+.ts-lbl{font-size:13px;color:var(--dim);}
+.ts-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--text);}
+ 
 .u3-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .u3-col-title{font-size:13px;font-weight:700;margin-bottom:8px;}
 .u3-match{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:6px;margin-bottom:5px;font-size:13px;border-left:3px solid var(--border);}
@@ -111,7 +120,6 @@ select:hover{border-color:var(--gold);}
 .pgt-team{font-weight:700;font-size:13px;margin-bottom:8px;}
 .pgt-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;}
 .pgt-val{font-family:'JetBrains Mono',monospace;font-weight:700;}
-/* MERCADOS con cuota */
 .merc-header{display:grid;grid-template-columns:1fr 55px 55px 55px 1fr;gap:8px;padding:8px 14px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);margin-bottom:6px;font-weight:600;}
 .mercado-item{background:var(--surface2);border-radius:8px;margin-bottom:6px;border-left:3px solid transparent;}
 .mercado-item.aprobado{border-left-color:var(--green);}.mercado-item.marginal{border-left-color:var(--orange);}.mercado-item.rechazado{border-left-color:var(--border);opacity:.65;}
@@ -139,7 +147,7 @@ select:hover{border-color:var(--gold);}
   .layout{grid-template-columns:1fr;height:auto;overflow:auto;}
   .sidebar{max-height:40vh;overflow-y:auto;}
   .main-panel{padding:16px;height:auto;overflow:visible;}
-  .u3-grid,.jug-grid,.gt-grid,.pgt-grid,.filtros-nuevos{grid-template-columns:1fr;}
+  .u3-grid,.jug-grid,.gt-grid,.pgt-grid,.filtros-nuevos,.team-stats-grid{grid-template-columns:1fr;}
   .merc-header,.merc-row{grid-template-columns:1fr 50px 50px 50px;gap:6px;}
   .merc-header span:last-child,.merc-row>div:last-child{display:none;}
   .m-sint{font-size:11px;}
@@ -161,7 +169,7 @@ select:hover{border-color:var(--gold);}
     <div class="match-list-wrap" id="match-list"><div class="empty"><p>Cargando...</p></div></div>
     <div class="pag" id="pag"></div>
   </div>
-  <div class="main-panel" id="main-panel"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg><p>Seleccioná un partido para analizar</p></div></div>
+  <div class="main-panel" id="main-panel"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg><p>Seleccioná un partido</p></div></div>
 </div>
 <script>
 const $=s=>document.querySelector(s);
@@ -172,7 +180,7 @@ function showStatus(m,e){const el=$('#status-bar');el.textContent=m;el.className
 async function buscarPartidos(){
   const liga=$('#sel-liga').value;currentLiga=liga;currentPage=0;
   showStatus('Buscando partidos...');
-  try{const r=await fetch(`/partidos/${liga}`);const d=await r.json();matchesData=d.response||[];showStatus(`✓ ${matchesData.length} partidos encontrados`);renderPage();}
+  try{const r=await fetch(`/partidos/${liga}`);const d=await r.json();matchesData=d.response||[];showStatus(`✓ ${matchesData.length} partidos`);renderPage();}
   catch(e){showStatus('✗ '+e.message,true);}
 }
  
@@ -213,7 +221,7 @@ function renderAnalisis(data,match){
   const f=data.filtros;
   const p=data.probabilidades;
  
-  // HEADER + FILTROS NUEVOS
+  // HEADER
   h+=`<div class="card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div class="card-title" style="margin-bottom:4px">${data.match.home} <span style="color:var(--dim);font-size:15px">vs</span> ${data.match.away}</div><div class="card-sub" style="margin-bottom:0">${data.match.competicion}${data.match.jornada?' · J'+data.match.jornada:''}</div></div><div style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)">${fecha}${data.arbitro?'<br>🟨 '+data.arbitro:''}</div></div>
   <div class="filtros-nuevos">
     <div class="fn-item"><div class="fn-title">Forma reciente</div><div class="fn-vals"><span class="fn-home">${f.Forma.home_val}</span><span class="fn-away">${f.Forma.away_val}</span></div><div class="fn-desc">${f.Forma.desc}</div></div>
@@ -225,7 +233,30 @@ function renderAnalisis(data,match){
   <div class="prob-bar"><div class="pb-home" style="width:${p.home}%">${p.home}%</div><div class="pb-draw" style="width:${p.draw}%">${p.draw}%</div><div class="pb-away" style="width:${p.away}%">${p.away}%</div></div>
   <div class="prob-cuotas"><span>@${p.cuota_home}</span><span>@${p.cuota_draw}</span><span>@${p.cuota_away}</span></div>
   <div style="text-align:center;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim)">Goles esperados: <strong style="color:var(--gold);font-size:15px">${data.goles_esperados}</strong></div>`;
+ 
   if(data.resumen){h+=`<div class="resumen-box"><div class="resumen-label">Resumen pre-partido</div>${data.resumen}</div>`;}
+ 
+  // TEAM STATS BOXES
+  if(data.stats_equipo){
+    const ts=data.stats_equipo;
+    h+=`<div class="team-stats-grid">
+      <div class="ts-box"><div class="ts-header">${data.match.home}</div>
+        <div class="ts-row"><span class="ts-lbl">Posición</span><span class="ts-val" style="color:var(--gold)">${ts.home.posicion} · ${ts.home.puntos} pts</span></div>
+        <div class="ts-row"><span class="ts-lbl">Remates/PJ</span><span class="ts-val">${ts.home.remates_pj}</span></div>
+        <div class="ts-row"><span class="ts-lbl">Al arco/PJ</span><span class="ts-val">${ts.home.al_arco_pj}</span></div>
+        <div class="ts-row"><span class="ts-lbl">Goles/PJ</span><span class="ts-val" style="color:var(--green)">${ts.home.goles_pj}</span></div>
+        <div class="ts-row"><span class="ts-lbl">Goles rec./PJ</span><span class="ts-val" style="color:var(--red)">${ts.home.recibidos_pj}</span></div>
+      </div>
+      <div class="ts-box"><div class="ts-header">${data.match.away}</div>
+        <div class="ts-row"><span class="ts-lbl">Posición</span><span class="ts-val" style="color:var(--gold)">${ts.away.posicion} · ${ts.away.puntos} pts</span></div>
+        <div class="ts-row"><span class="ts-lbl">Remates/PJ</span><span class="ts-val">${ts.away.remates_pj}</span></div>
+        <div class="ts-row"><span class="ts-lbl">Al arco/PJ</span><span class="ts-val">${ts.away.al_arco_pj}</span></div>
+        <div class="ts-row"><span class="ts-lbl">Goles/PJ</span><span class="ts-val" style="color:var(--green)">${ts.away.goles_pj}</span></div>
+        <div class="ts-row"><span class="ts-lbl">Goles rec./PJ</span><span class="ts-val" style="color:var(--red)">${ts.away.recibidos_pj}</span></div>
+      </div>
+    </div>`;
+  }
+ 
   h+=`</div>`;
  
   h+=`<div class="card"><div class="card-title">Últimos 3 partidos</div><div class="u3-grid"><div><div class="u3-col-title">${data.match.home}</div>${renderU3(data.ultimos3.home)}</div><div><div class="u3-col-title">${data.match.away}</div>${renderU3(data.ultimos3.away)}</div></div></div>`;
@@ -250,7 +281,6 @@ function renderAnalisis(data,match){
   const aj=[...(data.jugadores.home||[]).map(j=>({...j,team:data.match.home})),...(data.jugadores.away||[]).map(j=>({...j,team:data.match.away}))];
   if(aj.length){h+=`<div class="card"><div class="card-title">Jugadores destacados</div><div class="jug-grid">`;aj.forEach(j=>{const ini=j.nombre.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();h+=`<div class="jug-card"><div class="jug-top"><div class="jug-avatar">${ini}</div><div><div class="jug-name">${j.nombre}</div><div class="jug-team">${j.team}</div></div></div><div class="jug-badges"><span class="jug-badge">${j.goles} GOL</span>${j.asistencias?`<span class="jug-badge asist">${j.asistencias} AST</span>`:''}<span class="jug-badge" style="background:rgba(212,165,55,.12);color:var(--gold)">${j.partidos} PJ</span></div>${j.mercado_sugerido?`<div class="jug-mercado">Mercado: ${j.mercado_sugerido}</div>`:''}<div class="jug-desc">${j.descripcion||''}</div><div class="jug-bar"><div class="jug-bar-fill" style="width:${Math.min(100,j.goles/20*100)}%"></div></div></div>`;});h+=`</div></div>`;}
  
-  // MERCADOS con cuota
   h+=`<div class="card"><div class="card-title">Mercados evaluados</div><div class="merc-header"><span>Mercado</span><span style="text-align:center">Prob.</span><span style="text-align:center">Riesgo</span><span style="text-align:center">Cuota</span><span>Síntesis</span></div>`;
   if(!data.mercados.length)h+=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Sin mercados</div>`;
   else data.mercados.forEach(m=>{let cls,bc,bt;if(m.aprobado){cls='aprobado';bc='si';bt='APROBADO';}else if(m.prob>=50){cls='marginal';bc='marginal';bt='MARGINAL';}else{cls='rechazado';bc='no';bt='NO APROBADO';}const pc=m.prob>=70?'high':m.prob>=55?'mid':'low';h+=`<div class="mercado-item ${cls}"><div class="merc-row"><div><div class="m-name">${m.mercado}</div><div class="m-tipo">${m.tipo} <span class="m-badge ${bc}">${bt}</span></div></div><div class="m-prob ${pc}">${m.prob}%</div><div class="m-riesgo">${m.riesgo}%</div><div class="m-cuota">@${m.cuota}</div><div class="m-sint">${m.sintesis||''}</div></div></div>`;});

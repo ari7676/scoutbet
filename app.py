@@ -27,13 +27,13 @@ AS_URL = "https://v3.football.api-sports.io"
 AS_HEADERS = {"x-apisports-key": AS_KEY}
 
 LIGAS = {
-    "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025},
-    "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025},
-    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025},
-    "BL1": {"nombre": "🇩🇪 Bundesliga",         "as_id": 78,  "season": 2025},
-    "FL1": {"nombre": "🇫🇷 Ligue 1",            "as_id": 61,  "season": 2025},
-    "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025},
-    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026},
+    "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025, "source": "fd"},
+    "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025, "source": "fd"},
+    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025, "source": "as"},
+    "BL1": {"nombre": "🇩🇪 Bundesliga",         "as_id": 78,  "season": 2025, "source": "fd"},
+    "FL1": {"nombre": "🇫🇷 Ligue 1",            "as_id": 61,  "season": 2025, "source": "fd"},
+    "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
+    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026, "source": "fd"},
 }
 
 _cache = {}
@@ -236,11 +236,10 @@ def index():
 @app.route("/partidos/<codigo>")
 @api_login_required
 def partidos(codigo):
-    hoy=datetime.utcnow()
-    desde=(hoy-timedelta(days=2)).strftime("%Y-%m-%d")
-    hasta=(hoy+timedelta(days=30)).strftime("%Y-%m-%d")
-    data=fd_get(f"/competitions/{codigo}/matches",{"dateFrom":desde,"dateTo":hasta,"limit":80})
-    if "error" in data: return jsonify({"response":[],"error":data["error"]})
+    liga = LIGAS.get(codigo, {})
+    source = liga.get("source", "fd")
+
+    hoy = datetime.utcnow()
 
     # Obtener predicciones ya guardadas
     conn = sqlite3.connect(DB_PATH)
@@ -249,36 +248,77 @@ def partidos(codigo):
     preds = {row[0]: {"mp_ok":row[1], "comb_ok":row[2], "verif":row[3]} for row in c.fetchall()}
     conn.close()
 
-    matches=[]
-    for m in data.get("matches",[]):
-        refs=m.get("referees",[])
-        score=m.get("score",{}).get("fullTime",{})
-        estado=m["status"]
-        resultado=f"{score.get('home',0)}-{score.get('away',0)}" if estado=="FINISHED" else None
-        pred = preds.get(m["id"])
+    matches = []
 
-        # Si termino y tenemos prediccion sin verificar, verificar ahora
-        if estado=="FINISHED" and pred and not pred["verif"]:
-            verify_prediction(m["id"], score.get('home',0), score.get('away',0))
-            # Refrescar
-            conn = sqlite3.connect(DB_PATH)
-            c = conn.cursor()
-            c.execute("SELECT mp_acertado, comb_acertado FROM predicciones WHERE match_id=?", (m["id"],))
-            r = c.fetchone()
-            conn.close()
-            if r:
-                pred["mp_ok"] = r[0]
-                pred["comb_ok"] = r[1]
-                pred["verif"] = 1
+    if source == "as":
+        # Usar api-sports
+        as_id = liga.get("as_id")
+        season = liga.get("season")
+        # Trae fixtures proximos y recientes
+        desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
+        hasta = (hoy + timedelta(days=30)).strftime("%Y-%m-%d")
+        data = as_get("/fixtures", {"league": as_id, "season": season, "from": desde, "to": hasta})
+        if "error" in data:
+            return jsonify({"response": [], "error": data["error"]})
+        for fx in data.get("response", []):
+            fixture = fx.get("fixture", {})
+            teams = fx.get("tx", {}) or fx.get("teams", {})
+            home_t = teams.get("home", {})
+            away_t = teams.get("away", {})
+            goals = fx.get("goals", {})
+            status = fixture.get("status", {}).get("short", "NS")
+            estado = "FINISHED" if status in ("FT", "AET", "PEN") else ("SCHEDULED" if status == "NS" else status)
+            resultado = f"{goals.get('home', 0)}-{goals.get('away', 0)}" if estado == "FINISHED" else None
+            mid = fixture.get("id")
+            pred = preds.get(mid)
+            if estado == "FINISHED" and pred and not pred["verif"]:
+                verify_prediction(mid, goals.get('home', 0), goals.get('away', 0))
+            matches.append({
+                "id": mid,
+                "fecha": fixture.get("date", ""),
+                "home": home_t.get("name", ""),
+                "home_id": home_t.get("id"),
+                "away": away_t.get("name", ""),
+                "away_id": away_t.get("id"),
+                "jornada": fx.get("league", {}).get("round", "").replace("Regular Season - ", "J"),
+                "competicion": liga.get("nombre", ""),
+                "estado": estado,
+                "arbitro": fixture.get("referee"),
+                "resultado": resultado,
+                "mp_acertado": pred["mp_ok"] if pred else None,
+                "comb_acertado": pred["comb_ok"] if pred else None,
+                "tiene_prediccion": pred is not None,
+            })
+    else:
+        # Football-data (default)
+        desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
+        hasta = (hoy + timedelta(days=30)).strftime("%Y-%m-%d")
+        data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "limit": 80})
+        if "error" in data:
+            return jsonify({"response": [], "error": data["error"]})
+        for m in data.get("matches", []):
+            refs = m.get("referees", [])
+            score = m.get("score", {}).get("fullTime", {})
+            estado = m["status"]
+            resultado = f"{score.get('home',0)}-{score.get('away',0)}" if estado == "FINISHED" else None
+            pred = preds.get(m["id"])
+            if estado == "FINISHED" and pred and not pred["verif"]:
+                verify_prediction(m["id"], score.get('home', 0), score.get('away', 0))
+            matches.append({
+                "id": m["id"], "fecha": m["utcDate"],
+                "home": m["homeTeam"]["name"], "home_id": m["homeTeam"]["id"],
+                "away": m["awayTeam"]["name"], "away_id": m["awayTeam"]["id"],
+                "jornada": m.get("matchday"),
+                "competicion": data.get("competition", {}).get("name", ""),
+                "estado": estado,
+                "arbitro": refs[0]["name"] if refs else None,
+                "resultado": resultado,
+                "mp_acertado": pred["mp_ok"] if pred else None,
+                "comb_acertado": pred["comb_ok"] if pred else None,
+                "tiene_prediccion": pred is not None,
+            })
 
-        matches.append({"id":m["id"],"fecha":m["utcDate"],"home":m["homeTeam"]["name"],"home_id":m["homeTeam"]["id"],
-            "away":m["awayTeam"]["name"],"away_id":m["awayTeam"]["id"],"jornada":m.get("matchday"),
-            "competicion":data.get("competition",{}).get("name",""),"estado":estado,
-            "arbitro":refs[0]["name"] if refs else None,"resultado":resultado,
-            "mp_acertado": pred["mp_ok"] if pred else None,
-            "comb_acertado": pred["comb_ok"] if pred else None,
-            "tiene_prediccion": pred is not None})
-    return jsonify({"response":matches,"total":len(matches)})
+    return jsonify({"response": matches, "total": len(matches)})
 
 
 @app.route("/estadisticas")
@@ -320,7 +360,238 @@ def estadisticas():
 
 
 def _do_analyze(codigo, match_id):
-    """Logica de analisis reutilizable."""
+    """Logica de analisis reutilizable. Detecta source de la liga."""
+    liga = LIGAS.get(codigo, {})
+    source = liga.get("source", "fd")
+    if source == "as":
+        return _do_analyze_as(codigo, match_id, liga)
+    return _do_analyze_fd(codigo, match_id)
+
+
+def _do_analyze_as(codigo, match_id, liga):
+    """Analisis usando api-sports (para Serie A)."""
+    as_id = liga.get("as_id")
+    season = liga.get("season")
+
+    # Detalle del partido
+    fx_data = as_get("/fixtures", {"id": match_id})
+    if "error" in fx_data or not fx_data.get("response"):
+        return {"error": "Partido no encontrado"}
+    fx = fx_data["response"][0]
+
+    fixture = fx.get("fixture", {})
+    teams = fx.get("teams", {})
+    home_t = teams.get("home", {})
+    away_t = teams.get("away", {})
+    hid = home_t.get("id")
+    aid = away_t.get("id")
+    hn = home_t.get("name", "")
+    an = away_t.get("name", "")
+    arbitro_name = fixture.get("referee")
+
+    # Standings
+    sd = as_get("/standings", {"league": as_id, "season": season})
+    standings = []
+    if not "error" in sd and sd.get("response"):
+        try:
+            standings = sd["response"][0]["league"]["standings"][0]
+        except: pass
+
+    hp = _find_as(standings, hid)
+    ap = _find_as(standings, aid)
+
+    # Stats por equipo
+    hs = as_get("/teams/statistics", {"league": as_id, "season": season, "team": hid}).get("response")
+    aws = as_get("/teams/statistics", {"league": as_id, "season": season, "team": aid}).get("response")
+
+    # Forma reciente (ultimos 10)
+    hfx = as_get("/fixtures", {"team": hid, "season": season, "league": as_id, "last": 10})
+    afx = as_get("/fixtures", {"team": aid, "season": season, "league": as_id, "last": 10})
+    hf = _forma_as(hfx.get("response", []), hid)
+    af = _forma_as(afx.get("response", []), aid)
+    hl3 = _u3_as(hfx.get("response", []), hid)
+    al3 = _u3_as(afx.get("response", []), aid)
+
+    # H2H
+    h2h_data = as_get("/fixtures/headtohead", {"h2h": f"{hid}-{aid}", "last": 5})
+    h2h = _h2h_as(h2h_data.get("response", []), hid, aid)
+
+    # Goleadores
+    sc_data = as_get("/players/topscorers", {"league": as_id, "season": season})
+    jh = _enrich(_jugadores_as(sc_data.get("response", []), hid), hn, hf)
+    ja = _enrich(_jugadores_as(sc_data.get("response", []), aid), an, af)
+
+    # Convertir hp/ap a estructura compatible con _analisis
+    hp_compat = _conv_pos_as(hp) if hp else None
+    ap_compat = _conv_pos_as(ap) if ap else None
+    hh_compat = _conv_local_as(hp, "home") if hp else None
+    aa_compat = _conv_local_as(ap, "away") if ap else None
+
+    arb_perfil = _arbitro_perfil(arbitro_name)
+    md_compat = {
+        "id": match_id,
+        "utcDate": fixture.get("date", ""),
+        "matchday": fx.get("league", {}).get("round", "").replace("Regular Season - ", ""),
+        "competition": {"name": liga.get("nombre", "")},
+        "homeTeam": {"id": hid, "name": hn},
+        "awayTeam": {"id": aid, "name": an},
+        "status": fixture.get("status", {}).get("short", "NS"),
+        "score": {"fullTime": fx.get("goals", {})},
+        "head2head": h2h,
+        "referees": [{"name": arbitro_name}] if arbitro_name else [],
+    }
+
+    resultado = _analisis(md_compat, hp_compat, ap_compat, hh_compat, aa_compat, hf, af, h2h, hn, an, standings)
+    resultado["arbitro"] = arbitro_name
+    resultado["arbitro_perfil"] = arb_perfil
+    resultado["ultimos3"] = {"home": hl3, "away": al3}
+    resultado["jugadores"] = {"home": jh, "away": ja}
+    resultado["stats_avanzadas"] = _adv(hs, aws, hn, an)
+    resultado["stats_equipo"] = {"home": _team_stats(hs, hp_compat, hf), "away": _team_stats(aws, ap_compat, af)}
+    resultado["resumen"] = _resumen(hn, an, hf, af, hp_compat, ap_compat, hh_compat, aa_compat, h2h, arbitro_name, arb_perfil, resultado, md_compat)
+
+    estado = md_compat.get("status", "")
+    if estado == "NS":
+        save_prediction(match_id, codigo, fixture.get("date", ""), hn, an, resultado["veredicto"])
+    elif estado in ("FT", "AET", "PEN"):
+        save_prediction(match_id, codigo, fixture.get("date", ""), hn, an, resultado["veredicto"])
+        goals = fx.get("goals", {})
+        if goals.get("home") is not None:
+            verify_prediction(match_id, goals["home"], goals["away"])
+    return resultado
+
+
+def _find_as(standings, tid):
+    for s in standings:
+        if s.get("team", {}).get("id") == tid: return s
+    return None
+
+
+def _conv_pos_as(s):
+    """Convierte standing api-sports a formato compatible."""
+    if not s: return None
+    return {
+        "team": {"id": s.get("team", {}).get("id"), "name": s.get("team", {}).get("name")},
+        "position": s.get("rank"),
+        "points": s.get("points", 0),
+        "playedGames": s.get("all", {}).get("played", 0),
+        "won": s.get("all", {}).get("win", 0),
+        "draw": s.get("all", {}).get("draw", 0),
+        "lost": s.get("all", {}).get("lose", 0),
+        "goalsFor": s.get("all", {}).get("goals", {}).get("for", 0),
+        "goalsAgainst": s.get("all", {}).get("goals", {}).get("against", 0),
+    }
+
+
+def _conv_local_as(s, side):
+    """Convierte stats home/away."""
+    if not s: return None
+    key = "home" if side == "home" else "away"
+    d = s.get(key, {})
+    return {
+        "team": {"id": s.get("team", {}).get("id")},
+        "playedGames": d.get("played", 0),
+        "won": d.get("win", 0),
+        "draw": d.get("draw", 0),
+        "lost": d.get("lose", 0),
+    }
+
+
+def _forma_as(fixtures, tid):
+    """Forma reciente a partir de fixtures de api-sports."""
+    if not fixtures:
+        return {"form":"","w":0,"d":0,"l":0,"gf":0,"gc":0,"matches":0,"ppg":0,"gf_avg":0,"gc_avg":0,"clean_sheets":0,"failed_to_score":0}
+    fixtures = sorted(fixtures, key=lambda x: x.get("fixture", {}).get("date", ""), reverse=True)[:10]
+    w=d=l=gf=gc=cs=fts=0; fs=""
+    for fx in fixtures:
+        teams = fx.get("teams", {})
+        goals = fx.get("goals", {})
+        hg, ag = goals.get("home"), goals.get("away")
+        if hg is None: continue
+        ih = teams.get("home", {}).get("id") == tid
+        my, th = (hg, ag) if ih else (ag, hg)
+        gf += my; gc += th
+        if th == 0: cs += 1
+        if my == 0: fts += 1
+        if my > th: w += 1; fs += "W"
+        elif my == th: d += 1; fs += "D"
+        else: l += 1; fs += "L"
+    t = w+d+l
+    return {"form":fs[:5],"w":w,"d":d,"l":l,"gf":gf,"gc":gc,"matches":t,
+        "ppg":round((w*3+d)/t,2) if t>0 else 0,
+        "gf_avg":round(gf/t,2) if t>0 else 0,
+        "gc_avg":round(gc/t,2) if t>0 else 0,
+        "clean_sheets":cs,"failed_to_score":fts}
+
+
+def _u3_as(fixtures, tid):
+    if not fixtures: return []
+    fixtures = sorted(fixtures, key=lambda x: x.get("fixture", {}).get("date", ""), reverse=True)[:3]
+    r = []
+    for fx in fixtures:
+        teams = fx.get("teams", {})
+        goals = fx.get("goals", {})
+        hg, ag = goals.get("home"), goals.get("away")
+        if hg is None: continue
+        ih = teams.get("home", {}).get("id") == tid
+        my, th = (hg, ag) if ih else (ag, hg)
+        res = "W" if my>th else ("D" if my==th else "L")
+        r.append({
+            "fecha": fx.get("fixture", {}).get("date", "")[:10],
+            "rival": teams.get("away", {}).get("name") if ih else teams.get("home", {}).get("name"),
+            "competicion": "SA",
+            "marcador": f"{hg}-{ag}",
+            "local": ih,
+            "resultado": res,
+        })
+    return r
+
+
+def _h2h_as(fixtures, hid, aid):
+    if not fixtures: return {"numberOfMatches": 0, "totalGoals": 0, "homeTeam": {"wins": 0, "draws": 0}, "awayTeam": {"wins": 0, "draws": 0}}
+    hw = aw = d = tg = 0
+    for fx in fixtures:
+        goals = fx.get("goals", {})
+        teams = fx.get("teams", {})
+        hg, ag = goals.get("home"), goals.get("away")
+        if hg is None: continue
+        tg += hg + ag
+        # Determinar quien gano segun el equipo "home" actual del partido
+        local_id = teams.get("home", {}).get("id")
+        if hg == ag: d += 1
+        elif (local_id == hid and hg > ag) or (local_id == aid and ag > hg):
+            hw += 1
+        else:
+            aw += 1
+    return {
+        "numberOfMatches": len(fixtures),
+        "totalGoals": tg,
+        "homeTeam": {"wins": hw, "draws": d},
+        "awayTeam": {"wins": aw, "draws": d},
+    }
+
+
+def _jugadores_as(scorers, tid):
+    j = []
+    for s in scorers:
+        stats = s.get("statistics", [{}])[0]
+        team = stats.get("team", {})
+        if team.get("id") != tid: continue
+        goals = stats.get("goals", {})
+        games = stats.get("games", {})
+        g = goals.get("total", 0) or 0
+        a = goals.get("assists", 0) or 0
+        p = games.get("appearences", 0) or games.get("appearances", 0) or 0
+        j.append({
+            "nombre": s.get("player", {}).get("name", ""),
+            "goles": g, "asistencias": a, "partidos": p,
+            "promedio": round(g/max(p, 1), 2),
+        })
+    return j[:3]
+
+
+def _do_analyze_fd(codigo, match_id):
+    """Logica original con football-data."""
     liga=LIGAS.get(codigo,{})
     md=fd_get(f"/matches/{match_id}")
     if "error" in md or "id" not in md: return {"error":"Partido no encontrado"}
@@ -374,12 +645,23 @@ def _do_analyze(codigo, match_id):
 @api_login_required
 def analizar_pendientes(codigo):
     """Analiza todos los partidos jugados de la liga que aun no tengan prediccion."""
+    liga = LIGAS.get(codigo, {})
+    source = liga.get("source", "fd")
     hoy = datetime.utcnow()
     desde = (hoy - timedelta(days=14)).strftime("%Y-%m-%d")
     hasta = hoy.strftime("%Y-%m-%d")
-    data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "status": "FINISHED", "limit": 100})
-    if "error" in data:
-        return jsonify({"error": data["error"], "procesados": 0})
+
+    fixtures_ids = []
+    if source == "as":
+        data = as_get("/fixtures", {"league": liga.get("as_id"), "season": liga.get("season"), "from": desde, "to": hasta, "status": "FT"})
+        if "error" in data:
+            return jsonify({"error": data["error"], "procesados": 0})
+        fixtures_ids = [fx.get("fixture", {}).get("id") for fx in data.get("response", []) if fx.get("fixture", {}).get("id")]
+    else:
+        data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "status": "FINISHED", "limit": 100})
+        if "error" in data:
+            return jsonify({"error": data["error"], "procesados": 0})
+        fixtures_ids = [m["id"] for m in data.get("matches", [])]
 
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -389,10 +671,10 @@ def analizar_pendientes(codigo):
 
     procesados = 0
     errores = 0
-    pendientes = [m for m in data.get("matches", []) if m["id"] not in ya_verif]
-    for m in pendientes:
+    pendientes = [mid for mid in fixtures_ids if mid not in ya_verif]
+    for mid in pendientes:
         try:
-            r = _do_analyze(codigo, m["id"])
+            r = _do_analyze(codigo, mid)
             if "error" not in r:
                 procesados += 1
             else:
@@ -400,7 +682,7 @@ def analizar_pendientes(codigo):
             time.sleep(0.6)
         except Exception as e:
             errores += 1
-            print(f"Error analizando {m['id']}: {e}")
+            print(f"Error analizando {mid}: {e}")
 
     return jsonify({"procesados": procesados, "errores": errores, "total": len(pendientes)})
 

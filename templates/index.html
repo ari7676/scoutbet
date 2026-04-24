@@ -160,6 +160,7 @@ select{background:var(--surface2);border:1px solid var(--border);border-radius:8
   <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>MATCHIQ</div>
   <div class="tb-right">
     <select id="sel-liga" onchange="buscarPartidos()">{% for k,v in ligas.items() %}<option value="{{k}}">{{v}}</option>{% endfor %}</select>
+    <button class="logout-btn" onclick="analizarPendientes()" style="cursor:pointer;color:var(--cyan);border-color:var(--cyan)">⚡ ANALIZAR JUGADOS</button>
     <button class="logout-btn" onclick="mostrarStats()" style="cursor:pointer;color:var(--gold);border-color:var(--gold)">📊 STATS</button>
     <a href="/logout" class="logout-btn">SALIR</a>
   </div>
@@ -184,6 +185,18 @@ async function buscarPartidos(){
   showStatus('Buscando partidos...');
   try{const r=await fetch(`/partidos/${liga}`);const d=await r.json();matchesData=d.response||[];showStatus(`✓ ${matchesData.length} partidos`);renderPage();}
   catch(e){showStatus('✗ '+e.message,true);}
+}
+
+async function analizarPendientes(){
+  const liga=$('#sel-liga').value;
+  if(!confirm('Esto va a analizar todos los partidos jugados de esta liga (puede tardar varios minutos). ¿Continuar?'))return;
+  showStatus('Analizando partidos pendientes... esto puede tardar varios minutos.');
+  try{
+    const r=await fetch(`/analizar_pendientes/${liga}`);const d=await r.json();
+    if(d.error){showStatus('✗ '+d.error,true);return;}
+    showStatus(`✓ Procesados: ${d.procesados} de ${d.total}${d.errores?` (${d.errores} errores)`:''}`);
+    setTimeout(()=>buscarPartidos(),1500);
+  }catch(e){showStatus('✗ '+e.message,true);}
 }
 
 async function mostrarStats(){

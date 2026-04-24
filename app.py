@@ -319,12 +319,11 @@ def estadisticas():
     })
 
 
-@app.route("/analizar/<codigo>/<int:match_id>")
-@api_login_required
-def analizar(codigo, match_id):
+def _do_analyze(codigo, match_id):
+    """Logica de analisis reutilizable."""
     liga=LIGAS.get(codigo,{})
     md=fd_get(f"/matches/{match_id}")
-    if "error" in md or "id" not in md: return jsonify({"error":"Partido no encontrado"})
+    if "error" in md or "id" not in md: return {"error":"Partido no encontrado"}
     hid,aid=md["homeTeam"]["id"],md["awayTeam"]["id"]
     hn,an=md["homeTeam"]["name"],md["awayTeam"]["name"]
     sd=fd_get(f"/competitions/{codigo}/standings")
@@ -360,18 +359,57 @@ def analizar(codigo, match_id):
     resultado["stats_equipo"]={"home":_team_stats(hs,hp,hf),"away":_team_stats(aws,ap,af)}
     resultado["resumen"]=_resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arbitro_name,arb_perfil,resultado,md)
 
-    # Guardar prediccion (solo si el partido aun no ocurrio)
     estado = md.get("status", "")
     if estado in ("SCHEDULED", "TIMED"):
         save_prediction(match_id, codigo, md.get("utcDate",""), hn, an, resultado["veredicto"])
     elif estado == "FINISHED":
-        # Si ya termino, guardar y verificar
         save_prediction(match_id, codigo, md.get("utcDate",""), hn, an, resultado["veredicto"])
         score = md.get("score",{}).get("fullTime",{})
         if score.get("home") is not None:
             verify_prediction(match_id, score["home"], score["away"])
+    return resultado
 
-    return jsonify(resultado)
+
+@app.route("/analizar_pendientes/<codigo>")
+@api_login_required
+def analizar_pendientes(codigo):
+    """Analiza todos los partidos jugados de la liga que aun no tengan prediccion."""
+    hoy = datetime.utcnow()
+    desde = (hoy - timedelta(days=14)).strftime("%Y-%m-%d")
+    hasta = hoy.strftime("%Y-%m-%d")
+    data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "status": "FINISHED", "limit": 100})
+    if "error" in data:
+        return jsonify({"error": data["error"], "procesados": 0})
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT match_id FROM predicciones WHERE verificado=1")
+    ya_verif = {row[0] for row in c.fetchall()}
+    conn.close()
+
+    procesados = 0
+    errores = 0
+    pendientes = [m for m in data.get("matches", []) if m["id"] not in ya_verif]
+    for m in pendientes:
+        try:
+            r = _do_analyze(codigo, m["id"])
+            if "error" not in r:
+                procesados += 1
+            else:
+                errores += 1
+            time.sleep(0.6)
+        except Exception as e:
+            errores += 1
+            print(f"Error analizando {m['id']}: {e}")
+
+    return jsonify({"procesados": procesados, "errores": errores, "total": len(pendientes)})
+
+
+@app.route("/analizar/<codigo>/<int:match_id>")
+@api_login_required
+def analizar(codigo, match_id):
+    r = _do_analyze(codigo, match_id)
+    return jsonify(r)
 
 
 def _team_stats(as_stats, pos, forma):

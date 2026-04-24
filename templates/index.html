@@ -1,6 +1,3 @@
-Index · HTML
-Copiar
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -37,6 +34,7 @@ select{background:var(--surface2);border:1px solid var(--border);border-radius:8
 .mi-jugado{color:var(--green);}
 .mi-badge{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;padding:3px 7px;border-radius:4px;font-weight:600;display:none;}
 .mi-badge.show{display:block;}.mi-badge.aprobado{background:rgba(34,197,94,.15);color:var(--green);}.mi-badge.pendiente{background:rgba(212,165,55,.1);color:var(--gold);}
+.mi-badge.fallado{background:rgba(239,68,68,.15);color:var(--red);}
 .pag{display:flex;justify-content:center;gap:6px;padding:10px;border-top:1px solid var(--border);flex-wrap:wrap;}
 .pag-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;color:var(--dim);font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
 .pag-btn:hover{border-color:var(--gold);color:var(--gold);}.pag-btn.active{background:var(--gold);color:#060d1f;border-color:var(--gold);}
@@ -50,7 +48,7 @@ select{background:var(--surface2);border:1px solid var(--border);border-radius:8
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
 .card-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--gold);margin-bottom:12px;}
 .card-sub{font-size:12px;color:var(--muted);margin-bottom:16px;font-family:'JetBrains Mono',monospace;}
- 
+
 /* FILTROS NUEVOS */
 .filtros-nuevos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;margin-bottom:14px;}
 .fn-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
@@ -58,17 +56,17 @@ select{background:var(--surface2);border:1px solid var(--border);border-radius:8
 .fn-vals{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
 .fn-home{font-size:14px;font-weight:700;color:var(--cyan);}.fn-away{font-size:14px;font-weight:700;color:var(--green);}
 .fn-desc{font-size:11px;color:var(--dim);line-height:1.5;margin-top:6px;font-style:italic;}
- 
+
 .prob-bar{display:flex;height:34px;border-radius:6px;overflow:hidden;margin:10px 0;font-size:13px;font-weight:700;}
 .pb-home{background:var(--green);display:flex;align-items:center;justify-content:center;color:#060d1f;min-width:40px;}
 .pb-draw{background:var(--muted);display:flex;align-items:center;justify-content:center;color:#fff;min-width:40px;}
 .pb-away{background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;min-width:40px;}
 .prob-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:4px;font-weight:600;}
 .prob-cuotas{display:flex;justify-content:space-between;font-size:11px;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-top:4px;font-weight:700;}
- 
+
 .resumen-box{background:var(--surface2);border-radius:10px;padding:18px 20px;margin-top:14px;border-left:3px solid var(--gold);font-size:13px;color:var(--dim);line-height:1.8;}
 .resumen-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;font-family:'JetBrains Mono',monospace;font-weight:700;}
- 
+
 /* TEAM STATS BOXES */
 .team-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
 .ts-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;}
@@ -77,7 +75,7 @@ select{background:var(--surface2);border:1px solid var(--border);border-radius:8
 .ts-row:last-child{border-bottom:none;}
 .ts-lbl{font-size:13px;color:var(--dim);}
 .ts-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--text);}
- 
+
 .u3-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .u3-col-title{font-size:13px;font-weight:700;margin-bottom:8px;}
 .u3-match{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:6px;margin-bottom:5px;font-size:13px;border-left:3px solid var(--border);}
@@ -162,6 +160,7 @@ select{background:var(--surface2);border:1px solid var(--border);border-radius:8
   <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>MATCHIQ</div>
   <div class="tb-right">
     <select id="sel-liga" onchange="buscarPartidos()">{% for k,v in ligas.items() %}<option value="{{k}}">{{v}}</option>{% endfor %}</select>
+    <button class="logout-btn" onclick="mostrarStats()" style="cursor:pointer;color:var(--gold);border-color:var(--gold)">📊 STATS</button>
     <a href="/logout" class="logout-btn">SALIR</a>
   </div>
 </div>
@@ -179,14 +178,42 @@ const $=s=>document.querySelector(s);
 let currentLiga='',matchesData=[],analysisCache={},currentPage=0;
 const PER_PAGE=10;
 function showStatus(m,e){const el=$('#status-bar');el.textContent=m;el.className='status-bar'+(e?' err':'');el.style.display='block';}
- 
+
 async function buscarPartidos(){
   const liga=$('#sel-liga').value;currentLiga=liga;currentPage=0;
   showStatus('Buscando partidos...');
   try{const r=await fetch(`/partidos/${liga}`);const d=await r.json();matchesData=d.response||[];showStatus(`✓ ${matchesData.length} partidos`);renderPage();}
   catch(e){showStatus('✗ '+e.message,true);}
 }
- 
+
+async function mostrarStats(){
+  try{
+    const r=await fetch('/estadisticas');const s=await r.json();
+    const html=`
+      <div style="max-width:600px;margin:40px auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:30px">
+        <h2 style="font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:28px;letter-spacing:1px;margin-bottom:20px">📊 Estadísticas de aciertos</h2>
+        <div style="background:var(--surface2);border-radius:10px;padding:20px;margin-bottom:14px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Total verificados</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;color:var(--gold)">${s.total_verificados}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="background:var(--surface2);border-radius:10px;padding:20px;border-left:3px solid var(--green)">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Mercado Principal</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--green)">${s.mp_pct}%</div>
+            <div style="font-size:12px;color:var(--dim);margin-top:6px">${s.mp_aciertos} de ${s.mp_total} acertados</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:10px;padding:20px;border-left:3px solid var(--orange)">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Combinable</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--orange)">${s.comb_pct}%</div>
+            <div style="font-size:12px;color:var(--dim);margin-top:6px">${s.comb_aciertos} de ${s.comb_total} acertados</div>
+          </div>
+        </div>
+        <button onclick="document.querySelector('#sel-liga').dispatchEvent(new Event('change'))" style="margin-top:20px;background:var(--gold);color:#060d1f;border:none;border-radius:8px;padding:10px 20px;font-weight:700;cursor:pointer">← Volver</button>
+      </div>`;
+    $('#main-panel').innerHTML=html;
+  }catch(e){showStatus('✗ '+e.message,true);}
+}
+
 function renderPage(){
   const total=matchesData.length,pages=Math.ceil(total/PER_PAGE),start=currentPage*PER_PAGE,slice=matchesData.slice(start,start+PER_PAGE);
   $('#sb-count').textContent=total;
@@ -195,16 +222,35 @@ function renderPage(){
   list.innerHTML=slice.map((m,i)=>{
     const idx=start+i,d=new Date(m.fecha),ds=d.toLocaleDateString('es-AR',{day:'2-digit',month:'short'}),ts=d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
     const finished=m.estado==='FINISHED';
-    const c=analysisCache[m.id];let badge='';
-    if(c){const n=c.veredicto.total_aprobados;badge=n>0?`<div class="mi-badge show aprobado">${n} ✓</div>`:`<div class="mi-badge show pendiente">—</div>`;}
-    return`<div class="match-item${finished?' finished':''}" data-idx="${idx}" onclick="analizarMatch(${idx})"><div class="mi-teams">${m.home} <span>vs</span> ${m.away}${m.resultado?` <span class="mi-result">${m.resultado}</span>`:''}</div><div class="mi-meta"><span>${ds}</span><span>${ts}</span>${m.jornada?`<span>J${m.jornada}</span>`:''}${finished?'<span class="mi-jugado">✓ Jugado</span>':''}${m.arbitro?`<span>🟨 ${m.arbitro}</span>`:''}</div>${badge}</div>`;
+    let badge='';
+    // Si tiene prediccion y esta verificado, mostrar ✓ o ✗
+    if(finished && m.tiene_prediccion){
+      if(m.mp_acertado===1)badge='<div class="mi-badge show aprobado">MP ✓</div>';
+      else if(m.mp_acertado===0)badge='<div class="mi-badge show fallado">MP ✗</div>';
+    }else{
+      const c=analysisCache[m.id];
+      if(c){const n=c.veredicto.total_aprobados;badge=n>0?`<div class="mi-badge show aprobado">${n} ✓</div>`:`<div class="mi-badge show pendiente">—</div>`;}
+    }
+    // Info de aciertos si esta finalizado y verificado
+    let acierto_info='';
+    if(finished && m.tiene_prediccion && (m.mp_acertado!==null || m.comb_acertado!==null)){
+      const mp_icon = m.mp_acertado===1?'✓':m.mp_acertado===0?'✗':'—';
+      const mp_color = m.mp_acertado===1?'var(--green)':m.mp_acertado===0?'var(--red)':'var(--muted)';
+      acierto_info=`<span style="color:${mp_color};font-weight:700">Principal ${mp_icon}</span>`;
+      if(m.comb_acertado!==null){
+        const comb_icon = m.comb_acertado===1?'✓':m.comb_acertado===0?'✗':'—';
+        const comb_color = m.comb_acertado===1?'var(--green)':m.comb_acertado===0?'var(--red)':'var(--muted)';
+        acierto_info += ` · <span style="color:${comb_color};font-weight:700">Comb. ${comb_icon}</span>`;
+      }
+    }
+    return`<div class="match-item${finished?' finished':''}" data-idx="${idx}" onclick="analizarMatch(${idx})"><div class="mi-teams">${m.home} <span>vs</span> ${m.away}${m.resultado?` <span class="mi-result">${m.resultado}</span>`:''}</div><div class="mi-meta"><span>${ds}</span><span>${ts}</span>${m.jornada?`<span>J${m.jornada}</span>`:''}${finished?'<span class="mi-jugado">✓ Jugado</span>':''}${m.arbitro?`<span>🟨 ${m.arbitro}</span>`:''}</div>${acierto_info?`<div class="mi-meta" style="margin-top:3px">${acierto_info}</div>`:''}${badge}</div>`;
   }).join('');
   let pb='';
   if(pages>1){for(let p=0;p<pages;p++)pb+=`<button class="pag-btn${p===currentPage?' active':''}" onclick="goPage(${p})">${p+1}</button>`;}
   $('#pag').innerHTML=pb;
 }
 function goPage(p){currentPage=p;renderPage();}
- 
+
 async function analizarMatch(idx){
   const m=matchesData[idx];if(!m)return;
   document.querySelectorAll('.match-item').forEach(el=>el.classList.remove('active'));
@@ -216,24 +262,23 @@ async function analizarMatch(idx){
     analysisCache[m.id]=d;renderAnalisis(d,m);renderPage();
   }catch(e){$('#main-panel').innerHTML=`<div class="empty"><p>✗ ${e.message}</p></div>`;}
 }
- 
+
 function renderAnalisis(data,match){
   const d=new Date(match.fecha);
   const fecha=d.toLocaleDateString('es-AR',{weekday:'short',day:'2-digit',month:'short'})+' · '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
   let h='';
   const f=data.filtros;
   const p=data.probabilidades;
- 
+
   // HEADER
   h+=`<div class="card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div class="card-title" style="margin-bottom:4px">${data.match.home} <span style="color:var(--dim);font-size:15px">vs</span> ${data.match.away}</div><div class="card-sub" style="margin-bottom:0">${data.match.competicion}${data.match.jornada?' · J'+data.match.jornada:''}</div></div><div style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)">${fecha}${data.arbitro?'<br>🟨 '+data.arbitro:''}</div></div>
-  
-  <div class="prob-labels"><span>${data.match.home}</span><span>Empate</span><span>${data.match.away}</span></div>
+  <div style="margin-top:14px" class="prob-labels"><span>${data.match.home}</span><span>Empate</span><span>${data.match.away}</span></div>
   <div class="prob-bar"><div class="pb-home" style="width:${p.home}%">${p.home}%</div><div class="pb-draw" style="width:${p.draw}%">${p.draw}%</div><div class="pb-away" style="width:${p.away}%">${p.away}%</div></div>
   <div class="prob-cuotas"><span>@${p.cuota_home}</span><span>@${p.cuota_draw}</span><span>@${p.cuota_away}</span></div>
   <div style="text-align:center;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim)">Goles esperados: <strong style="color:var(--gold);font-size:15px">${data.goles_esperados}</strong></div>`;
- 
+
   if(data.resumen){h+=`<div class="resumen-box"><div class="resumen-label">Resumen pre-partido</div>${data.resumen}</div>`;}
- 
+
   // TEAM STATS BOXES
   if(data.stats_equipo){
     const ts=data.stats_equipo;
@@ -254,45 +299,45 @@ function renderAnalisis(data,match){
       </div>
     </div>`;
   }
- 
+
   h+=`</div>`;
- 
+
   h+=`<div class="card"><div class="card-title">Últimos 3 partidos</div><div class="u3-grid"><div><div class="u3-col-title">${data.match.home}</div>${renderU3(data.ultimos3.home)}</div><div><div class="u3-col-title">${data.match.away}</div>${renderU3(data.ultimos3.away)}</div></div></div>`;
- 
+
   if(data.arbitro){const ap=data.arbitro_perfil;h+=`<div class="card"><div class="card-title">Árbitro</div><div class="arb-box"><div class="arb-icon">🟨</div><div><div class="arb-name">${data.arbitro}</div><div class="arb-label">Árbitro principal</div>${ap&&ap.descripcion?`<div class="arb-desc">${ap.descripcion}</div>`:''}</div></div></div>`;}
- 
+
   h+=`<div class="card"><div class="card-title">Forma reciente (últimos 10)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">${fp(data.match.home,data.forma.home)}${fp(data.match.away,data.forma.away)}</div></div>`;
- 
+
   if(data.h2h.total>0)h+=`<div class="card"><div class="card-title">Head to Head</div><div class="card-sub">${data.h2h.total} partidos · ${data.h2h.total_goals} goles</div><div class="h2h-row"><div class="h2h-item"><div class="h2h-val" style="color:var(--green)">${data.h2h.home_wins}</div><div class="h2h-lbl">${data.match.home}</div></div><div class="h2h-item"><div class="h2h-val">${data.h2h.draws}</div><div class="h2h-lbl">Empates</div></div><div class="h2h-item"><div class="h2h-val" style="color:var(--red)">${data.h2h.away_wins}</div><div class="h2h-lbl">${data.match.away}</div></div></div></div>`;
- 
+
   if(data.posiciones.home||data.posiciones.away)h+=`<div class="card"><div class="card-title">Posiciones</div><div class="h2h-row"><div class="h2h-item"><div class="h2h-val" style="color:var(--gold)">#${data.posiciones.home||'—'}</div><div class="h2h-lbl">${data.match.home} · ${data.posiciones.home_pts||0}pts<br>GF:${data.posiciones.home_gf||0} GC:${data.posiciones.home_gc||0}</div></div><div class="h2h-item"><div class="h2h-val" style="color:var(--gold)">#${data.posiciones.away||'—'}</div><div class="h2h-lbl">${data.match.away} · ${data.posiciones.away_pts||0}pts<br>GF:${data.posiciones.away_gf||0} GC:${data.posiciones.away_gc||0}</div></div></div></div>`;
- 
+
   const sa=data.stats_avanzadas;
   if(sa&&sa.comparativas&&sa.comparativas.length){h+=`<div class="card"><div class="card-title">Estadística predictiva</div>`;sa.comparativas.forEach(c=>{h+=`<div class="comp-item"><div class="comp-label">${c.label}</div><div class="comp-bar"><div class="comp-home" style="width:${c.home}%"></div><div class="comp-away" style="width:${c.away}%"></div></div><div class="comp-vals"><span class="h">${c.home}%</span><span class="a">${c.away}%</span></div></div>`;});h+=`</div>`;}
- 
+
   if(sa&&sa.goles_por_tiempo)h+=`<div class="card"><div class="card-title">Distribución temporal de goles</div><div class="gt-grid">${gc(data.match.home,sa.goles_por_tiempo.home,'var(--cyan)')}${gc(data.match.away,sa.goles_por_tiempo.away,'var(--green)')}</div></div>`;
- 
+
   if(sa&&sa.prob_gol_tiempo){const pg=sa.prob_gol_tiempo;h+=`<div class="card"><div class="card-title">Probabilidad de gol por tiempo</div><div class="pgt-grid"><div class="pgt-box"><div class="pgt-team" style="color:var(--cyan)">${data.match.home}</div><div class="pgt-row"><span>Gol en 1er tiempo</span><span class="pgt-val" style="color:var(--cyan)">${pg.home_1st}%</span></div><div class="pgt-row"><span>Gol en 2do tiempo</span><span class="pgt-val" style="color:var(--gold)">${pg.home_2nd}%</span></div></div><div class="pgt-box"><div class="pgt-team" style="color:var(--green)">${data.match.away}</div><div class="pgt-row"><span>Gol en 1er tiempo</span><span class="pgt-val" style="color:var(--green)">${pg.away_1st}%</span></div><div class="pgt-row"><span>Gol en 2do tiempo</span><span class="pgt-val" style="color:var(--gold)">${pg.away_2nd}%</span></div></div></div></div>`;}
- 
+
   if(sa&&sa.tarjetas){const t=sa.tarjetas;h+=`<div class="card"><div class="card-title">Tarjetas en la temporada</div><div class="h2h-row"><div class="h2h-item"><div class="h2h-val" style="color:var(--orange)">${t.home_yellow}</div><div class="h2h-lbl">${data.match.home} 🟨<br>${t.home_yellow_avg}/P</div></div><div class="h2h-item"><div class="h2h-val" style="color:var(--orange)">${t.away_yellow}</div><div class="h2h-lbl">${data.match.away} 🟨<br>${t.away_yellow_avg}/P</div></div><div class="h2h-item"><div class="h2h-val" style="color:var(--red)">${t.home_red}</div><div class="h2h-lbl">${data.match.home} 🟥</div></div><div class="h2h-item"><div class="h2h-val" style="color:var(--red)">${t.away_red}</div><div class="h2h-lbl">${data.match.away} 🟥</div></div></div></div>`;}
- 
+
   const aj=[...(data.jugadores.home||[]).map(j=>({...j,team:data.match.home})),...(data.jugadores.away||[]).map(j=>({...j,team:data.match.away}))];
   if(aj.length){h+=`<div class="card"><div class="card-title">Jugadores destacados</div><div class="jug-grid">`;aj.forEach(j=>{const ini=j.nombre.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();h+=`<div class="jug-card"><div class="jug-top"><div class="jug-avatar">${ini}</div><div><div class="jug-name">${j.nombre}</div><div class="jug-team">${j.team}</div></div></div><div class="jug-badges"><span class="jug-badge">${j.goles} GOL</span>${j.asistencias?`<span class="jug-badge asist">${j.asistencias} AST</span>`:''}<span class="jug-badge" style="background:rgba(212,165,55,.12);color:var(--gold)">${j.partidos} PJ</span></div>${j.mercado_sugerido?`<div class="jug-mercado">Mercado: ${j.mercado_sugerido}</div>`:''}<div class="jug-desc">${j.descripcion||''}</div><div class="jug-bar"><div class="jug-bar-fill" style="width:${Math.min(100,j.goles/20*100)}%"></div></div></div>`;});h+=`</div></div>`;}
- 
+
   h+=`<div class="card"><div class="card-title">Mercados evaluados</div><div class="merc-header"><span>Mercado</span><span style="text-align:center">Prob.</span><span style="text-align:center">Riesgo</span><span style="text-align:center">Cuota</span><span>Síntesis</span></div>`;
   if(!data.mercados.length)h+=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Sin mercados</div>`;
   else data.mercados.forEach(m=>{let cls,bc,bt;if(m.aprobado){cls='aprobado';bc='si';bt='APROBADO';}else if(m.prob>=50){cls='marginal';bc='marginal';bt='MARGINAL';}else{cls='rechazado';bc='no';bt='NO APROBADO';}const pc=m.prob>=70?'high':m.prob>=55?'mid':'low';h+=`<div class="mercado-item ${cls}"><div class="merc-row"><div><div class="m-name">${m.mercado}</div><div class="m-tipo">${m.tipo} <span class="m-badge ${bc}">${bt}</span></div></div><div class="m-prob ${pc}">${m.prob}%</div><div class="m-riesgo">${m.riesgo}%</div><div class="m-cuota">@${m.cuota}</div><div class="m-sint">${m.sintesis||''}</div></div></div>`;});
   h+=`</div>`;
- 
+
   if(data.veredicto){const v=data.veredicto;h+=`<div class="veredicto"><div class="verd-label">Veredicto final</div><div class="verd-titulo">${v.favorito?`Victoria de ${v.favorito} en tiempo reglamentario`:'Partido parejo — sin favorito claro'}</div><div class="verd-texto">${v.texto}</div><div class="verd-section"><div class="verd-mp-label">Mercado principal</div><div class="verd-mp">${v.mercado_principal}</div>${v.combinable?`<div class="verd-comb-label">Combinable</div><div class="verd-comb">${v.combinable}</div>`:''}</div><div class="verd-aprobados">Mercados aprobados: ${v.mercados_aprobados}</div></div>`;}
- 
+
   $('#main-panel').innerHTML=h;
 }
- 
+
 function renderU3(m){if(!m||!m.length)return'<div style="color:var(--muted);font-size:12px;padding:8px">Sin datos</div>';return m.map(x=>`<div class="u3-match ${x.resultado}"><div><span class="u3-fecha">${new Date(x.fecha).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'})}</span> <span>${x.local?'vs':'@'} ${x.rival}</span> <span class="u3-comp">(${x.competicion})</span></div><div class="u3-score ${x.resultado}">${x.marcador}</div></div>`).join('');}
 function fp(n,f){return`<div><div style="font-size:13px;font-weight:700;margin-bottom:6px">${n}</div><div class="forma-row">${f.form?f.form.split('').map(c=>`<div class="f-dot ${c}">${c}</div>`).join(''):'<span style="color:var(--muted);font-size:11px">Sin datos</span>'}</div><div class="stats-row"><div class="stat-box"><div class="stat-val" style="color:var(--green)">${f.w}</div><div class="stat-lbl">Ganados</div></div><div class="stat-box"><div class="stat-val">${f.d}</div><div class="stat-lbl">Empates</div></div><div class="stat-box"><div class="stat-val" style="color:var(--red)">${f.l}</div><div class="stat-lbl">Perdidos</div></div></div><div class="stats-row"><div class="stat-box"><div class="stat-val">${f.gf_avg}</div><div class="stat-lbl">GF/P</div></div><div class="stat-box"><div class="stat-val">${f.gc_avg}</div><div class="stat-lbl">GC/P</div></div><div class="stat-box"><div class="stat-val" style="color:var(--gold)">${f.ppg}</div><div class="stat-lbl">PPG</div></div></div><div class="stats-row"><div class="stat-box"><div class="stat-val">${f.clean_sheets}</div><div class="stat-lbl">Valla 0</div></div><div class="stat-box"><div class="stat-val">${f.failed_to_score}</div><div class="stat-lbl">Sin gol</div></div><div class="stat-box"><div class="stat-val">${f.gf}</div><div class="stat-lbl">GF Tot</div></div></div></div>`;}
 function gc(n,d,c){const mx=Math.max(...d.map(x=>x.pct),1);return`<div><div style="font-size:13px;font-weight:700;margin-bottom:4px">${n}</div><div class="gt-bars">${d.map(x=>`<div class="gt-bar"><div class="gt-pct" style="color:${c}">${x.pct}%</div><div class="gt-fill" style="height:${Math.max(4,x.pct/mx*70)}px;background:${c}"></div><div class="gt-iv">${x.intervalo}</div></div>`).join('')}</div></div>`;}
- 
+
 document.addEventListener('DOMContentLoaded',()=>buscarPartidos());
 </script>
 </body>

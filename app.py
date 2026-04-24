@@ -8,24 +8,24 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for, s
 from datetime import datetime, timedelta
 from functools import wraps
 import requests, time, math, os, sqlite3, json
- 
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "matchiq-secret-key-2026-xyz")
- 
+
 APP_USER = os.environ.get("APP_USER", "matchiq")
 APP_PASS = os.environ.get("APP_PASS", "futbol2026")
- 
+
 # Path DB - en Railway se monta volumen en /data
 DB_PATH = os.environ.get("DB_PATH", "matchiq.db")
- 
+
 FD_KEY = "e28d6269df9441fea1b6a19548e982c6"
 FD_URL = "https://api.football-data.org/v4"
 FD_HEADERS = {"X-Auth-Token": FD_KEY}
- 
+
 AS_KEY = "fb49b7a70ea23977f8e7711c5ed027b1"
 AS_URL = "https://v3.football.api-sports.io"
 AS_HEADERS = {"x-apisports-key": AS_KEY}
- 
+
 LIGAS = {
     "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025},
     "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025},
@@ -35,12 +35,12 @@ LIGAS = {
     "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025},
     "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026},
 }
- 
+
 _cache = {}
 CACHE_TTL = 300
 CACHE_TTL_AS = 43200
- 
- 
+
+
 # ── DATABASE ──────────────────────────────────────────────
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -66,19 +66,19 @@ def init_db():
     )""")
     conn.commit()
     conn.close()
- 
+
 init_db()
- 
- 
+
+
 def save_prediction(match_id, liga, fecha, home, away, veredicto):
     """Guarda la prediccion cuando se analiza un partido."""
     mp_text = veredicto.get("mercado_principal", "")
     comb_text = veredicto.get("combinable", "")
- 
+
     # Extraer prob y cuota del mercado principal
     mp_prob, mp_cuota = _extract_prob_cuota(mp_text)
     comb_prob, comb_cuota = _extract_prob_cuota(comb_text)
- 
+
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -92,8 +92,8 @@ def save_prediction(match_id, liga, fecha, home, away, veredicto):
         conn.close()
     except Exception as e:
         print(f"Error saving prediction: {e}")
- 
- 
+
+
 def _extract_prob_cuota(text):
     """De 'Goles Over 2.5 (72% · cuota @1.27)' extrae (72, 1.27)."""
     if not text: return (None, None)
@@ -106,8 +106,8 @@ def _extract_prob_cuota(text):
         return (prob, cuota)
     except:
         return (None, None)
- 
- 
+
+
 def verify_prediction(match_id, home_goals, away_goals):
     """Verifica si el mercado principal y combinable acertaron."""
     conn = sqlite3.connect(DB_PATH)
@@ -117,11 +117,11 @@ def verify_prediction(match_id, home_goals, away_goals):
     if not row:
         conn.close()
         return
- 
+
     mp, comb, home, away = row
     mp_ok = _check_mercado(mp, home_goals, away_goals, home, away)
     comb_ok = _check_mercado(comb, home_goals, away_goals, home, away) if comb else None
- 
+
     c.execute("""UPDATE predicciones SET resultado_home=?, resultado_away=?,
         mp_acertado=?, comb_acertado=?, verificado=1 WHERE match_id=?""",
         (home_goals, away_goals,
@@ -130,14 +130,14 @@ def verify_prediction(match_id, home_goals, away_goals):
          match_id))
     conn.commit()
     conn.close()
- 
- 
+
+
 def _check_mercado(texto, hg, ag, home, away):
     """Verifica si el mercado acerto segun el resultado."""
     if not texto: return None
     t = texto.lower()
     total = hg + ag
- 
+
     # 1X2
     if "resultado final" in t:
         if home.lower() in t:
@@ -146,37 +146,37 @@ def _check_mercado(texto, hg, ag, home, away):
             return ag > hg
         elif "empate" in t:
             return hg == ag
- 
+
     # Doble Chance
     if "doble oportunidad" in t or "1x" in t or "x2" in t:
         if "1x" in t or home.lower() in t:
             return hg >= ag
         elif "x2" in t or away.lower() in t:
             return ag >= hg
- 
+
     # Over/Under
     if "over 2.5" in t: return total > 2.5
     if "under 2.5" in t: return total < 2.5
     if "over 1.5" in t: return total > 1.5
     if "under 1.5" in t: return total < 1.5
     if "over 3.5" in t: return total > 3.5
- 
+
     # BTTS
     if "ambos anotan" in t or "btts" in t:
         return hg > 0 and ag > 0
- 
+
     # Goles equipo Over 0.5
     if "over 0.5" in t:
         if home.lower() in t: return hg > 0
         if away.lower() in t: return ag > 0
- 
+
     # No 0-0
     if "no termina 0-0" in t:
         return total > 0
- 
+
     return None
- 
- 
+
+
 def fd_get(ep, params=None):
     ck="fd:"+ep+str(params or ""); now=time.time()
     if ck in _cache and now-_cache[ck][1]<CACHE_TTL: return _cache[ck][0]
@@ -185,7 +185,7 @@ def fd_get(ep, params=None):
         if r.status_code==429: time.sleep(6); r=requests.get(f"{FD_URL}{ep}",headers=FD_HEADERS,params=params,timeout=15)
         d=r.json(); _cache[ck]=(d,now); return d
     except Exception as e: return {"error":str(e)}
- 
+
 def as_get(ep, params=None):
     ck="as:"+ep+str(params or ""); now=time.time()
     if ck in _cache and now-_cache[ck][1]<CACHE_TTL_AS: return _cache[ck][0]
@@ -196,22 +196,22 @@ def as_get(ep, params=None):
         if d.get("response") is not None: _cache[ck]=(d,now)
         return d
     except Exception as e: return {"error":str(e)}
- 
- 
+
+
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not session.get("auth"): return redirect(url_for("login"))
         return f(*args, **kwargs)
     return wrapper
- 
+
 def api_login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not session.get("auth"): return jsonify({"error":"unauthorized"}), 401
         return f(*args, **kwargs)
     return wrapper
- 
+
 @app.route("/login", methods=["GET","POST"])
 def login():
     error=None
@@ -222,17 +222,17 @@ def login():
             return redirect(url_for("index"))
         error="Credenciales incorrectas"
     return render_template("login.html", error=error)
- 
+
 @app.route("/logout")
 def logout():
     session.clear();return redirect(url_for("login"))
- 
+
 @app.route("/")
 @login_required
 def index():
     return render_template("index.html", ligas={k:v["nombre"] for k,v in LIGAS.items()})
- 
- 
+
+
 @app.route("/partidos/<codigo>")
 @api_login_required
 def partidos(codigo):
@@ -241,14 +241,14 @@ def partidos(codigo):
     hasta=(hoy+timedelta(days=30)).strftime("%Y-%m-%d")
     data=fd_get(f"/competitions/{codigo}/matches",{"dateFrom":desde,"dateTo":hasta,"limit":80})
     if "error" in data: return jsonify({"response":[],"error":data["error"]})
- 
+
     # Obtener predicciones ya guardadas
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT match_id, mp_acertado, comb_acertado, verificado FROM predicciones")
     preds = {row[0]: {"mp_ok":row[1], "comb_ok":row[2], "verif":row[3]} for row in c.fetchall()}
     conn.close()
- 
+
     matches=[]
     for m in data.get("matches",[]):
         refs=m.get("referees",[])
@@ -256,7 +256,7 @@ def partidos(codigo):
         estado=m["status"]
         resultado=f"{score.get('home',0)}-{score.get('away',0)}" if estado=="FINISHED" else None
         pred = preds.get(m["id"])
- 
+
         # Si termino y tenemos prediccion sin verificar, verificar ahora
         if estado=="FINISHED" and pred and not pred["verif"]:
             verify_prediction(m["id"], score.get('home',0), score.get('away',0))
@@ -270,7 +270,7 @@ def partidos(codigo):
                 pred["mp_ok"] = r[0]
                 pred["comb_ok"] = r[1]
                 pred["verif"] = 1
- 
+
         matches.append({"id":m["id"],"fecha":m["utcDate"],"home":m["homeTeam"]["name"],"home_id":m["homeTeam"]["id"],
             "away":m["awayTeam"]["name"],"away_id":m["awayTeam"]["id"],"jornada":m.get("matchday"),
             "competicion":data.get("competition",{}).get("name",""),"estado":estado,
@@ -279,8 +279,8 @@ def partidos(codigo):
             "comb_acertado": pred["comb_ok"] if pred else None,
             "tiene_prediccion": pred is not None})
     return jsonify({"response":matches,"total":len(matches)})
- 
- 
+
+
 @app.route("/estadisticas")
 @login_required
 def estadisticas():
@@ -291,6 +291,21 @@ def estadisticas():
                  COUNT(CASE WHEN verificado=1 AND comb_acertado IS NOT NULL THEN 1 END)
                  FROM predicciones WHERE verificado=1""")
     total, mp_ok, comb_ok, mp_total, comb_total = c.fetchone()
+
+    # Detalle de cada partido verificado
+    c.execute("""SELECT match_id, fecha, home, away, resultado_home, resultado_away,
+                 mercado_principal, mp_acertado, combinable, comb_acertado, liga
+                 FROM predicciones WHERE verificado=1 ORDER BY fecha DESC""")
+    detalle = []
+    for row in c.fetchall():
+        detalle.append({
+            "match_id": row[0], "fecha": row[1], "home": row[2], "away": row[3],
+            "score": f"{row[4]}-{row[5]}",
+            "mercado_principal": row[6], "mp_acertado": row[7],
+            "combinable": row[8], "comb_acertado": row[9],
+            "liga": row[10]
+        })
+
     conn.close()
     return jsonify({
         "total_verificados": total or 0,
@@ -300,9 +315,10 @@ def estadisticas():
         "comb_aciertos": comb_ok or 0,
         "comb_total": comb_total or 0,
         "comb_pct": round((comb_ok or 0)/(comb_total or 1)*100, 1) if comb_total else 0,
+        "detalle": detalle,
     })
- 
- 
+
+
 @app.route("/analizar/<codigo>/<int:match_id>")
 @api_login_required
 def analizar(codigo, match_id):
@@ -334,7 +350,7 @@ def analizar(codigo, match_id):
     hs=_get_as(hn,liga.get("as_id"),liga.get("season"))
     aws=_get_as(an,liga.get("as_id"),liga.get("season"))
     arb_perfil=_arbitro_perfil(arbitro_name)
- 
+
     resultado=_analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt)
     resultado["arbitro"]=arbitro_name
     resultado["arbitro_perfil"]=arb_perfil
@@ -343,7 +359,7 @@ def analizar(codigo, match_id):
     resultado["stats_avanzadas"]=_adv(hs,aws,hn,an)
     resultado["stats_equipo"]={"home":_team_stats(hs,hp,hf),"away":_team_stats(aws,ap,af)}
     resultado["resumen"]=_resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arbitro_name,arb_perfil,resultado,md)
- 
+
     # Guardar prediccion (solo si el partido aun no ocurrio)
     estado = md.get("status", "")
     if estado in ("SCHEDULED", "TIMED"):
@@ -354,10 +370,10 @@ def analizar(codigo, match_id):
         score = md.get("score",{}).get("fullTime",{})
         if score.get("home") is not None:
             verify_prediction(match_id, score["home"], score["away"])
- 
+
     return jsonify(resultado)
- 
- 
+
+
 def _team_stats(as_stats, pos, forma):
     result={"remates_pj":"—","al_arco_pj":"—","goles_pj":"—","recibidos_pj":"—","posicion":"—","puntos":0}
     if pos:
@@ -377,8 +393,8 @@ def _team_stats(as_stats, pos, forma):
             result["remates_pj"]=round(avg_total*8+5,1)
             result["al_arco_pj"]=round(avg_total*3+1.5,1)
     return result
- 
- 
+
+
 def _resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arb,arb_perfil,resultado,md):
     partes=[]
     if hp and ap:
@@ -424,16 +440,16 @@ def _resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arb,arb_perfil,resultado,md):
     if arb: partes.append(f"Arbitra {arb}.")
     if arb_perfil and "Sin perfil" not in arb_perfil.get("descripcion",""): partes.append(arb_perfil["descripcion"])
     return " ".join(partes)
- 
- 
+
+
 def _objetivo(pos):
     if pos<=4: return f"peleando por el titulo, {pos}°"
     elif pos<=6: return f"buscando clasificacion europea, {pos}°"
     elif pos<=10: return f"en zona media, {pos}°"
     elif pos<=16: return f"intentando alejarse del descenso, {pos}°"
     else: return f"peleando no descender, {pos}°"
- 
- 
+
+
 def _racha(form):
     if not form: return ("",0)
     f=form[0]; c=0
@@ -441,12 +457,12 @@ def _racha(form):
         if x==f: c+=1
         else: break
     return (f,c)
- 
- 
+
+
 def _arbitro_perfil(name):
     if not name: return None
     return {"nombre":name,"descripcion":_ref_description(name)}
- 
+
 def _ref_description(name):
     refs_db={
         "michael oliver":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA de alto perfil. Tendencia a mostrar tarjetas."},
@@ -471,22 +487,22 @@ def _ref_description(name):
         r=refs_db[key]
         return f"Estilo: {r['estilo']} · Tarjetas: {r['tarjetas']}. {r['desc']}"
     return f"Sin perfil detallado disponible para {name}."
- 
- 
+
+
 def _search_as(name,lid,season):
     d=as_get("/teams",{"league":lid,"season":season,"search":name.split(" ")[0]})
     if "error" in d or not d.get("response"): return None
     for t in d["response"]:
         if name.lower() in t["team"]["name"].lower() or t["team"]["name"].lower() in name.lower(): return t["team"]["id"]
     return d["response"][0]["team"]["id"] if d["response"] else None
- 
+
 def _get_as(name,lid,season):
     if not lid: return None
     tid=_search_as(name,lid,season)
     if not tid: return None
     d=as_get("/teams/statistics",{"league":lid,"season":season,"team":tid})
     return d.get("response") if "error" not in d else None
- 
+
 def _adv(hs,aws,hn,an):
     if not hs and not aws: return None
     r={}
@@ -521,7 +537,7 @@ def _adv(hs,aws,hn,an):
         r["prob_gol_tiempo"]={"home_1st":round(h1/max(ht,1)*100),"home_2nd":round(h2/max(ht,1)*100),
             "away_1st":round(a1/max(at,1)*100),"away_2nd":round(a2/max(at,1)*100)}
     return r
- 
+
 def _pm(md):
     return[{"intervalo":iv,"goles":(md.get(iv,{}).get("total")or 0),"pct":int((md.get(iv,{}).get("percentage")or"0%").replace("%",""))} for iv in["0-15","16-30","31-45","46-60","61-75","76-90"]]
 def _cc(cd): return sum(v.get("total",0)or 0 for v in cd.values() if isinstance(v,dict))
@@ -529,12 +545,12 @@ def _pl(s): return(s.get("fixtures",{}).get("played",{}).get("total")or 0)
 def _gh(md,half):
     keys=["0-15","16-30","31-45"] if half=="1st" else ["46-60","61-75","76-90"]
     return sum(md.get(k,{}).get("total",0)or 0 for k in keys)
- 
+
 def _find(t,tid):
     for x in t:
         if x["team"]["id"]==tid: return x
     return None
- 
+
 def _forma(matches,tid):
     if not matches: return{"form":"","w":0,"d":0,"l":0,"gf":0,"gc":0,"matches":0,"ppg":0,"gf_avg":0,"gc_avg":0,"clean_sheets":0,"failed_to_score":0}
     matches=sorted(matches,key=lambda x:x.get("utcDate",""),reverse=True)[:10]
@@ -553,7 +569,7 @@ def _forma(matches,tid):
     return{"form":fs[:5],"w":w,"d":d,"l":l,"gf":gf,"gc":gc,"matches":t,
         "ppg":round((w*3+d)/t,2)if t>0 else 0,"gf_avg":round(gf/t,2)if t>0 else 0,
         "gc_avg":round(gc/t,2)if t>0 else 0,"clean_sheets":cs,"failed_to_score":fts}
- 
+
 def _u3(matches,tid):
     if not matches:return[]
     matches=sorted(matches,key=lambda x:x.get("utcDate",""),reverse=True)[:3]
@@ -566,7 +582,7 @@ def _u3(matches,tid):
         r.append({"fecha":m.get("utcDate","")[:10],"rival":m["awayTeam"]["name"]if ih else m["homeTeam"]["name"],
             "competicion":m.get("competition",{}).get("code",""),"marcador":f"{hg}-{ag}","local":ih,"resultado":res})
     return r
- 
+
 def _jugadores(scorers,tid):
     j=[]
     for s in scorers:
@@ -574,7 +590,7 @@ def _jugadores(scorers,tid):
             j.append({"nombre":s["player"]["name"],"goles":s.get("goals",0),"asistencias":s.get("assists",0),
                 "partidos":s.get("playedMatches",0),"promedio":round(s.get("goals",0)/max(s.get("playedMatches",1),1),2)})
     return j[:3]
- 
+
 def _enrich(players,team,form):
     for p in players:
         desc=[]
@@ -586,13 +602,13 @@ def _enrich(players,team,form):
         else: p["mercado_sugerido"]="Anotador Over 0.5"
         p["descripcion"]=" ".join(desc)
     return players
- 
- 
+
+
 def _cuota(prob_pct):
     if prob_pct<=0: return "—"
     return round(100/prob_pct*0.95, 2)
- 
- 
+
+
 def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     te=len(tt)if tt else 20
     forma_h_val=hf["ppg"] if hf["matches"]>0 else 0
@@ -621,14 +637,14 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     pos_a=ap.get("position") if ap else None
     pos_h_score=round((1-(pos_h-1)/max(te-1,1))*100) if pos_h else 50
     pos_a_score=round((1-(pos_a-1)/max(te-1,1))*100) if pos_a else 50
- 
+
     ph=round(forma_h_score*.25+h2h_score*.10+localia_h_score*.35+pos_h_score*.30)
     pa=round(forma_a_score*.25+(100-h2h_score)*.10+localia_a_score*.35+pos_a_score*.30)
     ph=min(95,ph+8)
     pd=max(0,100-ph-pa)
     tp=ph+pa+pd
     if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
- 
+
     egh=hf["gf_avg"]if hf["matches"]>0 else 1.3
     ech=hf["gc_avg"]if hf["matches"]>0 else 1.0
     ega=af["gf_avg"]if af["matches"]>0 else 1.0
@@ -637,7 +653,7 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     hfts=hf["failed_to_score"]/max(hf["matches"],1);afts=af["failed_to_score"]/max(af["matches"],1)
     hcs_r=hf["clean_sheets"]/max(hf["matches"],1);acs_r=af["clean_sheets"]/max(af["matches"],1)
     hsc=1-hfts;asc=1-afts
- 
+
     mercados=[]
     if ph>=40:
         s=_s1x2(hn,an,ph,hf,hp,hh,localia_h_score,"home",ge)
@@ -650,14 +666,14 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
         if hf["matches"]>0 and af["matches"]>0: s+=f"PPG similar: {hn} {hf['ppg']} vs {an} {af['ppg']}. "
         s+="Empate es resultado logico."
         mercados.append({"mercado":"Resultado Final — Empate","prob":pd,"riesgo":100-pd,"cuota":_cuota(pd),"tipo":"1X2","aprobado":pd>=30,"sintesis":s})
- 
+
     dc1x=ph+pd;dcx2=pa+pd
     if dc1x>=55:
         s=f"{hn} o Empate cubre el escenario mas probable. Solo pierde si gana {an} ({pa}%)."
         mercados.append({"mercado":f"Doble Oportunidad 1X — {hn}","prob":dc1x,"riesgo":100-dc1x,"cuota":_cuota(dc1x),"tipo":"DC","aprobado":dc1x>=65,"sintesis":s})
     if dcx2>=55:
         mercados.append({"mercado":f"Doble Oportunidad X2 — {an}","prob":dcx2,"riesgo":100-dcx2,"cuota":_cuota(dcx2),"tipo":"DC","aprobado":dcx2>=65,"sintesis":f"Cubre victoria de {an} o empate."})
- 
+
     if ge>=2.5:
         p=min(85,round(50+(ge-2.5)*20))
         s=f"Promedio combinado supera {ge} goles/partido."
@@ -669,24 +685,24 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     if ge>=1.8:
         p=min(92,round(60+(ge-1.5)*15))
         mercados.append({"mercado":"Goles Totales Over 1.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=75,"sintesis":f"Con {ge} goles esperados."})
- 
+
     btts=min(82,max(20,round(hsc*50+asc*50)))
     if btts>=45:
         mercados.append({"mercado":"BTTS — Ambos Anotan","prob":btts,"riesgo":100-btts,"cuota":_cuota(btts),"tipo":"BTTS","aprobado":btts>=60,"sintesis":f"{hn} marca en {round(hsc*100)}%, {an} en {round(asc*100)}%."})
- 
+
     ho=min(95,max(30,round(hsc*100)))
     if ho>=70:
         mercados.append({"mercado":f"Goles Equipo — {hn} Over 0.5","prob":ho,"riesgo":100-ho,"cuota":_cuota(ho),"tipo":"GE","aprobado":ho>=85,"sintesis":f"{hn} marco en {round(hsc*100)}% de sus ultimos partidos."})
     ao=min(95,max(30,round(asc*100)))
     if ao>=70:
         mercados.append({"mercado":f"Goles Equipo — {an} Over 0.5","prob":ao,"riesgo":100-ao,"cuota":_cuota(ao),"tipo":"GE","aprobado":ao>=85,"sintesis":f"{an} marco en {round(asc*100)}% de sus ultimos partidos."})
- 
+
     p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
     if pn00>=70:
         mercados.append({"mercado":"El Partido No Termina 0-0","prob":pn00,"riesgo":100-pn00,"cuota":_cuota(pn00),"tipo":"ESP","aprobado":pn00>=82,"sintesis":f"Promedio combinado: {ge} goles."})
- 
+
     mercados.sort(key=lambda x:x["prob"],reverse=True)
- 
+
     aprobados=[m for m in mercados if m["aprobado"]]
     if ph>=pa+15: fav,conf=hn,("alta"if ph>=55 else"moderada")
     elif pa>=ph+15: fav,conf=an,("alta"if pa>=55 else"moderada")
@@ -702,7 +718,7 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
         c2=[m for m in aprobados if m["tipo"]!=aprobados[0]["tipo"]]
         if c2: comb=f"{c2[0]['mercado']} ({c2[0]['prob']}% · cuota @{c2[0]['cuota']}) como alternativa de mayor retorno."
     ta=" · ".join(f"{m['mercado']} ({m['prob']}%)"for m in aprobados[:4])if aprobados else"Ninguno"
- 
+
     return{
         "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
         "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},
@@ -716,7 +732,7 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
         "mercados":mercados,
         "veredicto":{"texto":texto,"favorito":fav,"mercados_aprobados":ta,"total_aprobados":len(aprobados),"mercado_principal":mp,"combinable":comb},
     }
- 
+
 def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
     s=""
     if form["matches"]>0:
@@ -727,6 +743,6 @@ def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
     if pos: s+=f"#{pos.get('position','?')} con {pos.get('points',0)} pts. "
     s+=f"Probabilidad {'supera' if prob>=55 else 'no alcanza'} umbral (>=55%). "
     return s
- 
+
 if __name__=="__main__":
     app.run(debug=True)

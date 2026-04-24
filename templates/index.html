@@ -189,8 +189,29 @@ async function buscarPartidos(){
 async function mostrarStats(){
   try{
     const r=await fetch('/estadisticas');const s=await r.json();
+    let detalleHtml='';
+    if(s.detalle && s.detalle.length){
+      detalleHtml=`<div style="margin-top:24px"><h3 style="font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:18px;letter-spacing:1px;margin-bottom:12px">Detalle de partidos verificados</h3>`;
+      s.detalle.forEach(p=>{
+        const f=new Date(p.fecha).toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric'});
+        const mpc=p.mp_acertado===1?'var(--green)':p.mp_acertado===0?'var(--red)':'var(--muted)';
+        const mpi=p.mp_acertado===1?'✓':p.mp_acertado===0?'✗':'—';
+        const cc=p.comb_acertado===1?'var(--green)':p.comb_acertado===0?'var(--red)':'var(--muted)';
+        const ci=p.comb_acertado===1?'✓':p.comb_acertado===0?'✗':'—';
+        detalleHtml+=`<div style="background:var(--surface2);border-radius:8px;padding:14px;margin-bottom:8px;border-left:3px solid ${mpc}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:700;font-size:14px">${p.home} <span style="color:var(--gold);font-size:12px">vs</span> ${p.away}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--gold);font-size:14px">${p.score}</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace">${f} · ${p.liga}</div>
+          <div style="font-size:12px;color:var(--dim);margin-bottom:4px"><strong style="color:${mpc}">${mpi} Principal:</strong> ${p.mercado_principal||'—'}</div>
+          ${p.combinable?`<div style="font-size:12px;color:var(--dim)"><strong style="color:${cc}">${ci} Combinable:</strong> ${p.combinable}</div>`:''}
+        </div>`;
+      });
+      detalleHtml+='</div>';
+    }
     const html=`
-      <div style="max-width:600px;margin:40px auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:30px">
+      <div style="max-width:700px;margin:40px auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:30px">
         <h2 style="font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:28px;letter-spacing:1px;margin-bottom:20px">📊 Estadísticas de aciertos</h2>
         <div style="background:var(--surface2);border-radius:10px;padding:20px;margin-bottom:14px">
           <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Total verificados</div>
@@ -208,6 +229,7 @@ async function mostrarStats(){
             <div style="font-size:12px;color:var(--dim);margin-top:6px">${s.comb_aciertos} de ${s.comb_total} acertados</div>
           </div>
         </div>
+        ${detalleHtml}
         <button onclick="document.querySelector('#sel-liga').dispatchEvent(new Event('change'))" style="margin-top:20px;background:var(--gold);color:#060d1f;border:none;border-radius:8px;padding:10px 20px;font-weight:700;cursor:pointer">← Volver</button>
       </div>`;
     $('#main-panel').innerHTML=html;

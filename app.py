@@ -29,7 +29,7 @@ AS_HEADERS = {"x-apisports-key": AS_KEY}
 LIGAS = {
     "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025, "source": "fd"},
     "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025, "source": "fd"},
-    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2024, "source": "as"},
+    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025, "source": "as"},
     "BL1": {"nombre": "🇩🇪 Bundesliga",         "as_id": 78,  "season": 2025, "source": "fd"},
     "FL1": {"nombre": "🇫🇷 Ligue 1",            "as_id": 61,  "season": 2025, "source": "fd"},
     "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
@@ -897,6 +897,14 @@ def _team_stats(as_stats, pos, forma):
             avg_total=(gf+gc)/played
             result["remates_pj"]=round(avg_total*8+5,1)
             result["al_arco_pj"]=round(avg_total*3+1.5,1)
+    # Fallback: si no hay as_stats pero si forma, estimar igual con goles
+    if result["remates_pj"] == "—" and forma and forma.get("matches",0) > 0:
+        gf_avg = forma.get("gf_avg", 0)
+        gc_avg = forma.get("gc_avg", 0)
+        avg_total = gf_avg + gc_avg
+        if avg_total > 0:
+            result["remates_pj"] = round(avg_total * 7 + 6, 1)
+            result["al_arco_pj"] = round(avg_total * 2.5 + 2, 1)
     return result
 
 
@@ -994,12 +1002,44 @@ def _ref_description(name):
     return f"Sin perfil detallado disponible para {name}."
 
 
-def _search_as(name,lid,season):
-    d=as_get("/teams",{"league":lid,"season":season,"search":name.split(" ")[0]})
-    if "error" in d or not d.get("response"): return None
-    for t in d["response"]:
-        if name.lower() in t["team"]["name"].lower() or t["team"]["name"].lower() in name.lower(): return t["team"]["id"]
-    return d["response"][0]["team"]["id"] if d["response"] else None
+def _search_as(name, lid, season):
+    if not name or not lid: return None
+
+    # Limpiar nombre: quitar sufijos comunes
+    clean = name.replace(" FC", "").replace(" CF", "").replace(" AFC", "").replace(" AC", "").strip()
+
+    # Estrategia 1: buscar dentro de los equipos de la liga (mas confiable)
+    d = as_get("/teams", {"league": lid, "season": season})
+    if "error" not in d and d.get("response"):
+        candidates = d["response"]
+        nl = name.lower()
+        cl = clean.lower()
+        # Match exacto
+        for t in candidates:
+            tn = t["team"]["name"].lower()
+            if tn == nl or tn == cl: return t["team"]["id"]
+        # Match parcial bidireccional
+        for t in candidates:
+            tn = t["team"]["name"].lower()
+            if cl in tn or tn in cl: return t["team"]["id"]
+        for t in candidates:
+            tn = t["team"]["name"].lower()
+            if nl in tn or tn in nl: return t["team"]["id"]
+        # Match por primera palabra
+        first_word = clean.split(" ")[0].lower()
+        if len(first_word) >= 3:
+            for t in candidates:
+                if first_word in t["team"]["name"].lower(): return t["team"]["id"]
+
+    # Estrategia 2: search global
+    search_term = clean.split(" ")[0] if len(clean.split(" ")[0]) >= 3 else clean
+    d = as_get("/teams", {"search": search_term})
+    if "error" not in d and d.get("response"):
+        for t in d["response"]:
+            if name.lower() in t["team"]["name"].lower() or t["team"]["name"].lower() in name.lower():
+                return t["team"]["id"]
+
+    return None
 
 def _get_as(name,lid,season):
     if not lid: return None

@@ -36,7 +36,7 @@ LIGAS = {
     "PPL": {"nombre": "🇵🇹 Primeira Liga",      "as_id": 94,  "season": 2025, "source": "fd"},
     "ELC": {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship",     "as_id": 40,  "season": 2025, "source": "fd"},
     "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
-    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026, "source": "fd"},
+    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2025, "source": "fd"},
 }
 
 _cache = {}
@@ -419,6 +419,21 @@ def _mercados_avanzados(home, away, hn, an):
 
     mercados.sort(key=lambda x: x["prob"], reverse=True)
     return mercados
+
+
+@app.route("/diag/<codigo>")
+@api_login_required
+def diag(codigo):
+    """Diagnostico: muestra el JSON crudo de football-data."""
+    liga = LIGAS.get(codigo, {})
+    if liga.get("source") == "as":
+        as_id = liga.get("as_id")
+        season = liga.get("season")
+        d = as_get("/fixtures", {"league": as_id, "season": season, "next": 5})
+        return jsonify({"source": "api-sports", "league_id": as_id, "season": season, "raw": d})
+    else:
+        d = fd_get(f"/competitions/{codigo}/matches", {"limit": 100})
+        return jsonify({"source": "football-data", "raw": d})
 
 
 @app.route("/partidos/<codigo>")

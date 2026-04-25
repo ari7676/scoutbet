@@ -39,6 +39,7 @@ LIGAS = {
 _cache = {}
 CACHE_TTL = 300
 CACHE_TTL_AS = 43200
+CACHE_TTL_FX_STATS = 604800  # 7 dias para stats por partido
 
 
 # ── DATABASE ──────────────────────────────────────────────
@@ -188,7 +189,9 @@ def fd_get(ep, params=None):
 
 def as_get(ep, params=None):
     ck="as:"+ep+str(params or ""); now=time.time()
-    if ck in _cache and now-_cache[ck][1]<CACHE_TTL_AS: return _cache[ck][0]
+    # Cache largo para fixtures/statistics
+    ttl = CACHE_TTL_FX_STATS if "fixtures/statistics" in ep else CACHE_TTL_AS
+    if ck in _cache and now-_cache[ck][1]<ttl: return _cache[ck][0]
     try:
         r=requests.get(f"{AS_URL}{ep}",headers=AS_HEADERS,params=params,timeout=15)
         if r.status_code==429: return {"error":"rate_limit"}
@@ -231,6 +234,188 @@ def logout():
 @login_required
 def index():
     return render_template("index.html", ligas={k:v["nombre"] for k,v in LIGAS.items()})
+
+
+@app.route("/analisis_avanzado/<codigo>/<int:match_id>")
+@api_login_required
+def analisis_avanzado(codigo, match_id):
+    """Trae stats reales (corners, tarjetas, posesion, faltas, remates) de los ultimos 5 partidos de cada equipo."""
+    liga = LIGAS.get(codigo, {})
+    as_id = liga.get("as_id")
+    season = liga.get("season")
+    if not as_id:
+        return jsonify({"error": "Liga sin api-sports id"})
+
+    # Obtener nombres de equipos del partido
+    if liga.get("source", "fd") == "fd":
+        md = fd_get(f"/matches/{match_id}")
+        if "error" in md or "id" not in md:
+            return jsonify({"error": "Partido no encontrado"})
+        hn = md["homeTeam"]["name"]
+        an = md["awayTeam"]["name"]
+    else:
+        fx_data = as_get("/fixtures", {"id": match_id})
+        if "error" in fx_data or not fx_data.get("response"):
+            return jsonify({"error": "Partido no encontrado"})
+        teams = fx_data["response"][0].get("teams", {})
+        hn = teams.get("home", {}).get("name", "")
+        an = teams.get("away", {}).get("name", "")
+
+    # Buscar IDs api-sports
+    hid = _search_as(hn, as_id, season)
+    aid = _search_as(an, as_id, season)
+    if not hid or not aid:
+        return jsonify({"error": "No se encontraron equipos en api-sports"})
+
+    # Stats avanzadas de ultimos 5 partidos
+    home_avg = _avg_fixture_stats(hid, as_id, season)
+    away_avg = _avg_fixture_stats(aid, as_id, season)
+
+    # Mercados adicionales basados en stats avanzadas
+    mercados_extra = _mercados_avanzados(home_avg, away_avg, hn, an)
+
+    return jsonify({
+        "home_team": hn,
+        "away_team": an,
+        "home_stats": home_avg,
+        "away_stats": away_avg,
+        "mercados": mercados_extra,
+    })
+
+
+def _avg_fixture_stats(team_id, league_id, season):
+    """Promedia stats de los ultimos 5 partidos del equipo."""
+    fx_data = as_get("/fixtures", {"team": team_id, "season": season, "league": league_id, "last": 5})
+    if "error" in fx_data or not fx_data.get("response"):
+        return None
+
+    fixtures = fx_data["response"]
+    totals = {
+        "shots_total": [], "shots_on": [], "corners": [],
+        "yellow": [], "red": [], "fouls": [], "possession": [],
+    }
+
+    for fx in fixtures:
+        fid = fx.get("fixture", {}).get("id")
+        if not fid: continue
+        stats_data = as_get("/fixtures/statistics", {"fixture": fid, "team": team_id})
+        if "error" in stats_data or not stats_data.get("response"):
+            continue
+        for team_stats in stats_data["response"]:
+            for s in team_stats.get("statistics", []):
+                t = s.get("type", "")
+                v = s.get("value")
+                if v is None: continue
+                if isinstance(v, str) and v.endswith("%"):
+                    try: v = float(v.replace("%", ""))
+                    except: v = 0
+                if not isinstance(v, (int, float)): continue
+                if t == "Total Shots": totals["shots_total"].append(v)
+                elif t == "Shots on Goal": totals["shots_on"].append(v)
+                elif t == "Corner Kicks": totals["corners"].append(v)
+                elif t == "Yellow Cards": totals["yellow"].append(v)
+                elif t == "Red Cards": totals["red"].append(v)
+                elif t == "Fouls": totals["fouls"].append(v)
+                elif t == "Ball Possession": totals["possession"].append(v)
+        time.sleep(0.3)  # Rate limit
+
+    def avg(lst):
+        return round(sum(lst)/len(lst), 1) if lst else "—"
+
+    return {
+        "remates_pj": avg(totals["shots_total"]),
+        "al_arco_pj": avg(totals["shots_on"]),
+        "corners_pj": avg(totals["corners"]),
+        "tarjetas_amarillas_pj": avg(totals["yellow"]),
+        "tarjetas_rojas_pj": avg(totals["red"]),
+        "faltas_pj": avg(totals["fouls"]),
+        "posesion_avg": avg(totals["possession"]),
+        "partidos_analizados": len(fixtures),
+    }
+
+
+def _mercados_avanzados(home, away, hn, an):
+    """Genera mercados a partir de stats avanzadas."""
+    if not home or not away: return []
+    mercados = []
+
+    # Corners totales
+    if home.get("corners_pj") != "—" and away.get("corners_pj") != "—":
+        total_corners = home["corners_pj"] + away["corners_pj"]
+        # Over 9.5 corners
+        if total_corners >= 10:
+            p = min(85, round(50 + (total_corners - 9.5) * 12))
+            mercados.append({
+                "mercado": "Corners Totales Over 9.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
+                "aprobado": p >= 65,
+                "sintesis": f"Promedio combinado de corners: {round(total_corners,1)}/partido. {hn} {home['corners_pj']} y {an} {away['corners_pj']}."
+            })
+        if total_corners <= 9:
+            p = min(85, round(50 + (9.5 - total_corners) * 12))
+            mercados.append({
+                "mercado": "Corners Totales Under 9.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
+                "aprobado": p >= 65,
+                "sintesis": f"Promedio combinado bajo: {round(total_corners,1)} corners/partido."
+            })
+
+    # Tarjetas amarillas totales
+    if home.get("tarjetas_amarillas_pj") != "—" and away.get("tarjetas_amarillas_pj") != "—":
+        total_y = home["tarjetas_amarillas_pj"] + away["tarjetas_amarillas_pj"]
+        if total_y >= 4.5:
+            p = min(80, round(50 + (total_y - 4.5) * 15))
+            mercados.append({
+                "mercado": "Tarjetas Amarillas Over 4.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
+                "aprobado": p >= 65,
+                "sintesis": f"Promedio combinado: {round(total_y,1)} amarillas/partido. {hn} {home['tarjetas_amarillas_pj']} y {an} {away['tarjetas_amarillas_pj']}."
+            })
+        if total_y <= 4:
+            p = min(80, round(50 + (4.5 - total_y) * 15))
+            mercados.append({
+                "mercado": "Tarjetas Amarillas Under 4.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
+                "aprobado": p >= 65,
+                "sintesis": f"Promedio combinado bajo: {round(total_y,1)} amarillas/partido."
+            })
+
+    # Posesion - Local domina
+    if home.get("posesion_avg") != "—" and away.get("posesion_avg") != "—":
+        if home["posesion_avg"] >= 55 and away["posesion_avg"] < home["posesion_avg"]:
+            p = min(85, round(home["posesion_avg"] + 10))
+            mercados.append({
+                "mercado": f"Mayor posesión — {hn}",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS",
+                "aprobado": p >= 65,
+                "sintesis": f"{hn} promedia {home['posesion_avg']}% de posesión vs {away['posesion_avg']}% de {an}."
+            })
+        elif away["posesion_avg"] >= 55:
+            p = min(85, round(away["posesion_avg"]))
+            mercados.append({
+                "mercado": f"Mayor posesión — {an}",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS",
+                "aprobado": p >= 65,
+                "sintesis": f"{an} promedia {away['posesion_avg']}% de posesión vs {home['posesion_avg']}% de {hn}."
+            })
+
+    # Equipo con mas remates
+    if home.get("remates_pj") != "—" and away.get("remates_pj") != "—":
+        diff = abs(home["remates_pj"] - away["remates_pj"])
+        if diff >= 3:
+            mas = hn if home["remates_pj"] > away["remates_pj"] else an
+            mas_v = max(home["remates_pj"], away["remates_pj"])
+            men_v = min(home["remates_pj"], away["remates_pj"])
+            p = min(80, round(55 + diff * 3))
+            mercados.append({
+                "mercado": f"Más remates — {mas}",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
+                "aprobado": p >= 65,
+                "sintesis": f"Diferencia clara de remates: {mas_v} vs {men_v}/partido."
+            })
+
+    mercados.sort(key=lambda x: x["prob"], reverse=True)
+    return mercados
 
 
 @app.route("/partidos/<codigo>")

@@ -18,7 +18,7 @@ APP_PASS = os.environ.get("APP_PASS", "futbol2026")
 # Path DB - en Railway se monta volumen en /data
 DB_PATH = os.environ.get("DB_PATH", "matchiq.db")
 
-FD_KEY = "e28d6269df9441fea1b6a19548e982c6"
+FD_KEY = "0a37c9ba378a0bee72ecf6a3c3de7276"
 FD_URL = "https://api.football-data.org/v4"
 FD_HEADERS = {"X-Auth-Token": FD_KEY}
 

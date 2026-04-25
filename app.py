@@ -478,7 +478,7 @@ def partidos(codigo):
         # Football-data (default)
         desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
         hasta = (hoy + timedelta(days=30)).strftime("%Y-%m-%d")
-        data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "limit": 80})
+        data = fd_get(f"/competitions/{codigo}/matches", {"limit": 80})
         if "error" in data:
             return jsonify({"response": [], "error": data["error"]})
         for m in data.get("matches", []):

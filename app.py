@@ -29,14 +29,14 @@ AS_HEADERS = {"x-apisports-key": AS_KEY}
 LIGAS = {
     "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025, "source": "fd"},
     "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025, "source": "fd"},
-    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2024, "source": "as"},
+    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025, "source": "fd"},
     "BL1": {"nombre": "🇩🇪 Bundesliga",         "as_id": 78,  "season": 2025, "source": "fd"},
     "FL1": {"nombre": "🇫🇷 Ligue 1",            "as_id": 61,  "season": 2025, "source": "fd"},
     "DED": {"nombre": "🇳🇱 Eredivisie",         "as_id": 88,  "season": 2025, "source": "fd"},
     "PPL": {"nombre": "🇵🇹 Primeira Liga",      "as_id": 94,  "season": 2025, "source": "fd"},
     "ELC": {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship",     "as_id": 40,  "season": 2025, "source": "fd"},
     "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
-    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2025, "source": "fd"},
+    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026, "source": "fd"},
 }
 
 _cache = {}

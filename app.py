@@ -29,7 +29,7 @@ AS_HEADERS = {"x-apisports-key": AS_KEY}
 LIGAS = {
     "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025, "source": "fd"},
     "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025, "source": "fd"},
-    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025, "source": "fd"},
+    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025, "source": "as"},
     "BL1": {"nombre": "🇩🇪 Bundesliga",         "as_id": 78,  "season": 2025, "source": "fd"},
     "FL1": {"nombre": "🇫🇷 Ligue 1",            "as_id": 61,  "season": 2025, "source": "fd"},
     "DED": {"nombre": "🇳🇱 Eredivisie",         "as_id": 88,  "season": 2025, "source": "fd"},
@@ -141,42 +141,61 @@ def _check_mercado(texto, hg, ag, home, away):
     if not texto: return None
     t = texto.lower()
     total = hg + ag
+    hl = home.lower()
+    al = away.lower()
 
     # 1X2
     if "resultado final" in t:
-        if home.lower() in t:
-            return hg > ag
-        elif away.lower() in t:
-            return ag > hg
-        elif "empate" in t:
-            return hg == ag
+        if hl in t: return hg > ag
+        elif al in t: return ag > hg
+        elif "empate" in t: return hg == ag
 
     # Doble Chance
     if "doble oportunidad" in t or "1x" in t or "x2" in t:
-        if "1x" in t or home.lower() in t:
-            return hg >= ag
-        elif "x2" in t or away.lower() in t:
-            return ag >= hg
+        if "1x" in t or hl in t: return hg >= ag
+        elif "x2" in t or al in t: return ag >= hg
 
-    # Over/Under
+    # Goles equipo Over 1.5 (chequear antes de Over genérico)
+    if "goles equipo" in t and "over 1.5" in t:
+        if hl in t: return hg >= 2
+        if al in t: return ag >= 2
+        return None
+
+    # Goles equipo Over 0.5
+    if "goles equipo" in t and "over 0.5" in t:
+        if hl in t: return hg > 0
+        if al in t: return ag > 0
+        return None
+
+    # Over/Under totales
+    if "over 3.5" in t: return total > 3.5
+    if "under 3.5" in t: return total < 3.5
     if "over 2.5" in t: return total > 2.5
     if "under 2.5" in t: return total < 2.5
     if "over 1.5" in t: return total > 1.5
     if "under 1.5" in t: return total < 1.5
-    if "over 3.5" in t: return total > 3.5
 
     # BTTS
     if "ambos anotan" in t or "btts" in t:
         return hg > 0 and ag > 0
 
-    # Goles equipo Over 0.5
-    if "over 0.5" in t:
-        if home.lower() in t: return hg > 0
-        if away.lower() in t: return ag > 0
+    # Clean Sheet
+    if "clean sheet" in t:
+        if hl in t: return ag == 0
+        if al in t: return hg == 0
+
+    # Victoria a Cero
+    if "victoria a cero" in t:
+        if hl in t: return hg > ag and ag == 0
+        if al in t: return ag > hg and hg == 0
 
     # No 0-0
     if "no termina 0-0" in t:
         return total > 0
+
+    # 1er Tiempo - no verificable sin datos de HT
+    if "1er tiempo" in t:
+        return None
 
     return None
 
@@ -1223,38 +1242,44 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     mercados=[]
     if ph>=40:
         s=_s1x2(hn,an,ph,hf,hp,hh,localia_h_score,"home",ge)
-        mercados.append({"mercado":f"Resultado Final — {hn}","prob":ph,"riesgo":100-ph,"cuota":_cuota(ph),"tipo":"1X2","aprobado":ph>=55,"sintesis":s})
+        mercados.append({"mercado":f"Resultado Final — {hn}","prob":ph,"riesgo":100-ph,"cuota":_cuota(ph),"tipo":"1X2","aprobado":ph>=70,"sintesis":s})
     if pa>=40:
         s=_s1x2(an,hn,pa,af,ap,aa,localia_a_score,"away",ge)
-        mercados.append({"mercado":f"Resultado Final — {an}","prob":pa,"riesgo":100-pa,"cuota":_cuota(pa),"tipo":"1X2","aprobado":pa>=55,"sintesis":s})
+        mercados.append({"mercado":f"Resultado Final — {an}","prob":pa,"riesgo":100-pa,"cuota":_cuota(pa),"tipo":"1X2","aprobado":pa>=70,"sintesis":s})
     if pd>=22:
         s=f"Equipos separados por {abs((pos_h or 10)-(pos_a or 10))} posiciones. "
         if hf["matches"]>0 and af["matches"]>0: s+=f"PPG similar: {hn} {hf['ppg']} vs {an} {af['ppg']}. "
         s+="Empate es resultado logico."
-        mercados.append({"mercado":"Resultado Final — Empate","prob":pd,"riesgo":100-pd,"cuota":_cuota(pd),"tipo":"1X2","aprobado":pd>=30,"sintesis":s})
+        mercados.append({"mercado":"Resultado Final — Empate","prob":pd,"riesgo":100-pd,"cuota":_cuota(pd),"tipo":"1X2","aprobado":pd>=35,"sintesis":s})
 
     dc1x=ph+pd;dcx2=pa+pd
     if dc1x>=55:
         s=f"{hn} o Empate cubre el escenario mas probable. Solo pierde si gana {an} ({pa}%)."
-        mercados.append({"mercado":f"Doble Oportunidad 1X — {hn}","prob":dc1x,"riesgo":100-dc1x,"cuota":_cuota(dc1x),"tipo":"DC","aprobado":dc1x>=65,"sintesis":s})
+        mercados.append({"mercado":f"Doble Oportunidad 1X — {hn}","prob":dc1x,"riesgo":100-dc1x,"cuota":_cuota(dc1x),"tipo":"DC","aprobado":dc1x>=75,"sintesis":s})
     if dcx2>=55:
-        mercados.append({"mercado":f"Doble Oportunidad X2 — {an}","prob":dcx2,"riesgo":100-dcx2,"cuota":_cuota(dcx2),"tipo":"DC","aprobado":dcx2>=65,"sintesis":f"Cubre victoria de {an} o empate."})
+        mercados.append({"mercado":f"Doble Oportunidad X2 — {an}","prob":dcx2,"riesgo":100-dcx2,"cuota":_cuota(dcx2),"tipo":"DC","aprobado":dcx2>=75,"sintesis":f"Cubre victoria de {an} o empate."})
 
     if ge>=2.5:
         p=min(85,round(50+(ge-2.5)*20))
         s=f"Promedio combinado supera {ge} goles/partido."
-        mercados.append({"mercado":"Goles Totales Over 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=60,"sintesis":s})
+        mercados.append({"mercado":"Goles Totales Over 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":s})
     if ge<=2.5:
         p=min(85,round(50+(2.5-ge)*20))
         s=f"Goles esperados: {ge}. Perfil defensivo favorece Under."
-        mercados.append({"mercado":"Goles Totales Under 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=60,"sintesis":s})
+        mercados.append({"mercado":"Goles Totales Under 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":s})
     if ge>=1.8:
         p=min(92,round(60+(ge-1.5)*15))
-        mercados.append({"mercado":"Goles Totales Over 1.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=75,"sintesis":f"Con {ge} goles esperados."})
+        mercados.append({"mercado":"Goles Totales Over 1.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=80,"sintesis":f"Con {ge} goles esperados."})
+    if ge>=3.0:
+        p=min(80,round(40+(ge-3.0)*25))
+        mercados.append({"mercado":"Goles Totales Over 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":f"Promedio combinado alto: {ge} goles."})
+    if ge<=3.0:
+        p=min(80,round(40+(3.0-ge)*25))
+        mercados.append({"mercado":"Goles Totales Under 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":f"Goles esperados: {ge}. Tendencia a partidos controlados."})
 
     btts=min(82,max(20,round(hsc*50+asc*50)))
     if btts>=45:
-        mercados.append({"mercado":"BTTS — Ambos Anotan","prob":btts,"riesgo":100-btts,"cuota":_cuota(btts),"tipo":"BTTS","aprobado":btts>=60,"sintesis":f"{hn} marca en {round(hsc*100)}%, {an} en {round(asc*100)}%."})
+        mercados.append({"mercado":"BTTS — Ambos Anotan","prob":btts,"riesgo":100-btts,"cuota":_cuota(btts),"tipo":"BTTS","aprobado":btts>=70,"sintesis":f"{hn} marca en {round(hsc*100)}%, {an} en {round(asc*100)}%."})
 
     ho=min(95,max(30,round(hsc*100)))
     if ho>=70:
@@ -1262,6 +1287,39 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     ao=min(95,max(30,round(asc*100)))
     if ao>=70:
         mercados.append({"mercado":f"Goles Equipo — {an} Over 0.5","prob":ao,"riesgo":100-ao,"cuota":_cuota(ao),"tipo":"GE","aprobado":ao>=85,"sintesis":f"{an} marco en {round(asc*100)}% de sus ultimos partidos."})
+
+    # Goles Equipo Over 1.5
+    h15=min(85,max(20,round(egh/(egh+0.8)*100))) if egh>=1.3 else 0
+    if h15>=50:
+        mercados.append({"mercado":f"Goles Equipo — {hn} Over 1.5","prob":h15,"riesgo":100-h15,"cuota":_cuota(h15),"tipo":"GE","aprobado":h15>=70,"sintesis":f"{hn} promedia {egh} goles/partido."})
+    a15=min(85,max(20,round(ega/(ega+0.8)*100))) if ega>=1.3 else 0
+    if a15>=50:
+        mercados.append({"mercado":f"Goles Equipo — {an} Over 1.5","prob":a15,"riesgo":100-a15,"cuota":_cuota(a15),"tipo":"GE","aprobado":a15>=70,"sintesis":f"{an} promedia {ega} goles/partido."})
+
+    # Clean Sheet
+    hcs_p=min(85,round(hcs_r*100*(1-asc+0.3)))
+    if hcs_p>=30:
+        mercados.append({"mercado":f"Clean Sheet — {hn}","prob":hcs_p,"riesgo":100-hcs_p,"cuota":_cuota(hcs_p),"tipo":"CS","aprobado":hcs_p>=70,"sintesis":f"{hn} dejo valla invicta en {round(hcs_r*100)}% de partidos. {an} no marco en {round(afts*100)}%."})
+    acs_p=min(85,round(acs_r*100*(1-hsc+0.3)))
+    if acs_p>=30:
+        mercados.append({"mercado":f"Clean Sheet — {an}","prob":acs_p,"riesgo":100-acs_p,"cuota":_cuota(acs_p),"tipo":"CS","aprobado":acs_p>=70,"sintesis":f"{an} dejo valla invicta en {round(acs_r*100)}% de partidos. {hn} no marco en {round(hfts*100)}%."})
+
+    # Victoria a Cero
+    wtn_h=min(80,round(ph*hcs_r*100)/100) if ph>=50 else 0
+    if wtn_h>=25:
+        mercados.append({"mercado":f"Victoria a Cero — {hn}","prob":wtn_h,"riesgo":100-wtn_h,"cuota":_cuota(wtn_h),"tipo":"WTN","aprobado":wtn_h>=70,"sintesis":f"{hn} gana ({ph}%) y mantiene valla invicta ({round(hcs_r*100)}%)."})
+    wtn_a=min(80,round(pa*acs_r*100)/100) if pa>=50 else 0
+    if wtn_a>=25:
+        mercados.append({"mercado":f"Victoria a Cero — {an}","prob":wtn_a,"riesgo":100-wtn_a,"cuota":_cuota(wtn_a),"tipo":"WTN","aprobado":wtn_a>=70,"sintesis":f"{an} gana ({pa}%) y mantiene valla invicta ({round(acs_r*100)}%)."})
+
+    # Primer Tiempo Over/Under 0.5
+    ght=ge*0.45
+    p1o=min(88,round(50+(ght-0.5)*40)) if ght>=0.5 else max(20,round(ght/0.5*40))
+    p1u=100-p1o
+    if p1o>=50:
+        mercados.append({"mercado":"1er Tiempo — Over 0.5 Goles","prob":p1o,"riesgo":100-p1o,"cuota":_cuota(p1o),"tipo":"HT","aprobado":p1o>=75,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Ritmo ofensivo temprano."})
+    if p1u>=40:
+        mercados.append({"mercado":"1er Tiempo — Under 0.5 Goles","prob":p1u,"riesgo":100-p1u,"cuota":_cuota(p1u),"tipo":"HT","aprobado":p1u>=70,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Equipos cautelosos en arranque."})
 
     p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
     if pn00>=70:
@@ -1307,7 +1365,7 @@ def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
         elif r[0]=="L"and r[1]>=2: s+=f"Atencion: {team} viene de {r[1]} derrotas. "
         s+=f"PPG: {form['ppg']}. "
     if pos: s+=f"#{pos.get('position','?')} con {pos.get('points',0)} pts. "
-    s+=f"Probabilidad {'supera' if prob>=55 else 'no alcanza'} umbral (>=55%). "
+    s+=f"Probabilidad {'supera' if prob>=70 else 'no alcanza'} umbral (>=70%). "
     return s
 
 if __name__=="__main__":

@@ -503,6 +503,9 @@ def partidos(codigo):
             refs = m.get("referees", [])
             score = m.get("score", {}).get("fullTime", {})
             estado = m["status"]
+            # Saltar partidos sin equipos definidos (ej: final de torneo aun sin definir)
+            if not m["homeTeam"].get("name") or not m["awayTeam"].get("name"):
+                continue
             resultado = f"{score.get('home',0)}-{score.get('away',0)}" if estado == "FINISHED" else None
             pred = preds.get(m["id"])
             if estado == "FINISHED" and pred and not pred["verif"]:

@@ -29,7 +29,7 @@ AS_HEADERS = {"x-apisports-key": AS_KEY}
 LIGAS = {
     "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025, "source": "fd"},
     "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025, "source": "fd"},
-    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025, "source": "as"},
+    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025, "source": "fd"},
     "BL1": {"nombre": "🇩🇪 Bundesliga",         "as_id": 78,  "season": 2025, "source": "fd"},
     "FL1": {"nombre": "🇫🇷 Ligue 1",            "as_id": 61,  "season": 2025, "source": "fd"},
     "DED": {"nombre": "🇳🇱 Eredivisie",         "as_id": 88,  "season": 2025, "source": "fd"},
@@ -546,9 +546,41 @@ def partidos(codigo):
     return jsonify({"response": matches, "total": len(matches)})
 
 
+def _auto_verify_pending():
+    """Verifica automaticamente todas las predicciones pendientes."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT match_id, liga FROM predicciones WHERE verificado=0")
+    pending = c.fetchall()
+    conn.close()
+    if not pending:
+        return
+    for match_id, liga in pending[:15]:  # max 15 por llamada para no quemar API
+        try:
+            liga_cfg = LIGAS.get(liga, {})
+            source = liga_cfg.get("source", "fd")
+            if source == "as":
+                fx = as_get("/fixtures", {"id": match_id})
+                if fx.get("response"):
+                    f = fx["response"][0]
+                    st = f.get("fixture", {}).get("status", {}).get("short", "")
+                    if st in ("FT", "AET", "PEN"):
+                        g = f.get("goals", {})
+                        verify_prediction(match_id, g.get("home", 0), g.get("away", 0))
+            else:
+                d = fd_get(f"/matches/{match_id}")
+                if d.get("status") == "FINISHED":
+                    sc = d.get("score", {}).get("fullTime", {})
+                    verify_prediction(match_id, sc.get("home", 0), sc.get("away", 0))
+            time.sleep(0.5)  # respetar rate limit
+        except Exception as e:
+            print(f"Auto-verify error {match_id}: {e}")
+
+
 @app.route("/estadisticas")
 @login_required
 def estadisticas():
+    _auto_verify_pending()
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""SELECT COUNT(*), SUM(mp_acertado), SUM(comb_acertado),

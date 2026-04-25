@@ -366,57 +366,12 @@ function renderAnalisis(data,match){
 
   if(data.veredicto){const v=data.veredicto;h+=`<div class="veredicto"><div class="verd-label">Veredicto final</div><div class="verd-titulo">${v.favorito?`Victoria de ${v.favorito} en tiempo reglamentario`:'Partido parejo — sin favorito claro'}</div><div class="verd-texto">${v.texto}</div><div class="verd-section"><div class="verd-mp-label">Mercado principal</div><div class="verd-mp">${v.mercado_principal}</div>${v.combinable?`<div class="verd-comb-label">Combinable</div><div class="verd-comb">${v.combinable}</div>`:''}</div><div class="verd-aprobados">Mercados aprobados: ${v.mercados_aprobados}</div></div>`;}
 
-  // BOTON ANALISIS AVANZADO
-  h+=`<div class="card" style="text-align:center"><div class="card-title">Análisis avanzado</div><div style="color:var(--dim);font-size:13px;margin-bottom:14px;line-height:1.6">Trae datos reales de corners, tarjetas, posesión, faltas y remates de los últimos 5 partidos. <span style="color:var(--orange)">Consume requests de api-sports (límite: 100/día).</span></div><button onclick="cargarAvanzado('${currentLiga}', ${match.id})" id="btn-avanzado" style="background:var(--cyan);color:#060d1f;border:none;border-radius:8px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:13px">⚡ Cargar análisis avanzado</button><div id="avanzado-container" style="margin-top:16px"></div></div>`;
-
   $('#main-panel').innerHTML=h;
 }
 
 function renderU3(m){if(!m||!m.length)return'<div style="color:var(--muted);font-size:12px;padding:8px">Sin datos</div>';return m.map(x=>`<div class="u3-match ${x.resultado}"><div><span class="u3-fecha">${new Date(x.fecha).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'})}</span> <span>${x.local?'vs':'@'} ${x.rival}</span> <span class="u3-comp">(${x.competicion})</span></div><div class="u3-score ${x.resultado}">${x.marcador}</div></div>`).join('');}
 function fp(n,f){return`<div><div style="font-size:13px;font-weight:700;margin-bottom:6px">${n}</div><div class="forma-row">${f.form?f.form.split('').map(c=>`<div class="f-dot ${c}">${c}</div>`).join(''):'<span style="color:var(--muted);font-size:11px">Sin datos</span>'}</div><div class="stats-row"><div class="stat-box"><div class="stat-val" style="color:var(--green)">${f.w}</div><div class="stat-lbl">Ganados</div></div><div class="stat-box"><div class="stat-val">${f.d}</div><div class="stat-lbl">Empates</div></div><div class="stat-box"><div class="stat-val" style="color:var(--red)">${f.l}</div><div class="stat-lbl">Perdidos</div></div></div><div class="stats-row"><div class="stat-box"><div class="stat-val">${f.gf_avg}</div><div class="stat-lbl">GF/P</div></div><div class="stat-box"><div class="stat-val">${f.gc_avg}</div><div class="stat-lbl">GC/P</div></div><div class="stat-box"><div class="stat-val" style="color:var(--gold)">${f.ppg}</div><div class="stat-lbl">PPG</div></div></div><div class="stats-row"><div class="stat-box"><div class="stat-val">${f.clean_sheets}</div><div class="stat-lbl">Valla 0</div></div><div class="stat-box"><div class="stat-val">${f.failed_to_score}</div><div class="stat-lbl">Sin gol</div></div><div class="stat-box"><div class="stat-val">${f.gf}</div><div class="stat-lbl">GF Tot</div></div></div></div>`;}
 function gc(n,d,c){const mx=Math.max(...d.map(x=>x.pct),1);return`<div><div style="font-size:13px;font-weight:700;margin-bottom:4px">${n}</div><div class="gt-bars">${d.map(x=>`<div class="gt-bar"><div class="gt-pct" style="color:${c}">${x.pct}%</div><div class="gt-fill" style="height:${Math.max(4,x.pct/mx*70)}px;background:${c}"></div><div class="gt-iv">${x.intervalo}</div></div>`).join('')}</div></div>`;}
-
-async function cargarAvanzado(codigo, matchId){
-  const btn=$('#btn-avanzado');const cont=$('#avanzado-container');
-  if(!btn||!cont)return;
-  btn.disabled=true;btn.textContent='⏳ Cargando... (puede tardar 30-60s)';
-  try{
-    const r=await fetch(`/analisis_avanzado/${codigo}/${matchId}`);const d=await r.json();
-    if(d.error){cont.innerHTML=`<div style="color:var(--red);padding:12px">⚠ ${d.error}</div>`;btn.textContent='⚡ Reintentar';btn.disabled=false;return;}
-    let html=`<div class="team-stats-grid" style="margin-top:16px"><div class="ts-box"><div class="ts-header">${d.home_team}</div>`;
-    const hs=d.home_stats;
-    html+=`<div class="ts-row"><span class="ts-lbl">Remates/PJ</span><span class="ts-val">${hs.remates_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Al arco/PJ</span><span class="ts-val">${hs.al_arco_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Corners/PJ</span><span class="ts-val" style="color:var(--cyan)">${hs.corners_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Amarillas/PJ</span><span class="ts-val" style="color:var(--orange)">${hs.tarjetas_amarillas_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Faltas/PJ</span><span class="ts-val">${hs.faltas_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Posesión avg</span><span class="ts-val" style="color:var(--gold)">${hs.posesion_avg}%</span></div>`;
-    html+=`</div><div class="ts-box"><div class="ts-header">${d.away_team}</div>`;
-    const ws=d.away_stats;
-    html+=`<div class="ts-row"><span class="ts-lbl">Remates/PJ</span><span class="ts-val">${ws.remates_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Al arco/PJ</span><span class="ts-val">${ws.al_arco_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Corners/PJ</span><span class="ts-val" style="color:var(--cyan)">${ws.corners_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Amarillas/PJ</span><span class="ts-val" style="color:var(--orange)">${ws.tarjetas_amarillas_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Faltas/PJ</span><span class="ts-val">${ws.faltas_pj}</span></div>`;
-    html+=`<div class="ts-row"><span class="ts-lbl">Posesión avg</span><span class="ts-val" style="color:var(--gold)">${ws.posesion_avg}%</span></div>`;
-    html+=`</div></div>`;
-
-    if(d.mercados && d.mercados.length){
-      html+=`<div style="margin-top:20px"><div class="card-title" style="font-size:18px">Mercados adicionales</div><div class="merc-header"><span>Mercado</span><span style="text-align:center">Prob.</span><span style="text-align:center">Riesgo</span><span style="text-align:center">Cuota</span><span>Síntesis</span></div>`;
-      d.mercados.forEach(m=>{
-        let cls,bc,bt;if(m.aprobado){cls='aprobado';bc='si';bt='APROBADO';}else if(m.prob>=50){cls='marginal';bc='marginal';bt='MARGINAL';}else{cls='rechazado';bc='no';bt='NO APROBADO';}
-        const pc=m.prob>=70?'high':m.prob>=55?'mid':'low';
-        html+=`<div class="mercado-item ${cls}"><div class="merc-row"><div><div class="m-name">${m.mercado}</div><div class="m-tipo">${m.tipo} <span class="m-badge ${bc}">${bt}</span></div></div><div class="m-prob ${pc}">${m.prob}%</div><div class="m-riesgo">${m.riesgo}%</div><div class="m-cuota">@${m.cuota}</div><div class="m-sint">${m.sintesis||''}</div></div></div>`;
-      });
-      html+=`</div>`;
-    }
-    cont.innerHTML=html;
-    btn.textContent='✓ Análisis avanzado cargado';
-  }catch(e){
-    cont.innerHTML=`<div style="color:var(--red);padding:12px">✗ ${e.message}</div>`;
-    btn.disabled=false;btn.textContent='⚡ Reintentar';
-  }
-}
 
 document.addEventListener('DOMContentLoaded',()=>buscarPartidos());
 </script>

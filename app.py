@@ -1208,7 +1208,8 @@ def _estado_animico(forma, gf_avg, gc_avg):
     elif score >= 0: label = "Momento regular"; icon = "➡️"
     elif score >= -15: label = "Momento bajo"; icon = "📉"
     else: label = "Mal momento"; icon = "❄️"
-    return {"score": score, "label": label, "icon": icon, "tendencia": tendencia, "ppg3": round(ppg3, 2), "ppg_general": round(sum([pts.get(x,0) for x in forma])/len(forma), 2)}
+    w3=forma[:3].count("W"); d3=forma[:3].count("D"); l3=forma[:3].count("L")
+    return {"score": score, "label": label, "icon": icon, "tendencia": tendencia, "forma3": f"{w3}V {d3}E {l3}D", "ppg_general": round(sum([pts.get(x,0) for x in forma])/len(forma), 2)}
 
 
 def _racha(form):

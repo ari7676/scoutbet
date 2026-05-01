@@ -49,7 +49,7 @@ CACHE_TTL_FX_STATS = 604800  # 7 dias para stats por partido
 UMBRALES = {
     "1X2":       70,   # Resultado final (local/visita)
     "DRAW":      35,   # Empate
-    "DC":        75,   # Doble oportunidad
+    "DC":        68,   # Doble oportunidad
     "OU":        70,   # Over/Under 2.5, 3.5 goles totales
     "BTTS":      70,   # Ambos anotan
     "GE_05":     85,   # Goles equipo over 0.5
@@ -1470,16 +1470,20 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     # Pesos: forma 30%, posicion 35%, localia 20%, h2h 15%
     ph=round(forma_h_score*.30+h2h_score*.15+localia_h_score*.20+pos_h_score*.35)
     pa=round(forma_a_score*.30+(100-h2h_score)*.15+localia_a_score*.20+pos_a_score*.35)
-    ph=min(95,ph+8)
+    ph=ph+8  # Home advantage antes de normalizar
     # Ajuste por fatiga
     if fat_h and fat_h["score"]>=35: ph=max(5,ph-round(fat_h["score"]*0.12))
     if fat_a and fat_a["score"]>=35: pa=max(5,pa-round(fat_a["score"]*0.12))
     # Ajuste por estado anímico
     if animo_h:
-        ph=max(5,min(95,ph+round(animo_h["score"]*0.15)))
+        ph=max(5,ph+round(animo_h["score"]*0.15))
     if animo_a:
-        pa=max(5,min(95,pa+round(animo_a["score"]*0.15)))
-    pd=max(0,100-ph-pa)
+        pa=max(5,pa+round(animo_a["score"]*0.15))
+    # Normalizar incluyendo peso base de empate
+    raw_total=ph+pa+18
+    ph=round(ph/raw_total*100)
+    pa=round(pa/raw_total*100)
+    pd=max(5,100-ph-pa)
     tp=ph+pa+pd
     if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
 
@@ -1607,8 +1611,15 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
         w3=af["form"][:3].count("W"); d3=af["form"][:3].count("D"); l3=af["form"][:3].count("L")
         lineas.append(f"{an}: {animo_a['label']} ({animo_a['tendencia']}, {w3}V {d3}E {l3}D en últimos 3).")
     texto = "\n".join(lineas)
-    mp=f"{aprobados[0]['mercado']} ({aprobados[0]['prob']}% · cuota @{aprobados[0]['cuota']})" if aprobados else "Ninguno supera el umbral"
-    mp_prob=aprobados[0]['prob'] if aprobados else 0
+    # Seleccionar mercado principal por prioridad de tipo
+    TIPO_PRIORIDAD = ["1X2", "DC", "O/U", "BTTS", "GE", "CS", "WTN", "HT", "ESP", "SHOTS_ON", "CORNERS", "CARDS", "POSS", "SHOTS"]
+    def _mp_score(m):
+        t = m.get("tipo","ZZZ")
+        return (TIPO_PRIORIDAD.index(t) if t in TIPO_PRIORIDAD else 99, -m["prob"])
+    # Buscar mejor entre aprobados primero, sino entre todos los mercados
+    mp_candidato = min(aprobados, key=_mp_score) if aprobados else (min(mercados, key=_mp_score) if mercados else None)
+    mp=f"{mp_candidato['mercado']} ({mp_candidato['prob']}% · cuota @{mp_candidato['cuota']})" if mp_candidato else "Ninguno supera el umbral"
+    mp_prob=mp_candidato['prob'] if mp_candidato else 0
     comb=""
     comb_prob=0
     if len(aprobados)>=2:

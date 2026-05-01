@@ -1,1458 +1,1488 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ScoutBet -- Análisis Inteligente</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg:       #0B1420;
-  --bg2:      #0F1C2E;
-  --bg3:      #17263C;
-  --line:     rgba(255,255,255,.08);
-  --line2:    rgba(255,255,255,.14);
-  --text:     #F5F7FA;
-  --dim:      #8A9AB2;
-  --dim2:     #5C6B82;
-  --neon:     #00E28A;
-  --neon-dim: rgba(0,226,138,.12);
-  --neon-glow:0 0 0 1px rgba(0,226,138,.35), 0 0 20px rgba(0,226,138,.2);
-  --warn:     #FFD23F;
-  --live:     #FF3D54;
-  --font:     'Inter', system-ui, sans-serif;
-  --display:  'Oswald', 'Inter', sans-serif;
-  --mono:     'JetBrains Mono', ui-monospace, monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
-button{cursor:pointer;font-family:var(--font)}
-a{text-decoration:none}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:4px}
+"""
+MatchIQ — Backend Flask v5
+- Login
+- SQLite para guardar predicciones
+- Verificacion automatica de aciertos
+"""
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session
+from datetime import datetime, timedelta
+from functools import wraps
+import requests, time, math, os, sqlite3, json
 
-/* Layout */
-#app{display:grid;grid-template-rows:auto 1fr;height:100vh;overflow:hidden}
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "matchiq-secret-key-2026-xyz")
 
-/* Top bar */
-#topbar{position:relative;
-  display:flex;align-items:center;gap:20px;
-  padding:10px 20px;
-  background:rgba(11,20,32,.9);
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--line);
-  position:relative;z-index:20;
-  flex-shrink:0;
-}
-.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.logo-icon{
-  width:26px;height:26px;border-radius:7px;
-  background:linear-gradient(135deg,var(--neon),#00A86B);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:var(--neon-glow);
-}
-.logo-ball{
-  width:14px;height:14px;border-radius:50%;
-  border:1.5px solid var(--bg);
-  background:conic-gradient(from 0deg,var(--bg) 0 25%,transparent 25% 50%,var(--bg) 50% 75%,transparent 75%);
-}
-.logo-text{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:.08em}
-.logo-text span{color:var(--neon)}
+APP_USER = os.environ.get("APP_USER", "matchiq")
+APP_PASS = os.environ.get("APP_PASS", "futbol2026")
 
-nav{display:flex;gap:2px;margin-left:12px}
-nav button{
-  background:transparent;border:none;color:var(--dim);
-  padding:7px 11px;border-radius:6px;font-size:12px;font-weight:600;
-  display:flex;align-items:center;gap:5px;transition:all .15s;
-}
-nav button.active,nav button:hover{background:var(--neon-dim);color:var(--neon)}
-nav button.active{color:var(--neon)}
+# Path DB - en Railway se monta volumen en /data
+DB_PATH = os.environ.get("DB_PATH", "matchiq.db")
 
-.topbar-search{
-  display:flex;align-items:center;gap:8px;
-  padding:7px 12px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;
-  font-size:12px;color:var(--dim);width:240px;flex-shrink:0;
-}
-.topbar-search kbd{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim2);background:var(--bg3);padding:2px 5px;border-radius:3px}
+FD_KEY = "e28d6269df9441fea1b6a19548e982c6"
+FD_URL = "https://api.football-data.org/v4"
+FD_HEADERS = {"X-Auth-Token": FD_KEY}
 
-.topbar-bal{
-  display:flex;align-items:center;gap:8px;background:var(--bg2);
-  border:1px solid var(--line);border-radius:8px;padding:6px 10px;flex-shrink:0;
-}
-.topbar-bal .amt{font-family:var(--mono);font-size:13px;font-weight:700}
-.topbar-bal .dep{background:var(--neon);color:var(--bg);border:none;font-size:11px;font-weight:700;padding:4px 8px;border-radius:4px}
+AS_KEY = "fb49b7a70ea23977f8e7711c5ed027b1"
+AS_URL = "https://v3.football.api-sports.io"
+AS_HEADERS = {"x-apisports-key": AS_KEY}
 
-.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--neon),#007B4A);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bg);font-family:var(--display);flex-shrink:0}
-
-/* Main layout */
-#main{display:grid;grid-template-columns:190px 1fr 290px;overflow:hidden}
-
-/* Sidebar */
-#sidebar{border-right:1px solid var(--line);padding:16px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
-.sec-label{font-family:var(--mono);font-size:10px;color:var(--dim2);letter-spacing:.15em;padding:0 8px;margin-bottom:4px}
-.liga-btn{
-  display:flex;align-items:center;gap:8px;padding:7px 10px;
-  background:transparent;border:none;border-radius:7px;color:var(--text);
-  font-size:12px;font-weight:500;width:100%;text-align:left;transition:all .15s;
-}
-.liga-btn:hover{background:var(--bg3)}
-.liga-btn.active{background:var(--neon-dim);color:var(--neon)}
-.liga-btn .flag{font-size:13px}
-.liga-btn .count{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim2)}
-.liga-btn.active .count{color:var(--neon)}
-
-/* Center content */
-#content{overflow-y:auto;padding:18px 18px 40px}
-
-/* View sections */
-.view{display:none}
-.view.active{display:block}
-
-/* Featured hero */
-.hero-card{
-  border-radius:14px;background:linear-gradient(115deg,#0A2244 0%,#0B1420 60%,#102339 100%);
-  border:1px solid var(--line2);padding:20px 24px;
-  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;
-  position:relative;overflow:hidden;margin-bottom:18px;
-}
-.hero-card::before{
-  content:'';position:absolute;right:-40px;top:-30px;
-  width:300px;height:300px;pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cdefs%3E%3Cpattern id='d' width='22' height='22' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'%3E%3Cline x1='0' y1='0' x2='0' y2='22' stroke='%2300E28A' stroke-width='1.5'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='300' height='300' fill='url(%23d)' opacity='.07'/%3E%3C/svg%3E");
-}
-.hero-team{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.hero-team.away{align-items:flex-start}
-.hero-meta{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.15em}
-.hero-name{font-family:var(--display);font-size:18px;font-weight:600;letter-spacing:.02em}
-.hero-center{text-align:center}
-.hero-time{font-family:var(--mono);font-size:11px;color:var(--neon);letter-spacing:.2em;margin-bottom:6px}
-.hero-vs{font-family:var(--display);font-size:36px;font-weight:700;letter-spacing:.04em;line-height:1}
-
-/* Crest */
-.crest{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.15),0 2px 6px rgba(0,0,0,.2);text-shadow:0 1px 1px rgba(0,0,0,.4);flex-shrink:0}
-
-/* Filter chips */
-.chips{display:flex;gap:6px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
-.chip{
-  border:1px solid var(--line2);background:transparent;color:var(--dim);
-  border-radius:999px;padding:5px 12px;font-size:11px;font-weight:600;
-  letter-spacing:.02em;display:inline-flex;align-items:center;gap:5px;
-  white-space:nowrap;transition:all .15s;
-}
-.chip.active{border-color:var(--neon);background:var(--neon-dim);color:var(--neon)}
-.chip:hover{border-color:var(--line2);color:var(--text)}
-.chip .live-dot{width:6px;height:6px;border-radius:50%;background:var(--live);animation:pulse 1.4s infinite}
-
-/* Match rows */
-.match-row{
-  background:var(--bg2);border:1px solid var(--line);border-radius:10px;
-  padding:12px 14px;display:grid;grid-template-columns:64px 1fr auto;
-  gap:14px;align-items:center;transition:all .15s;margin-bottom:8px;cursor:pointer;
-}
-.match-row:hover{border-color:var(--line2);background:var(--bg3)}
-.match-time{text-align:center}
-.match-date{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em}
-.match-hour{font-family:var(--mono);font-size:13px;color:var(--text);font-weight:600;margin-top:2px}
-.match-comp{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:4px}
-.match-team{display:flex;align-items:center;gap:9px;margin-bottom:5px}
-.match-team:last-child{margin-bottom:0}
-.match-team-name{font-family:var(--display);font-size:15px;font-weight:500;letter-spacing:.02em}
-.odds{display:flex;gap:6px}
-.odd-btn{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;height:44px;min-width:52px;padding:0 8px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  border-radius:8px;transition:all .15s;
-}
-.odd-btn:hover{background:var(--neon-dim);border-color:var(--neon)}
-.odd-btn.hi{background:var(--neon-dim);border-color:var(--neon)}
-.odd-btn.sel{background:var(--neon);border-color:var(--neon)}
-.odd-lbl{font-size:10px;color:var(--dim);font-weight:600;letter-spacing:.05em}
-.odd-val{font-family:var(--mono);font-size:13px;font-weight:700}
-.odd-btn.hi .odd-val{color:var(--neon)}
-.odd-btn.sel .odd-lbl,.odd-btn.sel .odd-val{color:var(--bg)}
-.odd-more{width:32px;height:44px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:10px;background:transparent}
-
-/* Live indicator */
-.live-tag{display:inline-flex;align-items:center;gap:5px;color:var(--live);font-size:10px;font-weight:700;letter-spacing:.08em;font-family:var(--mono)}
-.live-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 0 3px rgba(255,61,84,.25);animation:pulse 1.4s infinite}
-.score{font-family:var(--mono);font-size:16px;font-weight:700;margin-left:auto;padding-right:10px}
-
-/* Right panel - analysis */
-#panel{border-left:1px solid var(--line);overflow-y:auto;display:flex;flex-direction:column}
-#panel-header{
-  padding:14px 16px;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(180deg,rgba(0,226,138,.06),transparent);
-  flex-shrink:0;
-}
-#panel-header .title{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
-#panel-header .badge{background:var(--neon);color:var(--bg);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;font-family:var(--mono)}
-#panel-body{padding:12px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
-
-/* Analysis card */
-.analysis-card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.analysis-card-header{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-.analysis-card-body{padding:14px}
-.card-match{font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:6px}
-.card-verdict{font-size:14px;font-weight:600}
-.card-prob{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--neon)}
-
-/* Market table in panel */
-.market-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
-.market-row:last-child{border-bottom:none}
-.market-name{font-size:12px}
-.market-prob{font-family:var(--mono);font-size:12px;font-weight:700}
-.market-prob.ok{color:var(--neon)}
-.market-prob.warn{color:var(--warn)}
-.market-prob.bad{color:var(--dim)}
-.market-badge{font-size:9px;font-weight:700;font-family:var(--mono);padding:2px 6px;border-radius:3px;letter-spacing:.08em}
-.market-badge.ok{background:rgba(0,226,138,.15);color:var(--neon);border:1px solid rgba(0,226,138,.3)}
-.market-badge.no{background:rgba(255,255,255,.05);color:var(--dim);border:1px solid var(--line)}
-
-/* Empty / loading states */
-.empty{padding:40px;text-align:center;color:var(--dim);font-size:13px}
-.loading{padding:20px;text-align:center}
-.spinner{width:24px;height:24px;border:2px solid var(--line);border-top-color:var(--neon);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px}
-.pulse-bar{height:44px;background:var(--bg2);border-radius:8px;margin-bottom:8px;animation:shimmer 1.4s ease infinite;background:linear-gradient(90deg,var(--bg2) 0%,var(--bg3) 50%,var(--bg2) 100%);background-size:200% 100%}
-
-/* Narración */
-.narracion{font-size:12px;color:var(--dim);line-height:1.6;padding:12px 14px;border-top:1px solid var(--line)}
-
-/* Veredicto hero */
-.veredicto-hero{
-  padding:14px;
-  background:linear-gradient(180deg,var(--neon-dim),transparent);
-  border:1px solid var(--neon);border-radius:10px;
-}
-.v-label{font-family:var(--mono);font-size:9px;color:var(--neon);letter-spacing:.15em;margin-bottom:4px}
-.v-mercado{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:.05em}
-.v-prob{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--neon);line-height:1}
-.v-sub{font-size:11px;color:var(--dim);margin-top:4px}
-
-/* Bet action btn */
-.bet-btn{
-  width:100%;height:46px;background:var(--neon);color:var(--bg);border:none;
-  border-radius:8px;font-family:var(--display);font-size:15px;font-weight:700;
-  letter-spacing:.1em;box-shadow:var(--neon-glow);transition:all .15s;
-}
-.bet-btn:hover{filter:brightness(1.1)}
-.bet-btn:disabled{background:var(--bg3);color:var(--dim);box-shadow:none}
-
-/* Stats view */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.stat-card{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px}
-.stat-label{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em;margin-bottom:4px}
-.stat-val{font-family:var(--display);font-size:26px;font-weight:700}
-.stat-val.green{color:var(--neon)}
-.stat-val.warn{color:var(--warn)}
-
-/* Detail modal */
-#detail-modal{
-  display:none;position:fixed;inset:0;z-index:100;
-  background:rgba(5,10,18,.85);backdrop-filter:blur(8px);
-  align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;
-}
-#detail-modal.open{display:flex}
-.modal-card{
-  width:100%;max-width:900px;background:var(--bg2);border:1px solid var(--line2);
-  border-radius:16px;overflow:hidden;animation:slideUp .25s ease;
-}
-.modal-topbar{
-  padding:14px 20px;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:12px;background:var(--bg);
-}
-.modal-close{background:transparent;border:none;color:var(--dim);padding:6px;border-radius:6px;font-size:16px}
-.modal-close:hover{color:var(--text);background:var(--bg3)}
-
-/* Field lines svg hero */
-.field-hero{
-  padding:24px 28px;
-  background:linear-gradient(180deg,#0A1E3A 0%,#0B1420 100%);
-  position:relative;overflow:hidden;
-}
-.field-hero svg.field{position:absolute;inset:0;width:100%;height:100%;opacity:.06;pointer-events:none}
-
-.modal-body{padding:24px;display:grid;grid-template-columns:1fr 280px;gap:20px}
-.markets-section{margin-bottom:18px}
-.markets-section-title{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
-.ms-name{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em}
-.ms-info{font-family:var(--mono);font-size:10px;color:var(--dim)}
-.markets-grid{display:grid;gap:7px}
-.market-btn{
-  background:var(--bg);border:1px solid var(--line);border-radius:8px;
-  padding:12px 14px;display:flex;justify-content:space-between;align-items:center;
-  transition:all .15s;color:var(--text);
-}
-.market-btn:hover{border-color:var(--line2);background:var(--bg3)}
-.market-btn.aprobado{border-color:var(--neon);background:rgba(0,226,138,.06)}
-.market-btn .m-label{font-size:12px;font-weight:500}
-.market-btn .m-odd{font-family:var(--mono);font-size:14px;font-weight:700}
-.market-btn.aprobado .m-odd{color:var(--neon)}
-
-.insight-box{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
-.insight-title{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-
-/* Prob bars */
-.prob-bar{display:flex;height:7px;border-radius:4px;overflow:hidden;margin:8px 0 10px}
-.prob-seg{transition:flex .4s ease}
-
-/* XG mini bars */
-.xg-bars{display:flex;gap:4px;height:32px;align-items:flex-end}
-.xg-bar{flex:1;border-radius:2px}
-
-/* History table */
-.hist-row{
-  display:grid;grid-template-columns:56px 1fr 70px 80px 80px;
-  gap:10px;align-items:center;padding:10px 16px;
-  border-bottom:1px solid var(--line);font-size:12px;
-}
-.hist-row:last-child{border-bottom:none}
-.hist-date{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em}
-.result-badge{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;font-family:var(--mono);letter-spacing:.08em}
-.result-badge.ok{background:rgba(0,226,138,.15);color:var(--neon);border:1px solid rgba(0,226,138,.3)}
-.result-badge.bad{background:rgba(255,61,84,.15);color:var(--live);border:1px solid rgba(255,61,84,.3)}
-.result-badge.pend{background:rgba(255,210,63,.1);color:var(--warn);border:1px solid rgba(255,210,63,.3)}
-
-/* Animations */
-@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(255,61,84,.3)}50%{box-shadow:0 0 0 6px rgba(255,61,84,.08)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideInLeft{from{transform:translateX(-100%)}to{transform:translateX(0)}}
-
-/* ── MOBILE ─────────────────────────────────────────────── */
-#mob-nav{display:none}
-#mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40}
-#mob-panel-drawer{display:none}
-
-@media(max-width:768px){
-  html,body{overflow:auto}
-  #app{grid-template-rows:52px 1fr;height:100dvh}
-
-  /* Top bar mobile */
-  #topbar{padding:8px 14px;gap:10px}
-  #topbar nav{display:none}
-  .topbar-search{display:none}
-  .topbar-bal{display:none}
-  #mob-menu-btn{display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text);padding:6px;margin-left:auto}
-
-  /* Main: single column */
-  #main{grid-template-columns:1fr;overflow:auto}
-
-  /* Sidebar: hidden by default, slide-in drawer */
-  #sidebar{
-    position:fixed;left:0;top:52px;bottom:56px;
-    width:240px;z-index:50;
-    transform:translateX(-100%);
-    transition:transform .25s ease;
-    background:var(--bg2);border-right:1px solid var(--line2);
-  }
-  #sidebar.open{transform:translateX(0)}
-  #mob-overlay{display:block;opacity:0;pointer-events:none;transition:opacity .25s}
-  #mob-overlay.open{opacity:1;pointer-events:all}
-
-  /* Content: full width, bottom padding for nav */
-  #content{padding:12px 12px 70px;overflow-y:auto}
-
-  /* Right panel: hidden, shown as bottom drawer */
-  #panel{display:none}
-  #mob-panel-drawer{
-    display:block;
-    position:fixed;bottom:56px;left:0;right:0;
-    background:var(--bg2);border-top:2px solid var(--neon);
-    z-index:45;max-height:75vh;overflow-y:auto;
-    transform:translateY(100%);transition:transform .3s ease;
-  }
-  #mob-panel-drawer.open{transform:translateY(0)}
-  #mob-panel-close{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:12px 16px;border-bottom:1px solid var(--line);
-    font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.05em;
-    position:sticky;top:0;background:var(--bg2);z-index:1;
-  }
-
-  /* Bottom navigation */
-  #mob-nav{
-    display:grid;grid-template-columns:repeat(4,1fr);
-    position:fixed;bottom:0;left:0;right:0;height:56px;
-    background:var(--bg2);border-top:1px solid var(--line);z-index:50;
-  }
-  .mob-nav-btn{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:3px;background:transparent;border:none;color:var(--dim);
-    font-family:var(--mono);font-size:9px;letter-spacing:.06em;
-  }
-  .mob-nav-btn.active{color:var(--neon)}
-  .mob-nav-btn svg{width:16px;height:16px}
-
-  /* Hero card mobile */
-  .hero-card{
-    grid-template-columns:1fr auto 1fr;
-    padding:14px 12px;gap:10px;margin-bottom:12px;
-  }
-  .hero-name{font-size:12px}
-  .hero-vs{font-size:24px}
-  .hero-time{font-size:10px}
-
-  /* Match rows mobile */
-  .match-row{
-    grid-template-columns:52px 1fr auto;
-    gap:8px;padding:10px 10px;
-  }
-  .match-hour{font-size:12px}
-  .match-date{font-size:9px}
-  .match-team-name{font-size:13px}
-  .match-comp{font-size:8px}
-  .odds{display:none}
-
-  /* Chips mobile */
-  .chips{gap:4px;margin-bottom:10px}
-  .chip{padding:4px 9px;font-size:10px}
-
-  /* Stats mobile */
-  .stats-grid{grid-template-columns:1fr 1fr}
-  .stat-val{font-size:20px}
-
-  /* Detail modal mobile */
-  #detail-modal{padding:0;align-items:flex-end}
-  .modal-card{border-radius:16px 16px 0 0;max-height:90vh;overflow-y:auto}
-  .modal-body{grid-template-columns:1fr;gap:14px}
-  .field-hero{padding:16px 14px}
-
-  /* Hide hero on mobile to save space */
-  #hero-zona{display:none}
-}
-</style>
-</head>
-<body>
-
-<div id="app">
-  <!-- TOP BAR -->
-  <div id="topbar">
-    <div class="logo">
-      <div class="logo-icon"><div class="logo-ball"></div></div>
-      <div class="logo-text">SCOUT<span>BET</span></div>
-    </div>
-    <nav>
-      <button class="active" onclick="setView('dashboard')" id="nav-dashboard">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Dashboard
-      </button>
-      <button onclick="setView('live')" id="nav-live">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="var(--live)"><circle cx="5" cy="5" r="4"/></svg>
-        En Vivo
-      </button>
-      <button onclick="setView('stats')" id="nav-stats">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>
-        Estadísticas
-      </button>
-    </nav>
-    <div style="flex:1"></div>
-    <div id="bell-btn" onclick="toggleAlertas()" style="position:relative;cursor:pointer;padding:6px 8px;border-radius:8px;background:var(--bg2);border:1px solid var(--line);display:flex;align-items:center;gap:6px;flex-shrink:0">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="1.8"><path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16l-2-2zM10 20a2 2 0 0 0 4 0"/></svg>
-      <span id="bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--live);color:#fff;font-size:9px;font-weight:700;font-family:var(--mono);padding:1px 5px;border-radius:999px;min-width:16px;text-align:center"></span>
-    </div>
-    <!-- Alertas dropdown -->
-    <div id="alertas-panel" style="display:none;position:absolute;top:52px;right:180px;width:360px;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden">
-      <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
-        <span style="font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.05em">⚡ ALERTAS — PRÓXIMAS 3HS</span>
-        <button onclick="toggleAlertas()" style="background:transparent;border:none;color:var(--dim);cursor:pointer;font-size:16px">✕</button>
-      </div>
-      <div id="alertas-list" style="max-height:320px;overflow-y:auto;padding:8px"></div>
-    </div>
-    <div class="topbar-search" style="cursor:text" onclick="focusSearch()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input id="search-input" placeholder="Buscar liga, equipo…" 
-        style="background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:12px;width:100%;caret-color:var(--neon)"
-        oninput="buscarPartidos(this.value)"
-        onkeydown="if(event.key==='Escape'){this.value='';buscarPartidos('')}">
-      <kbd id="search-kbd" style="flex-shrink:0">⌘K</kbd>
-    </div>
-    <!-- Search results dropdown -->
-    <div id="search-results" style="display:none;position:absolute;top:52px;left:50%;transform:translateX(-50%);width:420px;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden;max-height:400px;overflow-y:auto"></div>
-    <div class="topbar-bal" id="desktop-bell-btn" onclick="toggleAlertas()" style="cursor:pointer;position:relative">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--neon)" stroke-width="1.8"><path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16l-2-2zM10 20a2 2 0 0 0 4 0"/></svg>
-      <span class="amt">Alertas</span>
-      <span id="bell-badge-desktop" style="display:none;background:var(--live);color:#fff;font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 6px;border-radius:4px">0</span>
-    </div>
-    <div class="avatar">SB</div>
-    <button id="mob-menu-btn" onclick="toggleSidebar()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-  </div>
-
-  <!-- MAIN 3-COLUMN -->
-  <div id="main">
-    <!-- SIDEBAR -->
-    <div id="sidebar">
-      <div>
-        <div class="sec-label">COMPETICIONES</div>
-        <div id="liga-list">
-          <button class="liga-btn active" onclick="cargarLiga('PL')" id="liga-PL">
-            <span class="flag">🏴</span> Premier League <span class="count">-</span>
-          </button>
-          <button class="liga-btn" onclick="cargarLiga('PD')" id="liga-PD">
-            <span class="flag">🇪🇸</span> La Liga <span class="count">-</span>
-          </button>
-          <button class="liga-btn" onclick="cargarLiga('SA')" id="liga-SA">
-            <span class="flag">🇮🇹</span> Serie A <span class="count">-</span>
-          </button>
-          <button class="liga-btn" onclick="cargarLiga('BL1')" id="liga-BL1">
-            <span class="flag">🇩🇪</span> Bundesliga <span class="count">-</span>
-          </button>
-          <button class="liga-btn" onclick="cargarLiga('FL1')" id="liga-FL1">
-            <span class="flag">🇫🇷</span> Ligue 1 <span class="count">-</span>
-          </button>
-          <button class="liga-btn" onclick="cargarLiga('CL')" id="liga-CL">
-            <span class="flag">🏆</span> Champions <span class="count">-</span>
-          </button>
-          <button class="liga-btn" onclick="cargarLiga('BSA')" id="liga-BSA">
-            <span class="flag">🇧🇷</span> Brasileirão <span class="count">-</span>
-          </button>
-          <button class="liga-btn" onclick="cargarLiga('PPL')" id="liga-PPL">
-            <span class="flag">🇵🇹</span> Primeira Liga <span class="count">-</span>
-          </button>
-        </div>
-      </div>
-      <div>
-        <div class="sec-label">ARGENTINA</div>
-        <button class="liga-btn" onclick="cargarLiga('AARG')" id="liga-AARG" style="opacity:.5;pointer-events:none">
-          <span class="flag">🇦🇷</span> Primera Div. <span class="count">—</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- CENTER CONTENT -->
-    <div id="content">
-      <!-- DASHBOARD VIEW -->
-      <div class="view active" id="view-dashboard">
-        <!-- Hero partido destacado -->
-        <div id="hero-zona"></div>
-
-        <!-- Filtros -->
-        <div class="chips">
-          <button class="chip active" onclick="filtrarPartidos('todos')">Todos <span id="total-count" style="color:var(--dim);margin-left:2px"></span></button>
-          <button class="chip" onclick="filtrarPartidos('live')">
-            <span class="live-dot"></span> En vivo
-          </button>
-          <button class="chip" onclick="filtrarPartidos('hoy')">Hoy</button>
-          <button class="chip" onclick="filtrarPartidos('manana')">Mañana</button>
-          <div style="margin-left:auto">
-            <button class="chip" style="color:var(--text)">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
-              Filtros
-            </button>
-          </div>
-        </div>
-
-        <!-- Lista de partidos -->
-        <div id="match-list">
-          <div class="loading">
-            <div class="spinner"></div>
-            <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Cargando partidos…</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- LIVE VIEW -->
-      <div class="view" id="view-live">
-        <div style="margin-bottom:18px">
-          <div style="font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.2em;margin-bottom:8px">/ PARTIDOS EN VIVO</div>
-          <h2 style="font-family:var(--display);font-size:28px;font-weight:700;letter-spacing:.02em">EN VIVO <span id="live-count" style="color:var(--neon)"></span></h2>
-        </div>
-        <div id="live-list">
-          <div class="empty">Cargando partidos en vivo…</div>
-        </div>
-      </div>
-
-      <!-- STATS VIEW -->
-      <div class="view" id="view-stats">
-        <div style="margin-bottom:20px">
-          <div style="font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.2em;margin-bottom:8px">/ RENDIMIENTO DEL MODELO</div>
-          <h2 style="font-family:var(--display);font-size:28px;font-weight:700">ESTADÍSTICAS</h2>
-        </div>
-
-        <div class="stats-grid" id="stats-cards">
-          <div class="stat-card">
-            <div class="stat-label">PREDICCIONES TOTALES</div>
-            <div class="stat-val green" id="s-total">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">ACIERTO VERIFICADO</div>
-            <div class="stat-val green" id="s-acierto">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">GANADAS / PERDIDAS</div>
-            <div class="stat-val" id="s-gp">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">PENDIENTES</div>
-            <div class="stat-val warn" id="s-pend">—</div>
-          </div>
-        </div>
-
-        <div style="font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.1em;margin-bottom:12px">HISTORIAL RECIENTE</div>
-        <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden">
-          <div class="hist-row" style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em;background:var(--bg);padding-top:8px;padding-bottom:8px">
-            <span>FECHA</span><span>PARTIDO</span><span>MERCADO</span><span>PROB%</span><span>RESULTADO</span>
-          </div>
-          <div id="hist-list"><div class="empty">Cargando historial…</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT PANEL -->
-    <div id="panel">
-      <div id="panel-header">
-        <div class="title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--neon)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/></svg>
-          ANÁLISIS
-          <span class="badge" id="panel-badge">—</span>
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Hacé clic en un partido</div>
-      </div>
-      <div id="panel-body">
-        <div class="empty" id="panel-empty">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--dim2)" stroke-width="1.2" style="margin-bottom:10px"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-          <div>Seleccioná un partido<br>para ver el análisis</div>
-        </div>
-        <div id="panel-content" style="display:none;flex-direction:column;gap:12px"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- DETAIL MODAL -->
-<div id="detail-modal" onclick="closeModal(event)">
-  <div class="modal-card" id="modal-card">
-    <div class="modal-topbar">
-      <button class="modal-close" onclick="document.getElementById('detail-modal').classList.remove('open')">✕</button>
-      <div id="modal-breadcrumb" style="font-size:12px;color:var(--dim)">—</div>
-      <div style="flex:1"></div>
-      <button class="chip">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 9 17 14 19 22 12 17 5 22 7 14 2 9 9 9 12 2"/></svg>
-        Seguir
-      </button>
-    </div>
-    <div id="modal-body-content"></div>
-  </div>
-</div>
-
-<script>
-// ── State ──────────────────────────────────────────────────────────
-let currentLiga = 'PL';
-let allMatches = [];
-let currentFilter = 'todos';
-let analyzing = false;
-let currentMatch = {home:'', away:'', id:null};
-
-// ── View routing ───────────────────────────────────────────────────
-function setView(name) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById('view-' + name).classList.add('active');
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  const nb = document.getElementById('nav-' + name);
-  if (nb) nb.classList.add('active');
-  if (name === 'stats') loadStats();
-  if (name === 'live') loadLive();
+LIGAS = {
+    "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025, "source": "fd"},
+    "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025, "source": "fd"},
+    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025, "source": "fd"},
+    "BL1": {"nombre": "🇩🇪 Bundesliga",         "as_id": 78,  "season": 2025, "source": "fd"},
+    "FL1": {"nombre": "🇫🇷 Ligue 1",            "as_id": 61,  "season": 2025, "source": "fd"},
+    "DED": {"nombre": "🇳🇱 Eredivisie",         "as_id": 88,  "season": 2025, "source": "fd"},
+    "PPL": {"nombre": "🇵🇹 Primeira Liga",      "as_id": 94,  "season": 2025, "source": "fd"},
+    "ELC": {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship",     "as_id": 40,  "season": 2025, "source": "fd"},
+    "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
+    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026, "source": "fd"},
 }
 
-// ── Helpers ────────────────────────────────────────────────────────
-const TEAM_COLORS = {
-  // Premier League
-  'Arsenal FC':['#EF0107','#FFFFFF'], 'Arsenal':['#EF0107','#FFFFFF'],
-  'Chelsea FC':['#034694','#FFFFFF'], 'Chelsea':['#034694','#FFFFFF'],
-  'Liverpool FC':['#C8102E','#00B2A9'], 'Liverpool':['#C8102E','#00B2A9'],
-  'Manchester City FC':['#6CABDD','#1C2C5B'], 'Manchester City':['#6CABDD','#1C2C5B'],
-  'Manchester United FC':['#DA291C','#FBE122'], 'Manchester United':['#DA291C','#FBE122'],
-  'Tottenham Hotspur FC':['#132257','#FFFFFF'], 'Tottenham':['#132257','#FFFFFF'],
-  'Newcastle United FC':['#241F20','#FFFFFF'], 'Newcastle United':['#241F20','#FFFFFF'],
-  'Aston Villa FC':['#670E36','#95BFE5'], 'Aston Villa':['#670E36','#95BFE5'],
-  'West Ham United FC':['#7A263A','#1BB1E7'], 'West Ham':['#7A263A','#1BB1E7'],
-  'Brighton & Hove Albion FC':['#0057B8','#FFCD00'], 'Brighton':['#0057B8','#FFCD00'],
-  'Brentford FC':['#D20000','#FFFFFF'], 'Brentford':['#D20000','#FFFFFF'],
-  'Fulham FC':['#CC0000','#FFFFFF'], 'Fulham':['#CC0000','#FFFFFF'],
-  'Crystal Palace FC':['#1B458F','#C4122E'], 'Crystal Palace':['#1B458F','#C4122E'],
-  'Everton FC':['#003399','#FFFFFF'], 'Everton':['#003399','#FFFFFF'],
-  'Wolverhampton Wanderers FC':['#FDB913','#231F20'], 'Wolverhampton':['#FDB913','#231F20'],
-  'Nottingham Forest FC':['#DD0000','#FFFFFF'], 'Nottingham Forest':['#DD0000','#FFFFFF'],
-  'AFC Bournemouth':['#DA291C','#000000'], 'Bournemouth':['#DA291C','#000000'],
-  'Leicester City FC':['#003090','#FDBE11'], 'Leicester':['#003090','#FDBE11'],
-  'Ipswich Town FC':['#0044A9','#FFFFFF'], 'Ipswich':['#0044A9','#FFFFFF'],
-  'Sunderland AFC':['#EB172B','#FFFFFF'], 'Sunderland':['#EB172B','#FFFFFF'],
-  'Leeds United FC':['#FFCD00','#1D428A'], 'Leeds United':['#FFCD00','#1D428A'],
-  'Burnley FC':['#6C1D45','#99D6EA'], 'Burnley':['#6C1D45','#99D6EA'],
-  // La Liga
-  'FC Barcelona':['#A50044','#004D98'], 'Barcelona':['#A50044','#004D98'],
-  'Real Madrid CF':['#FFFFFF','#00529F'], 'Real Madrid':['#FEBE10','#00529F'],
-  'Club Atlético de Madrid':['#CB3524','#272E61'], 'Atlético de Madrid':['#CB3524','#272E61'],
-  'Sevilla FC':['#D71920','#FFFFFF'], 'Sevilla':['#D71920','#FFFFFF'],
-  'Real Betis Balompié':['#00954C','#FFFFFF'], 'Real Betis':['#00954C','#FFFFFF'],
-  'Villarreal CF':['#FFD700','#009BDE'], 'Villarreal':['#FFD700','#009BDE'],
-  'Athletic Club':['#EE2523','#FFFFFF'], 'Athletic Bilbao':['#EE2523','#FFFFFF'],
-  'Real Sociedad':['#0067B1','#FFFFFF'], 'Real Sociedad de Fútbol':['#0067B1','#FFFFFF'],
-  'Valencia CF':['#FF7900','#000000'], 'Valencia':['#FF7900','#000000'],
-  'Girona FC':['#CD1127','#FFFFFF'], 'Girona':['#CD1127','#FFFFFF'],
-  'RCD Mallorca':['#D2122E','#FFD700'], 'Mallorca':['#D2122E','#FFD700'],
-  'Deportivo Alavés':['#1E3A6E','#FFFFFF'], 'Alavés':['#1E3A6E','#FFFFFF'],
-  'RC Celta de Vigo':['#8DBCE8','#FFFFFF'], 'Celta de Vigo':['#8DBCE8','#FFFFFF'],
-  'CA Osasuna':['#C02B26','#003DA5'], 'Osasuna':['#C02B26','#003DA5'],
-  'Levante UD':['#D2232A','#003DA5'], 'Levante':['#D2232A','#003DA5'],
-  'FC Barcelona B':['#A50044','#004D98'],
-  'Getafe CF':['#0087CA','#FFFFFF'], 'Getafe':['#0087CA','#FFFFFF'],
-  'Rayo Vallecano':['#CC0000','#FFFFFF'], 'Rayo Vallecano de Madrid':['#CC0000','#FFFFFF'],
-  'UD Las Palmas':['#FFDD00','#003DA5'], 'Las Palmas':['#FFDD00','#003DA5'],
-  'Real Valladolid CF':['#8B0032','#FFFFFF'], 'Valladolid':['#8B0032','#FFFFFF'],
-  'Elche CF':['#00954C','#FFFFFF'], 'Elche':['#00954C','#FFFFFF'],
-  // Serie A
-  'Juventus FC':['#000000','#FFFFFF'], 'Juventus':['#000000','#FFFFFF'],
-  'AC Milan':['#FB090B','#000000'], 'Milan':['#FB090B','#000000'],
-  'Inter Milan':['#0068A8','#000000'], 'Inter':['#0068A8','#000000'], 'FC Internazionale Milano':['#0068A8','#000000'],
-  'AS Roma':['#8E1F2F','#F5A623'], 'Roma':['#8E1F2F','#F5A623'],
-  'SSC Napoli':['#087AC2','#FFFFFF'], 'Napoli':['#087AC2','#FFFFFF'],
-  'Atalanta BC':['#1C3B6E','#000000'], 'Atalanta':['#1C3B6E','#000000'],
-  'SS Lazio':['#87CEEB','#FFFFFF'], 'Lazio':['#87CEEB','#FFFFFF'],
-  'ACF Fiorentina':['#4B0082','#FFFFFF'], 'Fiorentina':['#4B0082','#FFFFFF'],
-  'Torino FC':['#8B0000','#FFFFFF'], 'Torino':['#8B0000','#FFFFFF'],
-  'Bologna FC 1909':['#003DA5','#CC0000'], 'Bologna':['#003DA5','#CC0000'],
-  'Udinese Calcio':['#000000','#FFFFFF'], 'Udinese':['#000000','#FFFFFF'],
-  'Genoa CFC':['#8B0000','#003DA5'], 'Genoa':['#8B0000','#003DA5'],
-  'Cagliari Calcio':['#CC0000','#003DA5'], 'Cagliari':['#CC0000','#003DA5'],
-  'US Sassuolo Calcio':['#00843D','#000000'], 'Sassuolo':['#00843D','#000000'],
-  'Hellas Verona FC':['#003DA5','#FFD700'], 'Verona':['#003DA5','#FFD700'],
-  // Bundesliga
-  'FC Bayern München':['#DC052D','#0066B2'], 'Bayern Munich':['#DC052D','#0066B2'], 'Bayern München':['#DC052D','#0066B2'],
-  'Borussia Dortmund':['#FDE100','#000000'], 'Dortmund':['#FDE100','#000000'],
-  'Bayer 04 Leverkusen':['#E32221','#000000'], 'Leverkusen':['#E32221','#000000'],
-  'RB Leipzig':['#CC0000','#003DA5'], 'Leipzig':['#CC0000','#003DA5'],
-  'Borussia Mönchengladbach':['#000000','#FFFFFF'], 'Gladbach':['#000000','#FFFFFF'],
-  'Eintracht Frankfurt':['#E1000F','#000000'], 'Frankfurt':['#E1000F','#000000'],
-  'VfB Stuttgart':['#E32219','#FFFFFF'], 'Stuttgart':['#E32219','#FFFFFF'],
-  'SC Freiburg':['#CC0000','#000000'], 'Freiburg':['#CC0000','#000000'],
-  'TSG 1899 Hoffenheim':['#1961AC','#FFFFFF'], 'Hoffenheim':['#1961AC','#FFFFFF'],
-  'FC Augsburg':['#BA3733','#007A3D'], 'Augsburg':['#BA3733','#007A3D'],
-  'Werder Bremen':['#1D9053','#FFFFFF'], 'Bremen':['#1D9053','#FFFFFF'],
-  // Ligue 1
-  'Paris Saint-Germain FC':['#004170','#DA291C'], 'PSG':['#004170','#DA291C'],
-  'Olympique de Marseille':['#2FAEE0','#FFFFFF'], 'Marseille':['#2FAEE0','#FFFFFF'],
-  'Olympique Lyonnais':['#FFFFFF','#CC0000'], 'Lyon':['#FFFFFF','#CC0000'],
-  'AS Monaco FC':['#CC0000','#FFFFFF'], 'Monaco':['#CC0000','#FFFFFF'],
-  'LOSC Lille':['#CC0000','#003DA5'], 'Lille':['#CC0000','#003DA5'],
-  'RC Lens':['#FFD700','#CC0000'], 'Lens':['#FFD700','#CC0000'],
-  'Stade Rennais FC':['#CC0000','#000000'], 'Rennes':['#CC0000','#000000'],
-  'OGC Nice':['#CC0000','#000000'], 'Nice':['#CC0000','#000000'],
-  // Champions League extras
-  'SL Benfica':['#CC0000','#FFFFFF'], 'Benfica':['#CC0000','#FFFFFF'],
-  'FC Porto':['#003DA5','#FFFFFF'], 'Porto':['#003DA5','#FFFFFF'],
-  'Sporting CP':['#00843D','#FFD700'], 'Sporting':['#00843D','#FFD700'],
-  'Ajax':['#D2122E','#FFFFFF'], 'AFC Ajax':['#D2122E','#FFFFFF'],
-  'PSV Eindhoven':['#CC0000','#FFFFFF'], 'PSV':['#CC0000','#FFFFFF'],
-  'Club Brugge KV':['#003DA5','#000000'], 'Club Brugge':['#003DA5','#000000'],
-  'Celtic FC':['#16A94D','#FFFFFF'], 'Celtic':['#16A94D','#FFFFFF'],
-  'Rangers FC':['#003DA5','#FFFFFF'], 'Rangers':['#003DA5','#FFFFFF'],
-  'FC Red Bull Salzburg':['#CC0000','#003DA5'], 'Salzburg':['#CC0000','#003DA5'],
-  // Brasileirao
-  'Flamengo':['#CC0000','#000000'], 'CR Flamengo':['#CC0000','#000000'],
-  'Palmeiras':['#006437','#FFFFFF'], 'SE Palmeiras':['#006437','#FFFFFF'],
-  'São Paulo FC':['#CC0000','#000000'], 'São Paulo':['#CC0000','#000000'],
-  'Fluminense FC':['#6B1D45','#8B0032'], 'Fluminense':['#6B1D45','#8B0032'],
-  'Atlético Mineiro':['#000000','#FFFFFF'], 'Atlético-MG':['#000000','#FFFFFF'],
-  'Grêmio FBPA':['#003DA5','#000000'], 'Grêmio':['#003DA5','#000000'],
-  'Sport Club Internacional':['#CC0000','#FFFFFF'], 'Internacional':['#CC0000','#FFFFFF'],
-  'Corinthians':['#000000','#FFFFFF'], 'SC Corinthians Paulista':['#000000','#FFFFFF'],
-  'Santos FC':['#000000','#FFFFFF'], 'Santos':['#000000','#FFFFFF'],
-  'Botafogo':['#000000','#FFFFFF'], 'Botafogo de Futebol e Regatas':['#000000','#FFFFFF'],
-};
+_cache = {}
+CACHE_TTL = 300
+CACHE_TTL_AS = 43200
+CACHE_TTL_FX_STATS = 604800  # 7 dias para stats por partido
 
-function getTeamColors(name) {
-  if (!name) return ['#1a4a8a','#0d2244'];
-  // Try exact match first
-  if (TEAM_COLORS[name]) return TEAM_COLORS[name];
-  // Try partial match
-  const nl = name.toLowerCase();
-  for (const [k, v] of Object.entries(TEAM_COLORS)) {
-    const kl = k.toLowerCase();
-    if (nl.includes(kl) || kl.includes(nl)) return v;
-  }
-  // Fallback: generate color from name
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  const h = Math.abs(hash) % 360;
-  return [`hsl(${h},60%,35%)`, `hsl(${(h+180)%360},40%,20%)`];
-}
 
-function crestHTML(name, color1, color2, size=28) {
-  const colors = getTeamColors(name);
-  const c1 = colors[0], c2 = colors[1];
-  const initials = (name || 'TM').split(' ').filter(w=>w.length>1).map(w=>w[0]).join('').slice(0,3).toUpperCase();
-  return `<div class="crest" style="width:${size}px;height:${size}px;background:linear-gradient(135deg,${c1},${c2});font-size:${size*.34}px;color:#fff;letter-spacing:-.5px">${initials}</div>`;
-}
+# ── DATABASE ──────────────────────────────────────────────
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS analisis_cache (
+    match_id INTEGER,
+    liga TEXT,
+    resultado TEXT,
+    creado TEXT,
+    PRIMARY KEY (match_id, liga)
+)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS predicciones (
+        match_id INTEGER PRIMARY KEY,
+        liga TEXT,
+        fecha TEXT,
+        home TEXT,
+        away TEXT,
+        mercado_principal TEXT,
+        mp_prob INTEGER,
+        mp_cuota REAL,
+        combinable TEXT,
+        comb_prob INTEGER,
+        comb_cuota REAL,
+        resultado_home INTEGER,
+        resultado_away INTEGER,
+        mp_acertado INTEGER,
+        comb_acertado INTEGER,
+        verificado INTEGER DEFAULT 0,
+        creado TEXT
+    )""")
+    conn.commit()
+    conn.close()
 
-function fmtDate(utcDate) {
-  if (!utcDate) return '—';
-  const d = new Date(utcDate);
-  const hoy = new Date();
-  const man = new Date(); man.setDate(man.getDate()+1);
-  const isHoy = d.toDateString() === hoy.toDateString();
-  const isMan = d.toDateString() === man.toDateString();
-  const time = d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
-  return { label: isHoy?'Hoy':isMan?'Mañ':d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}), time };
-}
+init_db()
 
-function probColor(p) {
-  if (p >= 80) return 'var(--neon)';
-  if (p >= 70) return 'var(--warn)';
-  return 'var(--dim)';
-}
+def get_cached_analysis(match_id, liga):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT resultado, creado FROM analisis_cache WHERE match_id=? AND liga=?", (match_id, liga))
+        row = c.fetchone()
+        conn.close()
+        if not row: return None
+        resultado = json.loads(row[0])
+        age = (datetime.utcnow() - datetime.fromisoformat(row[1])).total_seconds()
+        if age < 21600: return resultado  # cache 6 horas
+        return None
+    except: return None
 
-// ── Liga loading ───────────────────────────────────────────────────
-async function cargarLiga(code) {
-  currentLiga = code;
-  // Update sidebar active
-  document.querySelectorAll('.liga-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('liga-' + code);
-  if (btn) btn.classList.add('active');
+def save_cached_analysis(match_id, liga, resultado):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("INSERT OR REPLACE INTO analisis_cache (match_id, liga, resultado, creado) VALUES (?,?,?,?)",
+                  (match_id, liga, json.dumps(resultado, ensure_ascii=False), datetime.utcnow().isoformat()))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Cache error: {e}")
 
-  // Show loading
-  document.getElementById('match-list').innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Cargando ${code}…</div>
-    </div>`;
-  document.getElementById('hero-zona').innerHTML = '';
-  resetPanel();
+def save_prediction(match_id, liga, fecha, home, away, veredicto):
+    """Guarda la prediccion cuando se analiza un partido."""
+    mp_text = veredicto.get("mercado_principal", "")
+    comb_text = veredicto.get("combinable", "")
 
-  try {
-    const res = await fetch(`/partidos/${code}`);
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    allMatches = data.response || data.partidos || data.matches || (Array.isArray(data) ? data : []);
-    renderMatches(allMatches);
-    // Update count in sidebar
-    if (btn) {
-      const countEl = btn.querySelector('.count');
-      if (countEl) countEl.textContent = allMatches.length;
+    # Extraer prob y cuota del mercado principal
+    mp_prob, mp_cuota = _extract_prob_cuota(mp_text)
+    comb_prob, comb_cuota = _extract_prob_cuota(comb_text)
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("""INSERT OR REPLACE INTO predicciones
+            (match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota,
+             combinable, comb_prob, comb_cuota, creado)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (match_id, liga, fecha, home, away, mp_text, mp_prob, mp_cuota,
+             comb_text, comb_prob, comb_cuota, datetime.utcnow().isoformat()))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error saving prediction: {e}")
+
+
+def _extract_prob_cuota(text):
+    """De 'Goles Over 2.5 (72% · cuota @1.27)' extrae (72, 1.27)."""
+    if not text: return (None, None)
+    try:
+        import re
+        prob_m = re.search(r"(\d+)%", text)
+        cuota_m = re.search(r"@([\d.]+)", text)
+        prob = int(prob_m.group(1)) if prob_m else None
+        cuota = float(cuota_m.group(1)) if cuota_m else None
+        return (prob, cuota)
+    except:
+        return (None, None)
+
+
+def verify_prediction(match_id, home_goals, away_goals):
+    """Verifica si el mercado principal y combinable acertaron."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT mercado_principal, combinable, home, away FROM predicciones WHERE match_id=?", (match_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return
+
+    mp, comb, home, away = row
+    mp_ok = _check_mercado(mp, home_goals, away_goals, home, away)
+    comb_ok = _check_mercado(comb, home_goals, away_goals, home, away) if comb else None
+
+    c.execute("""UPDATE predicciones SET resultado_home=?, resultado_away=?,
+        mp_acertado=?, comb_acertado=?, verificado=1 WHERE match_id=?""",
+        (home_goals, away_goals,
+         1 if mp_ok else (0 if mp_ok is False else None),
+         1 if comb_ok else (0 if comb_ok is False else None),
+         match_id))
+    conn.commit()
+    conn.close()
+
+
+def _check_mercado(texto, hg, ag, home, away):
+    """Verifica si el mercado acerto segun el resultado."""
+    if not texto: return None
+    t = texto.lower()
+    total = hg + ag
+    hl = home.lower()
+    al = away.lower()
+
+    # 1X2
+    if "resultado final" in t:
+        if hl in t: return hg > ag
+        elif al in t: return ag > hg
+        elif "empate" in t: return hg == ag
+
+    # Doble Chance
+    if "doble oportunidad" in t or "1x" in t or "x2" in t:
+        if "1x" in t or hl in t: return hg >= ag
+        elif "x2" in t or al in t: return ag >= hg
+
+    # Goles equipo Over 1.5 (chequear antes de Over genérico)
+    if "goles equipo" in t and "over 1.5" in t:
+        if hl in t: return hg >= 2
+        if al in t: return ag >= 2
+        return None
+
+    # Goles equipo Over 0.5
+    if "goles equipo" in t and "over 0.5" in t:
+        if hl in t: return hg > 0
+        if al in t: return ag > 0
+        return None
+
+    # Over/Under totales
+    if "over 3.5" in t: return total > 3.5
+    if "under 3.5" in t: return total < 3.5
+    if "over 2.5" in t: return total > 2.5
+    if "under 2.5" in t: return total < 2.5
+    if "over 1.5" in t: return total > 1.5
+    if "under 1.5" in t: return total < 1.5
+
+    # BTTS
+    if "ambos anotan" in t or "btts" in t:
+        return hg > 0 and ag > 0
+
+    # Clean Sheet
+    if "clean sheet" in t:
+        if hl in t: return ag == 0
+        if al in t: return hg == 0
+
+    # Victoria a Cero
+    if "victoria a cero" in t:
+        if hl in t: return hg > ag and ag == 0
+        if al in t: return ag > hg and hg == 0
+
+    # No 0-0
+    if "no termina 0-0" in t:
+        return total > 0
+
+    # 1er Tiempo - no verificable sin datos de HT
+    if "1er tiempo" in t:
+        return None
+
+    return None
+
+
+def fd_get(ep, params=None):
+    ck="fd:"+ep+str(params or ""); now=time.time()
+    if ck in _cache and now-_cache[ck][1]<CACHE_TTL: return _cache[ck][0]
+    try:
+        r=requests.get(f"{FD_URL}{ep}",headers=FD_HEADERS,params=params,timeout=15)
+        if r.status_code==429: time.sleep(6); r=requests.get(f"{FD_URL}{ep}",headers=FD_HEADERS,params=params,timeout=15)
+        d=r.json(); _cache[ck]=(d,now); return d
+    except Exception as e: return {"error":str(e)}
+
+def as_get(ep, params=None):
+    ck="as:"+ep+str(params or ""); now=time.time()
+    # Cache largo para fixtures/statistics
+    ttl = CACHE_TTL_FX_STATS if "fixtures/statistics" in ep else CACHE_TTL_AS
+    if ck in _cache and now-_cache[ck][1]<ttl: return _cache[ck][0]
+    try:
+        r=requests.get(f"{AS_URL}{ep}",headers=AS_HEADERS,params=params,timeout=15)
+        if r.status_code==429: return {"error":"rate_limit"}
+        d=r.json()
+        if d.get("response") is not None: _cache[ck]=(d,now)
+        return d
+    except Exception as e: return {"error":str(e)}
+
+
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get("auth"): return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return wrapper
+
+def api_login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get("auth"): return jsonify({"error":"unauthorized"}), 401
+        return f(*args, **kwargs)
+    return wrapper
+
+@app.route("/login", methods=["GET","POST"])
+def login():
+    error=None
+    if request.method=="POST":
+        u=request.form.get("user","").strip();p=request.form.get("pass","").strip()
+        if u==APP_USER and p==APP_PASS:
+            session["auth"]=True;session.permanent=True
+            return redirect(url_for("index"))
+        error="Credenciales incorrectas"
+    return render_template("login.html", error=error)
+
+@app.route("/logout")
+def logout():
+    session.clear();return redirect(url_for("login"))
+
+@app.route("/")
+@login_required
+def index():
+    return render_template("index.html", ligas={k:v["nombre"] for k,v in LIGAS.items()})
+
+
+@app.route("/analisis_avanzado/<codigo>/<int:match_id>")
+@api_login_required
+def analisis_avanzado(codigo, match_id):
+    """Trae stats reales (corners, tarjetas, posesion, faltas, remates) de los ultimos 5 partidos de cada equipo."""
+    liga = LIGAS.get(codigo, {})
+    as_id = liga.get("as_id")
+    season = liga.get("season")
+    if not as_id:
+        return jsonify({"error": "Liga sin api-sports id"})
+
+    # Obtener nombres de equipos del partido
+    if liga.get("source", "fd") == "fd":
+        md = fd_get(f"/matches/{match_id}")
+        if "error" in md or "id" not in md:
+            return jsonify({"error": "Partido no encontrado"})
+        hn = md["homeTeam"]["name"]
+        an = md["awayTeam"]["name"]
+    else:
+        fx_data = as_get("/fixtures", {"id": match_id})
+        if "error" in fx_data or not fx_data.get("response"):
+            return jsonify({"error": "Partido no encontrado"})
+        teams = fx_data["response"][0].get("teams", {})
+        hn = teams.get("home", {}).get("name", "")
+        an = teams.get("away", {}).get("name", "")
+
+    # Buscar IDs api-sports
+    hid = _search_as(hn, as_id, season)
+    aid = _search_as(an, as_id, season)
+    if not hid or not aid:
+        return jsonify({"error": "No se encontraron equipos en api-sports"})
+
+    # Stats avanzadas de ultimos 5 partidos
+    home_avg = _avg_fixture_stats(hid, as_id, season)
+    away_avg = _avg_fixture_stats(aid, as_id, season)
+
+    # Mercados adicionales basados en stats avanzadas
+    mercados_extra = _mercados_avanzados(home_avg, away_avg, hn, an)
+
+    return jsonify({
+        "home_team": hn,
+        "away_team": an,
+        "home_stats": home_avg,
+        "away_stats": away_avg,
+        "mercados": mercados_extra,
+    })
+
+
+def _avg_fixture_stats(team_id, league_id, season):
+    """Promedia stats de los ultimos 5 partidos del equipo."""
+    fx_data = as_get("/fixtures", {"team": team_id, "season": season, "league": league_id, "last": 5})
+    if "error" in fx_data or not fx_data.get("response"):
+        return None
+
+    fixtures = fx_data["response"]
+    totals = {
+        "shots_total": [], "shots_on": [], "corners": [],
+        "yellow": [], "red": [], "fouls": [], "possession": [],
     }
-    document.getElementById('total-count').textContent = `(${allMatches.length})`;
-    // Render hero if there's a featured match
-    renderHero(allMatches);
-  } catch(e) {
-    document.getElementById('match-list').innerHTML = `
-      <div class="empty">
-        <div style="color:var(--live);margin-bottom:8px">Error al cargar ${code}</div>
-        <div style="font-size:11px">${e.message}</div>
-      </div>`;
-  }
-}
 
-// ── Render hero ────────────────────────────────────────────────────
-function renderHero(matches) {
-  const m = matches.find(m => m.live) || matches[0];
-  if (!m) return;
-  const dt = fmtDate(m.fecha || m.utcDate);
-  const homeTeam = m.home || m.homeTeam || 'Local';
-  const awayTeam = m.away || m.awayTeam || 'Visitante';
-  const comp = m.competicion || m.competition || currentLiga;
-  const mid = m.id || m.match_id;
-  document.getElementById('hero-zona').innerHTML = `
-    <div class="hero-card">
-      <div class="hero-team">
-        <div class="hero-meta">${comp.toUpperCase()}</div>
-        ${crestHTML(homeTeam, '#1a4a8a','#0d2244', 52)}
-        <div class="hero-name">${homeTeam.toUpperCase()}</div>
-        <div style="font-size:11px;color:var(--dim);font-family:var(--mono)">Local</div>
-      </div>
-      <div class="hero-center">
-        <div class="hero-time">${dt.label?.toUpperCase()||'HOY'} · ${dt.time||'—'}</div>
-        <div class="hero-vs">VS</div>
-        <div style="display:flex;gap:6px;margin-top:12px;justify-content:center">
-          <button class="odd-btn" onclick="analizarPartido(${mid},'${homeTeam}','${awayTeam}')">
-            <span class="odd-lbl">1</span><span class="odd-val">—</span>
-          </button>
-          <button class="odd-btn" onclick="analizarPartido(${mid},'${homeTeam}','${awayTeam}')">
-            <span class="odd-lbl">X</span><span class="odd-val">—</span>
-          </button>
-          <button class="odd-btn hi" onclick="analizarPartido(${mid},'${homeTeam}','${awayTeam}')">
-            <span class="odd-lbl">2</span><span class="odd-val">—</span>
-          </button>
-        </div>
-      </div>
-      <div class="hero-team away">
-        <div class="hero-meta">PARTIDO DESTACADO</div>
-        ${crestHTML(awayTeam, '#8a1a1a','#441a0d', 52)}
-        <div class="hero-name">${awayTeam.toUpperCase()}</div>
-        <div style="font-size:11px;color:var(--dim);font-family:var(--mono)">Visitante</div>
-      </div>
-    </div>`;
-}
+    for fx in fixtures:
+        fid = fx.get("fixture", {}).get("id")
+        if not fid: continue
+        stats_data = as_get("/fixtures/statistics", {"fixture": fid, "team": team_id})
+        if "error" in stats_data or not stats_data.get("response"):
+            continue
+        for team_stats in stats_data["response"]:
+            for s in team_stats.get("statistics", []):
+                t = s.get("type", "")
+                v = s.get("value")
+                if v is None: continue
+                if isinstance(v, str) and v.endswith("%"):
+                    try: v = float(v.replace("%", ""))
+                    except: v = 0
+                if not isinstance(v, (int, float)): continue
+                if t == "Total Shots": totals["shots_total"].append(v)
+                elif t == "Shots on Goal": totals["shots_on"].append(v)
+                elif t == "Corner Kicks": totals["corners"].append(v)
+                elif t == "Yellow Cards": totals["yellow"].append(v)
+                elif t == "Red Cards": totals["red"].append(v)
+                elif t == "Fouls": totals["fouls"].append(v)
+                elif t == "Ball Possession": totals["possession"].append(v)
+        time.sleep(0.3)  # Rate limit
 
-// ── Render match list ──────────────────────────────────────────────
-function renderMatches(matches) {
-  if (!matches || matches.length === 0) {
-    document.getElementById('match-list').innerHTML = '<div class="empty">No hay partidos disponibles para esta liga.</div>';
-    return;
-  }
-  const html = matches.map(m => {
-    const homeTeam = m.home || m.homeTeam || 'Local';
-    const awayTeam = m.away || m.awayTeam || 'Visitante';
-    const dt = fmtDate(m.fecha || m.utcDate);
-    const estado = m.estado || m.status || '';
-    const isLive = estado === 'IN_PLAY' || estado === 'HALFTIME' || estado === 'LIVE';
-    const mid = m.id || m.match_id;
-    const jornada = m.jornada ? 'J'+m.jornada : (m.stage||'');
-    const comp = m.competicion || m.competition || currentLiga;
-    const tienePred = m.tiene_prediccion;
-    const res = m.resultado || '';
+    def avg(lst):
+        return round(sum(lst)/len(lst), 1) if lst else "—"
 
-    const safeHome = homeTeam.replace(/'/g,"_").replace(/"/g,"_");
-    const safeAway = awayTeam.replace(/'/g,"_").replace(/"/g,"_");
-    return `
-    <div class="match-row" onclick="analizarPartido(${mid},'${safeHome}','${safeAway}')">
-      <div class="match-time">
-        ${isLive ? `<div class="live-tag"><span class="dot"></span> LIVE</div>` : `
-          <div class="match-date">${dt.label||''}</div>
-          <div class="match-hour">${dt.time||'—'}</div>
-        `}
-      </div>
-      <div style="min-width:0">
-        <div class="match-comp">${comp.toUpperCase()} · ${jornada}</div>
-        <div class="match-team">
-          ${crestHTML(homeTeam, '#1a4a8a','#0d2244', 22)}
-          <span class="match-team-name">${homeTeam.toUpperCase()}</span>
-        </div>
-        <div class="match-team">
-          ${crestHTML(awayTeam, '#8a1a1a','#441a0d', 22)}
-          <span class="match-team-name">${awayTeam.toUpperCase()}</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-        ${tienePred ? `<span style="font-family:var(--mono);font-size:9px;color:var(--neon);background:var(--neon-dim);border:1px solid rgba(0,226,138,.3);padding:2px 6px;border-radius:3px">✓ PRED</span>` : ''}
-        ${res ? `<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--dim)">${res}</span>` : ''}
-        <button class="chip" style="font-size:10px;padding:4px 10px">Analizar</button>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('match-list').innerHTML = html;
-}
-
-// ── Filter ─────────────────────────────────────────────────────────
-function filtrarPartidos(f) {
-  currentFilter = f;
-  document.querySelectorAll('.chips .chip').forEach(c => c.classList.remove('active'));
-  event.target.classList.add('active');
-  let filtered = allMatches;
-  if (f === 'live') filtered = allMatches.filter(m => m.status === 'IN_PLAY' || m.live);
-  else if (f === 'hoy') {
-    const hoy = new Date().toDateString();
-    filtered = allMatches.filter(m => (m.fecha||m.utcDate) && new Date(m.fecha||m.utcDate).toDateString() === hoy);
-  } else if (f === 'manana') {
-    const man = new Date(); man.setDate(man.getDate()+1);
-    filtered = allMatches.filter(m => (m.fecha||m.utcDate) && new Date(m.fecha||m.utcDate).toDateString() === man.toDateString());
-  }
-  renderMatches(filtered);
-}
-
-// ── Analyze match ──────────────────────────────────────────────────
-async function analizarPartido(matchId, home, away) {
-  if (analyzing) return;
-  analyzing = true;
-  currentMatch = {home, away, id:matchId};
-
-  const mobile = window.innerWidth <= 768;
-
-  if (mobile) {
-    const drawer = document.getElementById('mob-panel-drawer');
-    document.getElementById('mob-panel-content').innerHTML = `
-      <div class="loading"><div class="spinner"></div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Analizando ${home} vs ${away}…</div></div>`;
-    drawer.classList.add('open');
-  }
-
-  // Show loading in desktop panel too
-  document.getElementById('panel-empty').style.display = 'none';
-  document.getElementById('panel-content').style.display = 'flex';
-  document.getElementById('panel-badge').textContent = '…';
-  document.getElementById('panel-content').innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Analizando ${home} vs ${away}…</div>
-    </div>`;
-
-  try {
-    const res = await fetch(`/analizar/${currentLiga}/${matchId}`);
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    renderAnalysis(data, home, away);
-    if (mobile) {
-      // Copy rendered content to mobile drawer
-      setTimeout(() => {
-        const pc = document.getElementById('panel-content');
-        document.getElementById('mob-panel-content').innerHTML = pc.innerHTML;
-        document.getElementById('mob-panel-badge').textContent = document.getElementById('panel-badge').textContent;
-      }, 50);
+    return {
+        "remates_pj": avg(totals["shots_total"]),
+        "al_arco_pj": avg(totals["shots_on"]),
+        "corners_pj": avg(totals["corners"]),
+        "tarjetas_amarillas_pj": avg(totals["yellow"]),
+        "tarjetas_rojas_pj": avg(totals["red"]),
+        "faltas_pj": avg(totals["fouls"]),
+        "posesion_avg": avg(totals["possession"]),
+        "partidos_analizados": len(fixtures),
     }
-  } catch(e) {
-    const errHtml = `<div class="empty" style="color:var(--live)">Error: ${e.message}</div>`;
-    document.getElementById('panel-content').innerHTML = errHtml;
-    if (mobile) document.getElementById('mob-panel-content').innerHTML = errHtml;
-  } finally {
-    analyzing = false;
-  }
-}
 
-// ── Render analysis in panel ───────────────────────────────────────
-function renderAnalysis(d, home, away) {
-  const v = d.veredicto || {};
-  const mercados = d.mercados || {};
-  const aprobados = v.mercados_aprobados || v.total_aprobados || 0;
-  document.getElementById('panel-badge').textContent = aprobados;
 
-  const mainMarket = v.mercado_principal || v.texto || 'Sin mercado aprobado';
-  const mainProb = v.mp_prob || v.probabilidad || 0;
-  const combinable = v.combinable || '';
-  const combProb = v.comb_prob || 0;
+def _mercados_avanzados(home, away, hn, an):
+    """Genera mercados a partir de stats avanzadas."""
+    if not home or not away: return []
+    mercados = []
 
-  // Build market rows
-  const marketRows = Object.entries(mercados).map(([k, m]) => {
-    const aprobado = m.aprobado || m.aprovado;
-    const prob = m.prob || m.probabilidad || 0;
-    const nombre = m.mercado || m.texto || m.descripcion || m.nombre || k;
-    return `
-    <div class="market-row">
-      <div>
-        <div class="market-name">${nombre}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="market-prob ${prob>=80?'ok':prob>=70?'warn':'bad'}">${prob}%</span>
-        <span class="market-badge ${aprobado?'ok':'no'}">${aprobado?'OK':'NO'}</span>
-      </div>
-    </div>`;
-  }).join('');
+    # Corners totales
+    if home.get("corners_pj") != "—" and away.get("corners_pj") != "—":
+        total_corners = home["corners_pj"] + away["corners_pj"]
+        # Over 9.5 corners
+        if total_corners >= 10:
+            p = min(85, round(50 + (total_corners - 9.5) * 12))
+            mercados.append({
+                "mercado": "Corners Totales Over 9.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
+                "aprobado": p >= 65,
+                "sintesis": f"Promedio combinado de corners: {round(total_corners,1)}/partido. {hn} {home['corners_pj']} y {an} {away['corners_pj']}."
+            })
+        if total_corners <= 9:
+            p = min(85, round(50 + (9.5 - total_corners) * 12))
+            mercados.append({
+                "mercado": "Corners Totales Under 9.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
+                "aprobado": p >= 65,
+                "sintesis": f"Promedio combinado bajo: {round(total_corners,1)} corners/partido."
+            })
 
-  const narracion = d.narracion || d.narrativa || d.texto_narrativo || '';
+    # Tarjetas amarillas totales
+    if home.get("tarjetas_amarillas_pj") != "—" and away.get("tarjetas_amarillas_pj") != "—":
+        total_y = home["tarjetas_amarillas_pj"] + away["tarjetas_amarillas_pj"]
+        if total_y >= 4.5:
+            p = min(80, round(50 + (total_y - 4.5) * 15))
+            mercados.append({
+                "mercado": "Tarjetas Amarillas Over 4.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
+                "aprobado": p >= 65,
+                "sintesis": f"Promedio combinado: {round(total_y,1)} amarillas/partido. {hn} {home['tarjetas_amarillas_pj']} y {an} {away['tarjetas_amarillas_pj']}."
+            })
+        if total_y <= 4:
+            p = min(80, round(50 + (4.5 - total_y) * 15))
+            mercados.append({
+                "mercado": "Tarjetas Amarillas Under 4.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
+                "aprobado": p >= 65,
+                "sintesis": f"Promedio combinado bajo: {round(total_y,1)} amarillas/partido."
+            })
 
-  document.getElementById('panel-content').innerHTML = `
-    ${aprobados > 0 ? `
-    <div class="veredicto-hero">
-      <div class="v-label">MERCADO PRINCIPAL</div>
-      <div class="v-mercado">${mainMarket}</div>
-      <div style="display:flex;align-items:baseline;gap:10px;margin-top:8px">
-        <div class="v-prob">${mainProb}%</div>
-        <div class="v-sub">confianza del modelo</div>
-      </div>
-    </div>
-    ` : `
-    <div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em;margin-bottom:6px">SIN MERCADOS APROBADOS</div>
-      <div style="font-size:12px;color:var(--dim2)">El modelo no encontró mercados con probabilidad ≥ umbral para este partido.</div>
-    </div>
-    `}
+    # Posesion - Local domina
+    if home.get("posesion_avg") != "—" and away.get("posesion_avg") != "—":
+        if home["posesion_avg"] >= 55 and away["posesion_avg"] < home["posesion_avg"]:
+            p = min(85, round(home["posesion_avg"] + 10))
+            mercados.append({
+                "mercado": f"Mayor posesión — {hn}",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS",
+                "aprobado": p >= 65,
+                "sintesis": f"{hn} promedia {home['posesion_avg']}% de posesión vs {away['posesion_avg']}% de {an}."
+            })
+        elif away["posesion_avg"] >= 55:
+            p = min(85, round(away["posesion_avg"]))
+            mercados.append({
+                "mercado": f"Mayor posesión — {an}",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS",
+                "aprobado": p >= 65,
+                "sintesis": f"{an} promedia {away['posesion_avg']}% de posesión vs {home['posesion_avg']}% de {hn}."
+            })
 
-    ${combinable ? `
-    <div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px">
-      <div style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.12em;margin-bottom:4px">COMBINABLE</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:4px">${combinable}</div>
-      <div style="font-family:var(--mono);font-size:13px;color:var(--warn);font-weight:700">${combProb}%</div>
-    </div>` : ''}
+    # Equipo con mas remates
+    if home.get("remates_pj") != "—" and away.get("remates_pj") != "—":
+        diff = abs(home["remates_pj"] - away["remates_pj"])
+        if diff >= 3:
+            mas = hn if home["remates_pj"] > away["remates_pj"] else an
+            mas_v = max(home["remates_pj"], away["remates_pj"])
+            men_v = min(home["remates_pj"], away["remates_pj"])
+            p = min(80, round(55 + diff * 3))
+            mercados.append({
+                "mercado": f"Más remates — {mas}",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
+                "aprobado": p >= 65,
+                "sintesis": f"Diferencia clara de remates: {mas_v} vs {men_v}/partido."
+            })
 
-    ${Object.keys(mercados).length > 0 ? `
-    <div class="analysis-card">
-      <div class="analysis-card-header">
-        <span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">MERCADOS</span>
-        <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">${Object.keys(mercados).length} evaluados</span>
-      </div>
-      <div class="analysis-card-body" style="padding:0 14px">
-        ${marketRows || '<div style="padding:12px 0;color:var(--dim);font-size:12px">Sin mercados evaluados</div>'}
-      </div>
-    </div>` : ''}
+    mercados.sort(key=lambda x: x["prob"], reverse=True)
+    return mercados
 
-    ${narracion ? `
-    <div class="analysis-card">
-      <div class="analysis-card-header">
-        <span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">NARRATIVA</span>
-      </div>
-      <div class="narracion">${narracion}</div>
-    </div>` : ''}
 
-    <button class="bet-btn" ${aprobados===0?'disabled':''} onclick="openModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">
-      ${aprobados > 0 ? 'VER ANÁLISIS COMPLETO' : 'SIN APUESTAS RECOMENDADAS'}
-    </button>`;
-}
+@app.route("/diag/<codigo>")
+@api_login_required
+def diag(codigo):
+    """Diagnostico: muestra el JSON crudo de football-data."""
+    liga = LIGAS.get(codigo, {})
+    if liga.get("source") == "as":
+        as_id = liga.get("as_id")
+        season = liga.get("season")
+        d = as_get("/fixtures", {"league": as_id, "season": season, "next": 5})
+        return jsonify({"source": "api-sports", "league_id": as_id, "season": season, "raw": d})
+    else:
+        d = fd_get(f"/competitions/{codigo}/matches", {"limit": 100})
+        return jsonify({"source": "football-data", "raw": d})
 
-function resetPanel() {
-  document.getElementById('panel-empty').style.display = 'block';
-  document.getElementById('panel-content').style.display = 'none';
-  document.getElementById('panel-badge').textContent = '—';
-}
 
-// ── Modal ──────────────────────────────────────────────────────────
-function openModal(data) {
-  const d = typeof data === 'string' ? JSON.parse(data) : data;
-  const v = d.veredicto || {};
-  const home = d.home || currentMatch.home || '—';
-  const away = d.away || currentMatch.away || '—';
-  const mercados = d.mercados || {};
-  const aprobados = Object.values(mercados).filter(m => m.aprobado);
-  const noAprobados = Object.values(mercados).filter(m => !m.aprobado);
-  const narracion = d.narracion || d.narrativa || '';
+@app.route("/partidos/<codigo>")
+@api_login_required
+def partidos(codigo):
+    liga = LIGAS.get(codigo, {})
+    source = liga.get("source", "fd")
 
-  document.getElementById('modal-breadcrumb').textContent = `${currentLiga} · ${home} vs ${away}`;
+    hoy = datetime.utcnow()
 
-  const renderMercadoBtn = (m) => `
-    <button class="market-btn ${m.aprobado?'aprobado':''}">
-      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0">
-        <span class="m-label" style="text-align:left;font-size:11px">${m.mercado||'—'}</span>
-        ${m.sintesis ? `<span style="font-size:10px;color:var(--dim);text-align:left">${m.sintesis}</span>` : ''}
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;margin-left:10px">
-        <span class="m-odd" style="font-size:13px">${m.prob||0}%</span>
-        ${m.cuota ? `<span style="font-family:var(--mono);font-size:10px;color:var(--dim)">@${m.cuota}</span>` : ''}
-      </div>
-    </button>`;
+    # Obtener predicciones ya guardadas
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT match_id, mp_acertado, comb_acertado, verificado FROM predicciones")
+    preds = {row[0]: {"mp_ok":row[1], "comb_ok":row[2], "verif":row[3]} for row in c.fetchall()}
+    conn.close()
 
-  document.getElementById('modal-body-content').innerHTML = `
-    <div class="field-hero">
-      <svg class="field" viewBox="0 0 900 220" preserveAspectRatio="none">
-        <rect x="20" y="10" width="860" height="200" fill="none" stroke="#00E28A" stroke-width="1"/>
-        <circle cx="450" cy="110" r="60" fill="none" stroke="#00E28A" stroke-width="1"/>
-        <line x1="450" y1="10" x2="450" y2="210" stroke="#00E28A" stroke-width="1"/>
-        <rect x="20" y="55" width="100" height="100" fill="none" stroke="#00E28A" stroke-width="1"/>
-        <rect x="780" y="55" width="100" height="100" fill="none" stroke="#00E28A" stroke-width="1"/>
-      </svg>
-      <div style="position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:30px">
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-          ${crestHTML(home,'#1a4a8a','#0d2244',64)}
-          <div style="font-family:var(--display);font-size:24px;font-weight:600;letter-spacing:.02em;text-align:right">${home.toUpperCase()}</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">LOCAL</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.2em;margin-bottom:8px">${currentLiga}</div>
-          <div style="font-family:var(--display);font-size:44px;font-weight:700;letter-spacing:.05em;line-height:1">VS</div>
-          <div style="margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--dim)">
-            <span style="color:var(--neon);font-weight:700">${aprobados.length}</span> aprobados · ${Object.keys(mercados).length} evaluados
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
-          ${crestHTML(away,'#8a1a1a','#441a0d',64)}
-          <div style="font-family:var(--display);font-size:24px;font-weight:600;letter-spacing:.02em">${away.toUpperCase()}</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">VISITANTE</div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-body">
-      <div>
-        ${aprobados.length > 0 ? `
-        <div class="markets-section">
-          <div class="markets-section-title" style="margin-bottom:10px">
-            <span class="ms-name" style="color:var(--neon)">✓ MERCADOS APROBADOS</span>
-            <span class="ms-info">${aprobados.length} mercados</span>
-          </div>
-          <div class="markets-grid">
-            ${aprobados.map(renderMercadoBtn).join('')}
-          </div>
-        </div>` : ''}
+    matches = []
 
-        ${noAprobados.length > 0 ? `
-        <div class="markets-section" style="margin-top:16px">
-          <div class="markets-section-title" style="margin-bottom:10px">
-            <span class="ms-name" style="color:var(--dim)">DESCARTADOS</span>
-            <span class="ms-info">${noAprobados.length} mercados</span>
-          </div>
-          <div class="markets-grid">
-            ${noAprobados.map(renderMercadoBtn).join('')}
-          </div>
-        </div>` : ''}
-      </div>
+    if source == "as":
+        # Usar api-sports
+        as_id = liga.get("as_id")
+        season = liga.get("season")
+        # Trae fixtures proximos y recientes
+        desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
+        hasta = (hoy + timedelta(days=120)).strftime("%Y-%m-%d")
+        data = as_get("/fixtures", {"league": as_id, "season": season, "from": desde, "to": hasta})
+        if "error" in data:
+            return jsonify({"response": [], "error": data["error"]})
+        for fx in data.get("response", []):
+            fixture = fx.get("fixture", {})
+            teams = fx.get("tx", {}) or fx.get("teams", {})
+            home_t = teams.get("home", {})
+            away_t = teams.get("away", {})
+            goals = fx.get("goals", {})
+            status = fixture.get("status", {}).get("short", "NS")
+            estado = "FINISHED" if status in ("FT", "AET", "PEN") else ("SCHEDULED" if status == "NS" else status)
+            resultado = f"{goals.get('home', 0)}-{goals.get('away', 0)}" if estado == "FINISHED" else None
+            mid = fixture.get("id")
+            pred = preds.get(mid)
+            if estado == "FINISHED" and pred and not pred["verif"]:
+                verify_prediction(mid, goals.get('home', 0), goals.get('away', 0))
+            matches.append({
+                "id": mid,
+                "fecha": fixture.get("date", ""),
+                "home": home_t.get("name", ""),
+                "home_id": home_t.get("id"),
+                "away": away_t.get("name", ""),
+                "away_id": away_t.get("id"),
+                "jornada": fx.get("league", {}).get("round", "").replace("Regular Season - ", "J"),
+                "competicion": liga.get("nombre", ""),
+                "estado": estado,
+                "arbitro": fixture.get("referee"),
+                "resultado": resultado,
+                "mp_acertado": pred["mp_ok"] if pred else None,
+                "comb_acertado": pred["comb_ok"] if pred else None,
+                "tiene_prediccion": pred is not None,
+            })
+    else:
+        # Football-data (default)
+        desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
+        hasta = (hoy + timedelta(days=120)).strftime("%Y-%m-%d")
+        data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "limit": 80})
+        if "error" in data:
+            return jsonify({"response": [], "error": data["error"]})
+        for m in data.get("matches", []):
+            refs = m.get("referees", [])
+            score = m.get("score", {}).get("fullTime", {})
+            estado = m["status"]
+            # Saltar partidos sin equipos definidos (ej: final de torneo aun sin definir)
+            if not m["homeTeam"].get("name") or not m["awayTeam"].get("name"):
+                continue
+            resultado = f"{score.get('home',0)}-{score.get('away',0)}" if estado == "FINISHED" else None
+            pred = preds.get(m["id"])
+            if estado == "FINISHED" and pred and not pred["verif"]:
+                verify_prediction(m["id"], score.get('home', 0), score.get('away', 0))
+            matches.append({
+                "id": m["id"], "fecha": m["utcDate"],
+                "home": m["homeTeam"]["name"], "home_id": m["homeTeam"]["id"],
+                "away": m["awayTeam"]["name"], "away_id": m["awayTeam"]["id"],
+                "jornada": m.get("matchday"),
+                "competicion": data.get("competition", {}).get("name", ""),
+                "estado": estado,
+                "arbitro": refs[0]["name"] if refs else None,
+                "resultado": resultado,
+                "mp_acertado": pred["mp_ok"] if pred else None,
+                "comb_acertado": pred["comb_ok"] if pred else None,
+                "tiene_prediccion": pred is not None,
+            })
 
-      <div style="display:flex;flex-direction:column;gap:12px">
-        ${v.texto || v.mercado_principal ? `
-        <div class="insight-box" style="border-color:var(--neon);background:linear-gradient(180deg,var(--neon-dim),transparent)">
-          <div class="insight-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--neon)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            MERCADO PRINCIPAL
-          </div>
-          <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--text)">${v.texto||v.mercado_principal}</div>
-          <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--neon);line-height:1">${v.mp_prob||0}%</div>
-          ${v.mp_cuota ? `<div style="font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:4px">Cuota referencia: @${v.mp_cuota}</div>` : ''}
-        </div>` : ''}
+    return jsonify({"response": matches, "total": len(matches)})
 
-        ${v.combinable ? `
-        <div class="insight-box">
-          <div class="insight-title" style="color:var(--warn)">COMBINABLE</div>
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px">${v.combinable}</div>
-          <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--warn)">${v.comb_prob||0}%</div>
-        </div>` : ''}
 
-        ${narracion ? `
-        <div class="insight-box">
-          <div class="insight-title">RESUMEN</div>
-          <div style="font-size:12px;color:var(--dim);line-height:1.7">${narracion}</div>
-        </div>` : ''}
-      </div>
-    </div>`;
+def _auto_verify_pending():
+    """Verifica automaticamente todas las predicciones pendientes."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT match_id, liga FROM predicciones WHERE verificado=0")
+    pending = c.fetchall()
+    conn.close()
+    if not pending:
+        return
+    for match_id, liga in pending[:15]:  # max 15 por llamada para no quemar API
+        try:
+            liga_cfg = LIGAS.get(liga, {})
+            source = liga_cfg.get("source", "fd")
+            if source == "as":
+                fx = as_get("/fixtures", {"id": match_id})
+                if fx.get("response"):
+                    f = fx["response"][0]
+                    st = f.get("fixture", {}).get("status", {}).get("short", "")
+                    if st in ("FT", "AET", "PEN"):
+                        g = f.get("goals", {})
+                        verify_prediction(match_id, g.get("home", 0), g.get("away", 0))
+            else:
+                d = fd_get(f"/matches/{match_id}")
+                if d.get("status") == "FINISHED":
+                    sc = d.get("score", {}).get("fullTime", {})
+                    verify_prediction(match_id, sc.get("home", 0), sc.get("away", 0))
+            time.sleep(0.5)  # respetar rate limit
+        except Exception as e:
+            print(f"Auto-verify error {match_id}: {e}")
 
-  document.getElementById('detail-modal').classList.add('open');
-}
 
-function closeModal(e) {
-  if (e.target === document.getElementById('detail-modal')) {
-    document.getElementById('detail-modal').classList.remove('open');
-  }
-}
+@app.route("/estadisticas")
+@api_login_required
+def estadisticas():
+# _auto_verify_pending()
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT COUNT(*), SUM(mp_acertado), SUM(comb_acertado),
+                 COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END),
+                 COUNT(CASE WHEN verificado=1 AND comb_acertado IS NOT NULL THEN 1 END)
+                 FROM predicciones WHERE verificado=1""")
+    total, mp_ok, comb_ok, mp_total, comb_total = c.fetchone()
 
-// ── Live ───────────────────────────────────────────────────────────
-async function loadLive() {
-  document.getElementById('live-list').innerHTML = '<div class="empty">Cargando…</div>';
-  // Collect live matches from current liga or try a few
-  const liveMatches = allMatches.filter(m => m.status==='IN_PLAY'||m.live);
-  document.getElementById('live-count').textContent = liveMatches.length ? `· ${liveMatches.length}` : '';
-  if (liveMatches.length === 0) {
-    document.getElementById('live-list').innerHTML = '<div class="empty">No hay partidos en vivo en este momento.</div>';
-    return;
-  }
-  // Render live matches with score
-  let html = liveMatches.map(m => {
-    const hs = m.score?.fullTime?.home ?? m.goles_local ?? 0;
-    const as_ = m.score?.fullTime?.away ?? m.goles_visitante ?? 0;
-    return `
-    <div class="match-row" onclick="analizarPartido(${m.id||m.match_id},'${(m.homeTeam||m.home||'').replace(/'/g,"\\'")}','${(m.awayTeam||m.away||'').replace(/'/g,"\\'")}')">
-      <div class="match-time">
-        <div class="live-tag"><span class="dot"></span> LIVE</div>
-        <div style="font-family:var(--mono);font-size:13px;font-weight:700;margin-top:3px;color:var(--live)">${m.minute||''}' </div>
-      </div>
-      <div>
-        <div class="match-comp">${(m.competition||'').toUpperCase()}</div>
-        <div class="match-team">${crestHTML(m.homeTeam||m.home,'#1a4a8a','#0d2244',22)}<span class="match-team-name">${(m.homeTeam||m.home||'').toUpperCase()}</span><span class="score">${hs}</span></div>
-        <div class="match-team">${crestHTML(m.awayTeam||m.away,'#8a1a1a','#441a0d',22)}<span class="match-team-name">${(m.awayTeam||m.away||'').toUpperCase()}</span><span class="score">${as_}</span></div>
-      </div>
-      <div style="display:flex;align-items:center">
-        <button class="chip active" onclick="event.stopPropagation();analizarPartido(${m.id||m.match_id},'${(m.homeTeam||m.home||'').replace(/'/g,"\\'")}','${(m.awayTeam||m.away||'').replace(/'/g,"\\'")}')">Analizar</button>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('live-list').innerHTML = html;
-}
+    # Detalle de cada partido verificado
+    c.execute("""SELECT match_id, fecha, home, away, resultado_home, resultado_away,
+                 mercado_principal, mp_acertado, combinable, comb_acertado, liga
+                 FROM predicciones WHERE verificado=1 ORDER BY fecha DESC""")
+    detalle = []
+    for row in c.fetchall():
+        detalle.append({
+            "match_id": row[0], "fecha": row[1], "home": row[2], "away": row[3],
+            "score": f"{row[4]}-{row[5]}",
+            "mercado_principal": row[6], "mp_acertado": row[7],
+            "combinable": row[8], "comb_acertado": row[9],
+            "liga": row[10]
+        })
 
-// ── Stats ──────────────────────────────────────────────────────────
-async function loadStats() {
-  try {
-    const res = await fetch('/estadisticas');
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    const total = (data.ganadas||0) + (data.perdidas||0) + (data.pendientes||0);
-    document.getElementById('s-total').textContent = total || data.total || '—';
-    document.getElementById('s-acierto').textContent = data.acierto ? data.acierto + '%' : '—';
-    document.getElementById('s-gp').textContent = `${data.ganadas||0} / ${data.perdidas||0}`;
-    document.getElementById('s-pend').textContent = data.pendientes || '0';
+    conn.close()
+    return jsonify({
+        "total_verificados": total or 0,
+        "mp_aciertos": mp_ok or 0,
+        "mp_total": mp_total or 0,
+        "mp_pct": round((mp_ok or 0)/(mp_total or 1)*100, 1) if mp_total else 0,
+        "comb_aciertos": comb_ok or 0,
+        "comb_total": comb_total or 0,
+        "comb_pct": round((comb_ok or 0)/(comb_total or 1)*100, 1) if comb_total else 0,
+        "detalle": detalle,
+    })
 
-    if (data.historial && data.historial.length > 0) {
-      document.getElementById('hist-list').innerHTML = data.historial.map(h => `
-        <div class="hist-row">
-          <div class="hist-date">${h.fecha||'—'}</div>
-          <div style="font-size:12px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.home||''} vs ${h.away||''}</div>
-          <div style="font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.mercado_principal||'—'}</div>
-          <div style="font-family:var(--mono);font-size:11px;color:${probColor(h.mp_prob)};text-align:right">${h.mp_prob||'—'}%</div>
-          <div style="text-align:right">
-            ${h.verificado
-              ? `<span class="result-badge ${h.mp_acertado?'ok':'bad'}">${h.mp_acertado?'✓ GANADA':'✗ PERDIDA'}</span>`
-              : `<span class="result-badge pend">PENDIENTE</span>`}
-          </div>
-        </div>`).join('');
-    } else {
-      document.getElementById('hist-list').innerHTML = '<div class="empty">Sin predicciones guardadas aún.</div>';
+
+def _do_analyze(codigo, match_id):
+    cached = get_cached_analysis(match_id, codigo)
+    if cached:
+        return cached
+    liga = LIGAS.get(codigo, {})
+    source = liga.get("source", "fd")
+    resultado = _do_analyze_as(codigo, match_id, liga) if source == "as" else _do_analyze_fd(codigo, match_id)
+    if "error" not in resultado:
+        save_cached_analysis(match_id, codigo, resultado)
+    return resultado
+
+def _do_analyze_as(codigo, match_id, liga):
+    """Analisis usando api-sports (para Serie A)."""
+    as_id = liga.get("as_id")
+    season = liga.get("season")
+
+    # Detalle del partido
+    fx_data = as_get("/fixtures", {"id": match_id})
+    if "error" in fx_data or not fx_data.get("response"):
+        return {"error": "Partido no encontrado"}
+    fx = fx_data["response"][0]
+
+    fixture = fx.get("fixture", {})
+    teams = fx.get("teams", {})
+    home_t = teams.get("home", {})
+    away_t = teams.get("away", {})
+    hid = home_t.get("id")
+    aid = away_t.get("id")
+    hn = home_t.get("name", "")
+    an = away_t.get("name", "")
+    arbitro_name = fixture.get("referee")
+
+    # Standings
+    sd = as_get("/standings", {"league": as_id, "season": season})
+    standings = []
+    if not "error" in sd and sd.get("response"):
+        try:
+            standings = sd["response"][0]["league"]["standings"][0]
+        except: pass
+
+    hp = _find_as(standings, hid)
+    ap = _find_as(standings, aid)
+
+    # Stats por equipo
+    hs = as_get("/teams/statistics", {"league": as_id, "season": season, "team": hid}).get("response")
+    aws = as_get("/teams/statistics", {"league": as_id, "season": season, "team": aid}).get("response")
+
+    # Forma reciente (ultimos 10)
+    hfx = as_get("/fixtures", {"team": hid, "season": season, "league": as_id, "last": 10})
+    afx = as_get("/fixtures", {"team": aid, "season": season, "league": as_id, "last": 10})
+    hf = _forma_as(hfx.get("response", []), hid)
+    af = _forma_as(afx.get("response", []), aid)
+    hl3 = _u3_as(hfx.get("response", []), hid)
+    al3 = _u3_as(afx.get("response", []), aid)
+
+    # H2H
+    h2h_data = as_get("/fixtures/headtohead", {"h2h": f"{hid}-{aid}", "last": 5})
+    h2h = _h2h_as(h2h_data.get("response", []), hid, aid)
+
+    # Goleadores
+    sc_data = as_get("/players/topscorers", {"league": as_id, "season": season})
+    jh = _enrich(_jugadores_as(sc_data.get("response", []), hid), hn, hf)
+    ja = _enrich(_jugadores_as(sc_data.get("response", []), aid), an, af)
+
+    # Convertir hp/ap a estructura compatible con _analisis
+    hp_compat = _conv_pos_as(hp) if hp else None
+    ap_compat = _conv_pos_as(ap) if ap else None
+    hh_compat = _conv_local_as(hp, "home") if hp else None
+    aa_compat = _conv_local_as(ap, "away") if ap else None
+
+    arb_perfil = _arbitro_perfil(arbitro_name)
+    md_compat = {
+        "id": match_id,
+        "utcDate": fixture.get("date", ""),
+        "matchday": fx.get("league", {}).get("round", "").replace("Regular Season - ", ""),
+        "competition": {"name": liga.get("nombre", "")},
+        "homeTeam": {"id": hid, "name": hn},
+        "awayTeam": {"id": aid, "name": an},
+        "status": fixture.get("status", {}).get("short", "NS"),
+        "score": {"fullTime": fx.get("goals", {})},
+        "head2head": h2h,
+        "referees": [{"name": arbitro_name}] if arbitro_name else [],
     }
-  } catch(e) {
-    document.getElementById('hist-list').innerHTML = `<div class="empty" style="color:var(--live)">Error: ${e.message}</div>`;
-  }
-}
 
-// ── Buscador ──────────────────────────────────────────────────────
-function focusSearch() {
-  document.getElementById('search-input').focus();
-}
+    resultado = _analisis(md_compat, hp_compat, ap_compat, hh_compat, aa_compat, hf, af, h2h, hn, an, standings)
+    resultado["arbitro"] = arbitro_name
+    resultado["arbitro_perfil"] = arb_perfil
+    resultado["ultimos3"] = {"home": hl3, "away": al3}
+    resultado["jugadores"] = {"home": jh, "away": ja}
+    resultado["stats_avanzadas"] = _adv(hs, aws, hn, an)
+    resultado["stats_equipo"] = {"home": _team_stats(hs, hp_compat, hf), "away": _team_stats(aws, ap_compat, af)}
+    resultado["resumen"] = _resumen(hn, an, hf, af, hp_compat, ap_compat, hh_compat, aa_compat, h2h, arbitro_name, arb_perfil, resultado, md_compat)
 
-// Keyboard shortcut Cmd/Ctrl+K
-document.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-    e.preventDefault();
-    document.getElementById('search-input').focus();
-  }
-});
+    estado = md_compat.get("status", "")
+    if estado == "NS":
+        save_prediction(match_id, codigo, fixture.get("date", ""), hn, an, resultado["veredicto"])
+    elif estado in ("FT", "AET", "PEN"):
+        save_prediction(match_id, codigo, fixture.get("date", ""), hn, an, resultado["veredicto"])
+        goals = fx.get("goals", {})
+        if goals.get("home") is not None:
+            verify_prediction(match_id, goals["home"], goals["away"])
+    return resultado
 
-// Close search on click outside
-document.addEventListener('click', e => {
-  const panel = document.getElementById('search-results');
-  const input = document.getElementById('search-input');
-  if (!panel.contains(e.target) && e.target !== input) {
-    panel.style.display = 'none';
-  }
-});
 
-function buscarPartidos(q) {
-  const panel = document.getElementById('search-results');
-  const kbd = document.getElementById('search-kbd');
-  
-  if (!q || q.trim().length < 2) {
-    panel.style.display = 'none';
-    kbd.style.display = 'inline';
-    // Restore all matches
-    renderMatches(allMatches);
-    return;
-  }
-  
-  kbd.style.display = 'none';
-  const ql = q.toLowerCase();
-  
-  // Search across all loaded matches
-  const results = allMatches.filter(m => {
-    const home = (m.home || m.homeTeam || '').toLowerCase();
-    const away = (m.away || m.awayTeam || '').toLowerCase();
-    const comp = (m.competicion || m.competition || '').toLowerCase();
-    return home.includes(ql) || away.includes(ql) || comp.includes(ql);
-  });
+def _find_as(standings, tid):
+    for s in standings:
+        if s.get("team", {}).get("id") == tid: return s
+    return None
 
-  // Also search across all leagues if query is long enough
-  if (q.trim().length >= 3) {
-    panel.style.display = 'block';
-    if (results.length === 0) {
-      panel.innerHTML = '<div class="empty" style="padding:16px">Sin resultados para "' + q + '"</div>';
-    } else {
-      panel.innerHTML = `
-        <div style="padding:8px 14px;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em;border-bottom:1px solid var(--line)">${results.length} RESULTADO${results.length!==1?'S':''}</div>
-        ${results.slice(0,8).map(m => {
-          const dt = fmtDate(m.fecha || m.utcDate);
-          const home = m.home || m.homeTeam || '';
-          const away = m.away || m.awayTeam || '';
-          const comp = m.competicion || m.competition || currentLiga;
-          const mid = m.id || m.match_id;
-          return `<div onclick="analizarPartido(${mid},'${home.replace(/'/g,'_')}','${away.replace(/'/g,'_')}');document.getElementById('search-input').value='';document.getElementById('search-results').style.display='none'" 
-            style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;transition:background .1s"
-            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
-            <div style="flex:1;min-width:0">
-              <div style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:3px">${comp.toUpperCase()} · ${dt.label||''} ${dt.time||''}</div>
-              <div style="font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${home.toUpperCase()} <span style="color:var(--dim)">vs</span> ${away.toUpperCase()}</div>
-            </div>
-            ${m.tiene_prediccion ? '<span style="font-family:var(--mono);font-size:9px;color:var(--neon);background:var(--neon-dim);padding:2px 6px;border-radius:3px;flex-shrink:0">✓ PRED</span>' : ''}
-          </div>`;
-        }).join('')}
-        ${results.length > 8 ? `<div style="padding:8px 14px;font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center">+${results.length-8} más — refiná la búsqueda</div>` : ''}`;
+
+def _conv_pos_as(s):
+    """Convierte standing api-sports a formato compatible."""
+    if not s: return None
+    return {
+        "team": {"id": s.get("team", {}).get("id"), "name": s.get("team", {}).get("name")},
+        "position": s.get("rank"),
+        "points": s.get("points", 0),
+        "playedGames": s.get("all", {}).get("played", 0),
+        "won": s.get("all", {}).get("win", 0),
+        "draw": s.get("all", {}).get("draw", 0),
+        "lost": s.get("all", {}).get("lose", 0),
+        "goalsFor": s.get("all", {}).get("goals", {}).get("for", 0),
+        "goalsAgainst": s.get("all", {}).get("goals", {}).get("against", 0),
     }
-  } else {
-    panel.style.display = 'none';
-  }
-  
-  // Filter match list in dashboard
-  if (document.getElementById('view-dashboard').classList.contains('active')) {
-    renderMatches(results);
-  }
-}
 
-// ── Alertas ───────────────────────────────────────────────────────
-let alertasOpen = false;
 
-async function loadAlertas() {
-  try {
-    const res = await fetch('/alertas');
-    if (!res.ok) return;
-    const data = await res.json();
-    const alertas = data.alertas || [];
-    const badge = document.getElementById('bell-badge');
-    const badgeD = document.getElementById('bell-badge-desktop');
-    if (alertas.length > 0) {
-      badge.textContent = alertas.length;
-      badge.style.display = 'block';
-      if (badgeD) { badgeD.textContent = alertas.length; badgeD.style.display = 'inline'; }
-    } else {
-      badge.style.display = 'none';
-      if (badgeD) badgeD.style.display = 'none';
+def _conv_local_as(s, side):
+    """Convierte stats home/away."""
+    if not s: return None
+    key = "home" if side == "home" else "away"
+    d = s.get(key, {})
+    return {
+        "team": {"id": s.get("team", {}).get("id")},
+        "playedGames": d.get("played", 0),
+        "won": d.get("win", 0),
+        "draw": d.get("draw", 0),
+        "lost": d.get("lose", 0),
     }
-    const list = document.getElementById('alertas-list');
-    if (alertas.length === 0) {
-      list.innerHTML = '<div class="empty" style="padding:20px">Sin partidos con alertas en las próximas 3 horas</div>';
-    } else {
-      list.innerHTML = alertas.map(a => `
-        <div onclick="analizarPartido(${a.match_id},'${a.home.replace(/'/g,'_')}','${a.away.replace(/'/g,'_')}');toggleAlertas()" style="padding:10px 12px;border-radius:8px;margin-bottom:6px;background:var(--bg);border:1px solid var(--line);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--neon)'" onmouseout="this.style.borderColor='var(--line)'">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-family:var(--mono);font-size:9px;color:var(--neon);letter-spacing:.1em">${a.liga} · EN ${a.minutos_restantes} MIN</span>
-            <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--neon)">${a.mp_prob||0}%</span>
-          </div>
-          <div style="font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.02em;margin-bottom:3px">${a.home} vs ${a.away}</div>
-          <div style="font-size:11px;color:var(--dim)">${a.mercado_principal||'—'}</div>
-        </div>`).join('');
+
+
+def _forma_as(fixtures, tid):
+    """Forma reciente a partir de fixtures de api-sports."""
+    if not fixtures:
+        return {"form":"","w":0,"d":0,"l":0,"gf":0,"gc":0,"matches":0,"ppg":0,"gf_avg":0,"gc_avg":0,"clean_sheets":0,"failed_to_score":0}
+    fixtures = sorted(fixtures, key=lambda x: x.get("fixture", {}).get("date", ""), reverse=True)[:10]
+    w=d=l=gf=gc=cs=fts=0; fs=""
+    for fx in fixtures:
+        teams = fx.get("teams", {})
+        goals = fx.get("goals", {})
+        hg, ag = goals.get("home"), goals.get("away")
+        if hg is None: continue
+        ih = teams.get("home", {}).get("id") == tid
+        my, th = (hg, ag) if ih else (ag, hg)
+        gf += my; gc += th
+        if th == 0: cs += 1
+        if my == 0: fts += 1
+        if my > th: w += 1; fs += "W"
+        elif my == th: d += 1; fs += "D"
+        else: l += 1; fs += "L"
+    t = w+d+l
+    return {"form":fs[:5],"w":w,"d":d,"l":l,"gf":gf,"gc":gc,"matches":t,
+        "ppg":round((w*3+d)/t,2) if t>0 else 0,
+        "gf_avg":round(gf/t,2) if t>0 else 0,
+        "gc_avg":round(gc/t,2) if t>0 else 0,
+        "clean_sheets":cs,"failed_to_score":fts}
+
+
+def _u3_as(fixtures, tid):
+    if not fixtures: return []
+    fixtures = sorted(fixtures, key=lambda x: x.get("fixture", {}).get("date", ""), reverse=True)[:3]
+    r = []
+    for fx in fixtures:
+        teams = fx.get("teams", {})
+        goals = fx.get("goals", {})
+        hg, ag = goals.get("home"), goals.get("away")
+        if hg is None: continue
+        ih = teams.get("home", {}).get("id") == tid
+        my, th = (hg, ag) if ih else (ag, hg)
+        res = "W" if my>th else ("D" if my==th else "L")
+        r.append({
+            "fecha": fx.get("fixture", {}).get("date", "")[:10],
+            "rival": teams.get("away", {}).get("name") if ih else teams.get("home", {}).get("name"),
+            "competicion": "SA",
+            "marcador": f"{hg}-{ag}",
+            "local": ih,
+            "resultado": res,
+        })
+    return r
+
+
+def _h2h_as(fixtures, hid, aid):
+    if not fixtures: return {"numberOfMatches": 0, "totalGoals": 0, "homeTeam": {"wins": 0, "draws": 0}, "awayTeam": {"wins": 0, "draws": 0}}
+    hw = aw = d = tg = 0
+    for fx in fixtures:
+        goals = fx.get("goals", {})
+        teams = fx.get("teams", {})
+        hg, ag = goals.get("home"), goals.get("away")
+        if hg is None: continue
+        tg += hg + ag
+        # Determinar quien gano segun el equipo "home" actual del partido
+        local_id = teams.get("home", {}).get("id")
+        if hg == ag: d += 1
+        elif (local_id == hid and hg > ag) or (local_id == aid and ag > hg):
+            hw += 1
+        else:
+            aw += 1
+    return {
+        "numberOfMatches": len(fixtures),
+        "totalGoals": tg,
+        "homeTeam": {"wins": hw, "draws": d},
+        "awayTeam": {"wins": aw, "draws": d},
     }
-  } catch(e) { console.log('Alertas error:', e); }
-}
-
-function toggleAlertas() {
-  alertasOpen = !alertasOpen;
-  document.getElementById('alertas-panel').style.display = alertasOpen ? 'block' : 'none';
-  if (alertasOpen) loadAlertas();
-}
-
-// Load alerts on startup and every 5 minutes
-setTimeout(loadAlertas, 2000);
-setInterval(loadAlertas, 300000);
-
-// ── Mobile ────────────────────────────────────────────────────────
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('mob-overlay').classList.toggle('open');
-}
-
-function setMobNav(name) {
-  document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('mobnav-' + name);
-  if (btn) btn.classList.add('active');
-  // Close sidebar if open
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('mob-overlay').classList.remove('open');
-}
-
-function isMobile() { return window.innerWidth <= 768; }
 
 
+def _jugadores_as(scorers, tid):
+    j = []
+    for s in scorers:
+        stats = s.get("statistics", [{}])[0]
+        team = stats.get("team", {})
+        if team.get("id") != tid: continue
+        goals = stats.get("goals", {})
+        games = stats.get("games", {})
+        g = goals.get("total", 0) or 0
+        a = goals.get("assists", 0) or 0
+        p = games.get("appearences", 0) or games.get("appearances", 0) or 0
+        j.append({
+            "nombre": s.get("player", {}).get("name", ""),
+            "goles": g, "asistencias": a, "partidos": p,
+            "promedio": round(g/max(p, 1), 2),
+        })
+    return j[:3]
 
-// ── Init ───────────────────────────────────────────────────────────
-cargarLiga('PL');
-</script>
-<!-- Mobile overlay -->
-<div id="mob-overlay" onclick="toggleSidebar()"></div>
 
-<!-- Mobile panel drawer -->
-<div id="mob-panel-drawer">
-  <div id="mob-panel-close">
-    <span>⚡ ANÁLISIS <span id="mob-panel-badge" class="badge" style="background:var(--neon);color:var(--bg);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;font-family:var(--mono)">—</span></span>
-    <button onclick="document.getElementById('mob-panel-drawer').classList.remove('open')" style="background:transparent;border:none;color:var(--dim);font-size:18px;padding:4px">✕</button>
-  </div>
-  <div id="mob-panel-content" style="padding:12px;display:flex;flex-direction:column;gap:10px">
-    <div class="empty">Seleccioná un partido para ver el análisis</div>
-  </div>
-</div>
+def _do_analyze_fd(codigo, match_id):
+    """Logica original con football-data."""
+    liga=LIGAS.get(codigo,{})
+    md=fd_get(f"/matches/{match_id}")
+    if "error" in md or "id" not in md: return {"error":"Partido no encontrado"}
+    hid,aid=md["homeTeam"]["id"],md["awayTeam"]["id"]
+    hn,an=md["homeTeam"]["name"],md["awayTeam"]["name"]
+    sd=fd_get(f"/competitions/{codigo}/standings")
+    tt,th,ta=[],[],[]
+    for s in sd.get("standings",[]):
+        if s["type"]=="TOTAL":tt=s["table"]
+        elif s["type"]=="HOME":th=s["table"]
+        elif s["type"]=="AWAY":ta=s["table"]
+    hp,ap=_find(tt,hid),_find(tt,aid)
+    hh,aa=_find(th,hid),_find(ta,aid)
+    fhr=fd_get(f"/teams/{hid}/matches",{"status":"FINISHED","limit":10})
+    far=fd_get(f"/teams/{aid}/matches",{"status":"FINISHED","limit":10})
+    hf=_forma(fhr.get("matches",[]),hid)
+    af=_forma(far.get("matches",[]),aid)
+    hl3=_u3(fhr.get("matches",[]),hid)
+    al3=_u3(far.get("matches",[]),aid)
+    h2h=md.get("head2head",{})
+    refs=md.get("referees",[])
+    arbitro_name=refs[0]["name"] if refs else None
+    sc=fd_get(f"/competitions/{codigo}/scorers",{"limit":15})
+    jh=_enrich(_jugadores(sc.get("scorers",[]),hid),hn,hf)
+    ja=_enrich(_jugadores(sc.get("scorers",[]),aid),an,af)
+    hs=_get_as(hn,liga.get("as_id"),liga.get("season"))
+    aws=_get_as(an,liga.get("as_id"),liga.get("season"))
+    arb_perfil=_arbitro_perfil(arbitro_name)
 
-<!-- Bottom nav mobile -->
-<nav id="mob-nav">
-  <button class="mob-nav-btn active" id="mobnav-dashboard" onclick="setView('dashboard');setMobNav('dashboard')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-    INICIO
-  </button>
-  <button class="mob-nav-btn" id="mobnav-live" onclick="setView('live');setMobNav('live')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="var(--live)" stroke="var(--live)"/></svg>
-    EN VIVO
-  </button>
-  <button class="mob-nav-btn" id="mobnav-ligas" onclick="toggleSidebar();setMobNav('ligas')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
-    LIGAS
-  </button>
-  <button class="mob-nav-btn" id="mobnav-stats" onclick="setView('stats');setMobNav('stats')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>
-    STATS
-  </button>
-</nav>
+    resultado=_analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt)
+    resultado["arbitro"]=arbitro_name
+    resultado["arbitro_perfil"]=arb_perfil
+    resultado["ultimos3"]={"home":hl3,"away":al3}
+    resultado["jugadores"]={"home":jh,"away":ja}
+    resultado["stats_avanzadas"]=_adv(hs,aws,hn,an)
+    resultado["stats_equipo"]={"home":_team_stats(hs,hp,hf),"away":_team_stats(aws,ap,af)}
+    resultado["resumen"]=_resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arbitro_name,arb_perfil,resultado,md)
 
-</body>
-</html>
+    estado = md.get("status", "")
+    if estado in ("SCHEDULED", "TIMED"):
+        save_prediction(match_id, codigo, md.get("utcDate",""), hn, an, resultado["veredicto"])
+    elif estado == "FINISHED":
+        save_prediction(match_id, codigo, md.get("utcDate",""), hn, an, resultado["veredicto"])
+        score = md.get("score",{}).get("fullTime",{})
+        if score.get("home") is not None:
+            verify_prediction(match_id, score["home"], score["away"])
+    return resultado
+
+
+@app.route("/analizar_pendientes/<codigo>")
+@api_login_required
+def analizar_pendientes(codigo):
+    """Analiza todos los partidos jugados de la liga que aun no tengan prediccion."""
+    liga = LIGAS.get(codigo, {})
+    source = liga.get("source", "fd")
+    hoy = datetime.utcnow()
+    desde = (hoy - timedelta(days=14)).strftime("%Y-%m-%d")
+    hasta = hoy.strftime("%Y-%m-%d")
+
+    fixtures_ids = []
+    if source == "as":
+        data = as_get("/fixtures", {"league": liga.get("as_id"), "season": liga.get("season"), "from": desde, "to": hasta, "status": "FT"})
+        if "error" in data:
+            return jsonify({"error": data["error"], "procesados": 0})
+        fixtures_ids = [fx.get("fixture", {}).get("id") for fx in data.get("response", []) if fx.get("fixture", {}).get("id")]
+    else:
+        data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "status": "FINISHED", "limit": 100})
+        if "error" in data:
+            return jsonify({"error": data["error"], "procesados": 0})
+        fixtures_ids = [m["id"] for m in data.get("matches", [])]
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT match_id FROM predicciones WHERE verificado=1")
+    ya_verif = {row[0] for row in c.fetchall()}
+    conn.close()
+
+    procesados = 0
+    errores = 0
+    pendientes = [mid for mid in fixtures_ids if mid not in ya_verif]
+    for mid in pendientes:
+        try:
+            r = _do_analyze(codigo, mid)
+            if "error" not in r:
+                procesados += 1
+            else:
+                errores += 1
+            time.sleep(0.6)
+        except Exception as e:
+            errores += 1
+            print(f"Error analizando {mid}: {e}")
+
+    return jsonify({"procesados": procesados, "errores": errores, "total": len(pendientes)})
+
+
+@app.route("/analizar/<codigo>/<int:match_id>")
+@api_login_required
+def analizar(codigo, match_id):
+    r = _do_analyze(codigo, match_id)
+    return jsonify(r)
+
+
+def _team_stats(as_stats, pos, forma):
+    result={"remates_pj":"—","al_arco_pj":"—","goles_pj":"—","recibidos_pj":"—","posicion":"—","puntos":0}
+    if pos:
+        result["posicion"]=f"#{pos.get('position','—')}"
+        result["puntos"]=pos.get("points",0)
+    if forma and forma.get("matches",0)>0:
+        result["goles_pj"]=forma["gf_avg"]
+        result["recibidos_pj"]=forma["gc_avg"]
+    if as_stats:
+        played=as_stats.get("fixtures",{}).get("played",{}).get("total",0) or 0
+        if played>0:
+            gf=as_stats.get("goals",{}).get("for",{}).get("total",{}).get("total",0) or 0
+            gc=as_stats.get("goals",{}).get("against",{}).get("total",{}).get("total",0) or 0
+            result["goles_pj"]=round(gf/played,2)
+            result["recibidos_pj"]=round(gc/played,2)
+            avg_total=(gf+gc)/played
+            result["remates_pj"]=round(avg_total*8+5,1)
+            result["al_arco_pj"]=round(avg_total*3+1.5,1)
+    # Fallback: si no hay as_stats pero si forma, estimar igual con goles
+    if result["remates_pj"] == "—" and forma and forma.get("matches",0) > 0:
+        gf_avg = forma.get("gf_avg", 0)
+        gc_avg = forma.get("gc_avg", 0)
+        avg_total = gf_avg + gc_avg
+        if avg_total > 0:
+            result["remates_pj"] = round(avg_total * 7 + 6, 1)
+            result["al_arco_pj"] = round(avg_total * 2.5 + 2, 1)
+    return result
+
+
+def _resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arb,arb_perfil,resultado,md):
+    partes=[]
+    if hp and ap:
+        hpos=hp.get("position",10); apos=ap.get("position",10)
+        hpts=hp.get("points",0); apts=ap.get("points",0)
+        diff_pts=abs(hpts-apts)
+        h_obj=_objetivo(hpos); a_obj=_objetivo(apos)
+        if diff_pts>=10:
+            leader=hn if hpts>apts else an
+            follower=an if hpts>apts else hn
+            partes.append(f"Diferencia marcada en la tabla: {leader} aventaja por {diff_pts} puntos a {follower}.")
+        elif diff_pts<=3:
+            partes.append(f"Equipos igualados en puntos ({hn} {hpts} pts, {an} {apts} pts).")
+        partes.append(f"{hn} llega ({h_obj}) y {an} ({a_obj}).")
+    if hf["matches"]>0:
+        rh=_racha(hf["form"])
+        if rh[0]=="W" and rh[1]>=3: partes.append(f"{hn} atraviesa un gran momento con {rh[1]} victorias consecutivas, promediando {hf['gf_avg']} goles por partido.")
+        elif rh[0]=="L" and rh[1]>=2: partes.append(f"{hn} viene de {rh[1]} derrotas al hilo.")
+        elif rh[0]=="D" and rh[1]>=2: partes.append(f"{hn} acumula {rh[1]} empates consecutivos.")
+        else: partes.append(f"{hn} tiene un rendimiento reciente de {hf['ppg']} PPG ({hf['w']}V {hf['d']}E {hf['l']}D).")
+    if af["matches"]>0:
+        ra=_racha(af["form"])
+        if ra[0]=="W" and ra[1]>=3: partes.append(f"{an} llega encendido con {ra[1]} triunfos seguidos.")
+        elif ra[0]=="L" and ra[1]>=2: partes.append(f"{an} llega debilitado con {ra[1]} derrotas consecutivas.")
+        else: partes.append(f"{an} registra {af['ppg']} PPG ({af['w']}V {af['d']}E {af['l']}D).")
+    if hh:
+        pg=hh.get("playedGames",0); hw=hh.get("won",0)
+        if pg>0:
+            pct=round(hw/pg*100)
+            if pct>=60: partes.append(f"{hn} domina de local: {hw} victorias en {pg} partidos.")
+            elif pct<=30: partes.append(f"Llamativa debilidad de {hn} como local: solo {hw} victorias en {pg} partidos.")
+    h2t=h2h.get("numberOfMatches",0)
+    if h2t>=2:
+        hw2=h2h.get("homeTeam",{}).get("wins",0); aw2=h2h.get("awayTeam",{}).get("wins",0)
+        d2=h2h.get("homeTeam",{}).get("draws",0) or h2h.get("awayTeam",{}).get("draws",0)
+        tg=h2h.get("totalGoals",0); avg_tg=round(tg/h2t,1) if h2t>0 else 0
+        if hw2>aw2: partes.append(f"El historial favorece a {hn} con {hw2} victorias en {h2t} enfrentamientos ({avg_tg} goles/choque).")
+        elif aw2>hw2: partes.append(f"Historial visitante favorable a {an} ({aw2} triunfos en {h2t} duelos).")
+        else: partes.append(f"H2H equilibrado: {hw2}-{hw2} con {d2} empates.")
+    ge=resultado.get("goles_esperados",2.5)
+    if ge>=3.0: partes.append(f"Partido ofensivo ({ge} goles esperados).")
+    elif ge<=1.8: partes.append(f"Perfil defensivo ({ge} goles esperados).")
+    if arb: partes.append(f"Arbitra {arb}.")
+    if arb_perfil and "Sin perfil" not in arb_perfil.get("descripcion",""): partes.append(arb_perfil["descripcion"])
+    return " ".join(partes)
+
+
+def _objetivo(pos):
+    if pos<=4: return f"peleando por el titulo, {pos}°"
+    elif pos<=6: return f"buscando clasificacion europea, {pos}°"
+    elif pos<=10: return f"en zona media, {pos}°"
+    elif pos<=16: return f"intentando alejarse del descenso, {pos}°"
+    else: return f"peleando no descender, {pos}°"
+
+
+def _racha(form):
+    if not form: return ("",0)
+    f=form[0]; c=0
+    for x in form:
+        if x==f: c+=1
+        else: break
+    return (f,c)
+
+
+def _arbitro_perfil(name):
+    if not name: return None
+    return {"nombre":name,"descripcion":_ref_description(name)}
+
+def _ref_description(name):
+    refs_db={
+        "michael oliver":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA de alto perfil. Tendencia a mostrar tarjetas."},
+        "anthony taylor":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Experimentado árbitro internacional."},
+        "paul tierney":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a dejar jugar."},
+        "simon hooper":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro de perfil medio."},
+        "robert jones":{"estilo":"Estricto","tarjetas":"Alto","desc":"Perfil riguroso."},
+        "stuart attwell":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro equilibrado."},
+        "chris kavanagh":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA con tendencia a tarjetas."},
+        "john brooks":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Permite contacto físico."},
+        "darren england":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil equilibrado."},
+        "tim robinson":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil neutral."},
+        "david coote":{"estilo":"Estricto","tarjetas":"Alto","desc":"Alto promedio de tarjetas."},
+        "peter bankes":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro consistente."},
+        "andy madley":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Deja fluir el juego."},
+        "jarred gillett":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro australiano."},
+        "tony harrington":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil moderado."},
+        "samuel barrott":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro joven en ascenso."},
+    }
+    key=name.lower().strip()
+    if key in refs_db:
+        r=refs_db[key]
+        return f"Estilo: {r['estilo']} · Tarjetas: {r['tarjetas']}. {r['desc']}"
+    return f"Sin perfil detallado disponible para {name}."
+
+
+def _search_as(name, lid, season):
+    if not name or not lid: return None
+
+    # Limpiar nombre: quitar sufijos comunes
+    clean = name.replace(" FC", "").replace(" CF", "").replace(" AFC", "").replace(" AC", "").strip()
+
+    # Estrategia 1: buscar dentro de los equipos de la liga (mas confiable)
+    d = as_get("/teams", {"league": lid, "season": season})
+    if "error" not in d and d.get("response"):
+        candidates = d["response"]
+        nl = name.lower()
+        cl = clean.lower()
+        # Match exacto
+        for t in candidates:
+            tn = t["team"]["name"].lower()
+            if tn == nl or tn == cl: return t["team"]["id"]
+        # Match parcial bidireccional
+        for t in candidates:
+            tn = t["team"]["name"].lower()
+            if cl in tn or tn in cl: return t["team"]["id"]
+        for t in candidates:
+            tn = t["team"]["name"].lower()
+            if nl in tn or tn in nl: return t["team"]["id"]
+        # Match por primera palabra
+        first_word = clean.split(" ")[0].lower()
+        if len(first_word) >= 3:
+            for t in candidates:
+                if first_word in t["team"]["name"].lower(): return t["team"]["id"]
+
+    # Estrategia 2: search global
+    search_term = clean.split(" ")[0] if len(clean.split(" ")[0]) >= 3 else clean
+    d = as_get("/teams", {"search": search_term})
+    if "error" not in d and d.get("response"):
+        for t in d["response"]:
+            if name.lower() in t["team"]["name"].lower() or t["team"]["name"].lower() in name.lower():
+                return t["team"]["id"]
+
+    return None
+
+def _get_as(name,lid,season):
+    if not lid: return None
+    tid=_search_as(name,lid,season)
+    if not tid: return None
+    d=as_get("/teams/statistics",{"league":lid,"season":season,"team":tid})
+    return d.get("response") if "error" not in d else None
+
+def _adv(hs,aws,hn,an):
+    if not hs and not aws: return None
+    r={}
+    if hs and aws:
+        hgm=hs.get("goals",{}).get("for",{}).get("minute",{})
+        agm=aws.get("goals",{}).get("for",{}).get("minute",{})
+        r["goles_por_tiempo"]={"home":_pm(hgm),"away":_pm(agm)}
+        hc,ac=hs.get("cards",{}),aws.get("cards",{})
+        hy,ay=_cc(hc.get("yellow",{})),_cc(ac.get("yellow",{}))
+        hr,ar=_cc(hc.get("red",{})),_cc(ac.get("red",{}))
+        hpp,app_=_pl(hs),_pl(aws)
+        r["tarjetas"]={"home_yellow":hy,"away_yellow":ay,"home_red":hr,"away_red":ar,
+            "home_yellow_avg":round(hy/max(hpp,1),2),"away_yellow_avg":round(ay/max(app_,1),2)}
+        hgf=hs.get("goals",{}).get("for",{}).get("total",{}).get("total",0) or 0
+        hgc=hs.get("goals",{}).get("against",{}).get("total",{}).get("total",0) or 0
+        agf=aws.get("goals",{}).get("for",{}).get("total",{}).get("total",0) or 0
+        agc=aws.get("goals",{}).get("against",{}).get("total",{}).get("total",0) or 0
+        hcs=hs.get("clean_sheet",{}).get("total",0) or 0
+        acs=aws.get("clean_sheet",{}).get("total",0) or 0
+        comps=[]
+        tgf=hgf+agf
+        if tgf>0: comps.append({"label":"Poder ofensivo","home":round(hgf/tgf*100),"away":round(agf/tgf*100)})
+        tgc=hgc+agc
+        if tgc>0: comps.append({"label":"Solidez defensiva","home":round((1-hgc/tgc)*100),"away":round((1-agc/tgc)*100)})
+        tc=hy+ay
+        if tc>0: comps.append({"label":"Mayor tarjetas","home":round(hy/tc*100),"away":round(ay/tc*100)})
+        tcs=hcs+acs
+        if tcs>0: comps.append({"label":"Valla invicta","home":round(hcs/tcs*100),"away":round(acs/tcs*100)})
+        r["comparativas"]=comps
+        h1=_gh(hgm,"1st");h2=_gh(hgm,"2nd");a1=_gh(agm,"1st");a2=_gh(agm,"2nd")
+        ht,at=h1+h2,a1+a2
+        r["prob_gol_tiempo"]={"home_1st":round(h1/max(ht,1)*100),"home_2nd":round(h2/max(ht,1)*100),
+            "away_1st":round(a1/max(at,1)*100),"away_2nd":round(a2/max(at,1)*100)}
+    return r
+
+def _pm(md):
+    return[{"intervalo":iv,"goles":(md.get(iv,{}).get("total")or 0),"pct":int((md.get(iv,{}).get("percentage")or"0%").replace("%",""))} for iv in["0-15","16-30","31-45","46-60","61-75","76-90"]]
+def _cc(cd): return sum(v.get("total",0)or 0 for v in cd.values() if isinstance(v,dict))
+def _pl(s): return(s.get("fixtures",{}).get("played",{}).get("total")or 0)
+def _gh(md,half):
+    keys=["0-15","16-30","31-45"] if half=="1st" else ["46-60","61-75","76-90"]
+    return sum(md.get(k,{}).get("total",0)or 0 for k in keys)
+
+def _find(t,tid):
+    for x in t:
+        if x["team"]["id"]==tid: return x
+    return None
+
+def _forma(matches,tid):
+    if not matches: return{"form":"","w":0,"d":0,"l":0,"gf":0,"gc":0,"matches":0,"ppg":0,"gf_avg":0,"gc_avg":0,"clean_sheets":0,"failed_to_score":0}
+    matches=sorted(matches,key=lambda x:x.get("utcDate",""),reverse=True)[:10]
+    w=d=l=gf=gc=cs=fts=0;fs=""
+    for m in matches:
+        ft=m.get("score",{}).get("fullTime",{});hg,ag=ft.get("home"),ft.get("away")
+        if hg is None:continue
+        ih=m["homeTeam"]["id"]==tid;my,th=(hg,ag) if ih else(ag,hg)
+        gf+=my;gc+=th
+        if th==0:cs+=1
+        if my==0:fts+=1
+        if my>th:w+=1;fs+="W"
+        elif my==th:d+=1;fs+="D"
+        else:l+=1;fs+="L"
+    t=w+d+l
+    return{"form":fs[:5],"w":w,"d":d,"l":l,"gf":gf,"gc":gc,"matches":t,
+        "ppg":round((w*3+d)/t,2)if t>0 else 0,"gf_avg":round(gf/t,2)if t>0 else 0,
+        "gc_avg":round(gc/t,2)if t>0 else 0,"clean_sheets":cs,"failed_to_score":fts}
+
+def _u3(matches,tid):
+    if not matches:return[]
+    matches=sorted(matches,key=lambda x:x.get("utcDate",""),reverse=True)[:3]
+    r=[]
+    for m in matches:
+        ft=m.get("score",{}).get("fullTime",{});hg,ag=ft.get("home"),ft.get("away")
+        if hg is None:continue
+        ih=m["homeTeam"]["id"]==tid;my,th=(hg,ag)if ih else(ag,hg)
+        res="W"if my>th else("D"if my==th else"L")
+        r.append({"fecha":m.get("utcDate","")[:10],"rival":m["awayTeam"]["name"]if ih else m["homeTeam"]["name"],
+            "competicion":m.get("competition",{}).get("code",""),"marcador":f"{hg}-{ag}","local":ih,"resultado":res})
+    return r
+
+def _jugadores(scorers,tid):
+    j=[]
+    for s in scorers:
+        if s["team"]["id"]==tid:
+            j.append({"nombre":s["player"]["name"],"goles":s.get("goals",0),"asistencias":s.get("assists",0),
+                "partidos":s.get("playedMatches",0),"promedio":round(s.get("goals",0)/max(s.get("playedMatches",1),1),2)})
+    return j[:3]
+
+def _enrich(players,team,form):
+    for p in players:
+        desc=[]
+        if p["goles"]>=10: desc.append(f"Goleador principal de {team} con {p['goles']} goles en {p['partidos']} partidos.")
+        elif p["goles"]>=5: desc.append(f"Amenaza ofensiva con {p['goles']} goles.")
+        else: desc.append(f"Aporta {p['goles']} goles y {p['asistencias']or 0} asistencias.")
+        if p["promedio"]>=0.5: desc.append(f"Promedio de {p['promedio']} goles/partido."); p["mercado_sugerido"]="Anotador en cualquier momento"
+        elif p["asistencias"] and p["asistencias"]>=5: desc.append(f"Generador clave con {p['asistencias']} asistencias."); p["mercado_sugerido"]="Asistencia"
+        else: p["mercado_sugerido"]="Anotador Over 0.5"
+        p["descripcion"]=" ".join(desc)
+    return players
+
+
+def _cuota(prob_pct):
+    if prob_pct<=0: return "—"
+    return round(100/prob_pct*0.95, 2)
+
+
+def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
+    te=len(tt)if tt else 20
+    forma_h_val=hf["ppg"] if hf["matches"]>0 else 0
+    forma_a_val=af["ppg"] if af["matches"]>0 else 0
+    forma_h_score=round(forma_h_val/3*100)if hf["matches"]>0 else 50
+    forma_a_score=round(forma_a_val/3*100)if af["matches"]>0 else 50
+    h2h_home_wins=h2h.get("homeTeam",{}).get("wins",0)
+    h2h_away_wins=h2h.get("awayTeam",{}).get("wins",0)
+    h2h_draws=h2h.get("homeTeam",{}).get("draws",h2h.get("awayTeam",{}).get("draws",0))
+    h2t=h2h.get("numberOfMatches",0)
+    h2h_score=50
+    if h2t>0: h2h_score=round((h2h_home_wins*100+h2h_draws*50)/h2t)
+    localia_h_val=0;localia_a_val=0
+    localia_h_score=localia_a_score=50
+    if hh:
+        pg=hh.get("playedGames",0)
+        if pg>0:
+            localia_h_val=round(hh.get("won",0)/pg*100)
+            localia_h_score=round((hh.get("won",0)*3+hh.get("draw",0))/(pg*3)*100)
+    if aa:
+        pg=aa.get("playedGames",0)
+        if pg>0:
+            localia_a_val=round(aa.get("won",0)/pg*100)
+            localia_a_score=round((aa.get("won",0)*3+aa.get("draw",0))/(pg*3)*100)
+    pos_h=hp.get("position") if hp else None
+    pos_a=ap.get("position") if ap else None
+    pos_h_score=round((1-(pos_h-1)/max(te-1,1))*100) if pos_h else 50
+    pos_a_score=round((1-(pos_a-1)/max(te-1,1))*100) if pos_a else 50
+
+    ph=round(forma_h_score*.25+h2h_score*.10+localia_h_score*.35+pos_h_score*.30)
+    pa=round(forma_a_score*.25+(100-h2h_score)*.10+localia_a_score*.35+pos_a_score*.30)
+    ph=min(95,ph+8)
+    pd=max(0,100-ph-pa)
+    tp=ph+pa+pd
+    if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
+
+    egh=hf["gf_avg"]if hf["matches"]>0 else 1.3
+    ech=hf["gc_avg"]if hf["matches"]>0 else 1.0
+    ega=af["gf_avg"]if af["matches"]>0 else 1.0
+    eca=af["gc_avg"]if af["matches"]>0 else 1.3
+    ge=round((egh+ega+ech+eca)/2,2)
+    hfts=hf["failed_to_score"]/max(hf["matches"],1);afts=af["failed_to_score"]/max(af["matches"],1)
+    hcs_r=hf["clean_sheets"]/max(hf["matches"],1);acs_r=af["clean_sheets"]/max(af["matches"],1)
+    hsc=1-hfts;asc=1-afts
+
+    mercados=[]
+    if ph>=40:
+        s=_s1x2(hn,an,ph,hf,hp,hh,localia_h_score,"home",ge)
+        mercados.append({"mercado":f"Resultado Final — {hn}","prob":ph,"riesgo":100-ph,"cuota":_cuota(ph),"tipo":"1X2","aprobado":ph>=70,"sintesis":s})
+    if pa>=40:
+        s=_s1x2(an,hn,pa,af,ap,aa,localia_a_score,"away",ge)
+        mercados.append({"mercado":f"Resultado Final — {an}","prob":pa,"riesgo":100-pa,"cuota":_cuota(pa),"tipo":"1X2","aprobado":pa>=70,"sintesis":s})
+    if pd>=22:
+        s=f"Equipos separados por {abs((pos_h or 10)-(pos_a or 10))} posiciones. "
+        if hf["matches"]>0 and af["matches"]>0: s+=f"PPG similar: {hn} {hf['ppg']} vs {an} {af['ppg']}. "
+        s+="Empate es resultado logico."
+        mercados.append({"mercado":"Resultado Final — Empate","prob":pd,"riesgo":100-pd,"cuota":_cuota(pd),"tipo":"1X2","aprobado":pd>=35,"sintesis":s})
+
+    dc1x=ph+pd;dcx2=pa+pd
+    if dc1x>=55:
+        s=f"{hn} o Empate cubre el escenario mas probable. Solo pierde si gana {an} ({pa}%)."
+        mercados.append({"mercado":f"Doble Oportunidad 1X — {hn}","prob":dc1x,"riesgo":100-dc1x,"cuota":_cuota(dc1x),"tipo":"DC","aprobado":dc1x>=75,"sintesis":s})
+    if dcx2>=55:
+        mercados.append({"mercado":f"Doble Oportunidad X2 — {an}","prob":dcx2,"riesgo":100-dcx2,"cuota":_cuota(dcx2),"tipo":"DC","aprobado":dcx2>=75,"sintesis":f"Cubre victoria de {an} o empate."})
+
+    if ge>=2.5:
+        p=min(85,round(50+(ge-2.5)*20))
+        s=f"Promedio combinado supera {ge} goles/partido."
+        mercados.append({"mercado":"Goles Totales Over 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":s})
+    if ge<=2.5:
+        p=min(85,round(50+(2.5-ge)*20))
+        s=f"Goles esperados: {ge}. Perfil defensivo favorece Under."
+        mercados.append({"mercado":"Goles Totales Under 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":s})
+    if ge>=1.8:
+        p=min(92,round(60+(ge-1.5)*15))
+        mercados.append({"mercado":"Goles Totales Over 1.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=80,"sintesis":f"Con {ge} goles esperados."})
+    if ge>=3.0:
+        p=min(80,round(40+(ge-3.0)*25))
+        mercados.append({"mercado":"Goles Totales Over 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":f"Promedio combinado alto: {ge} goles."})
+    if ge<=3.0:
+        p=min(80,round(40+(3.0-ge)*25))
+        mercados.append({"mercado":"Goles Totales Under 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":f"Goles esperados: {ge}. Tendencia a partidos controlados."})
+
+    btts=min(82,max(20,round(hsc*50+asc*50)))
+    if btts>=45:
+        mercados.append({"mercado":"BTTS — Ambos Anotan","prob":btts,"riesgo":100-btts,"cuota":_cuota(btts),"tipo":"BTTS","aprobado":btts>=70,"sintesis":f"{hn} marca en {round(hsc*100)}%, {an} en {round(asc*100)}%."})
+
+    ho=min(95,max(30,round(hsc*100)))
+    if ho>=70:
+        mercados.append({"mercado":f"Goles Equipo — {hn} Over 0.5","prob":ho,"riesgo":100-ho,"cuota":_cuota(ho),"tipo":"GE","aprobado":ho>=85,"sintesis":f"{hn} marco en {round(hsc*100)}% de sus ultimos partidos."})
+    ao=min(95,max(30,round(asc*100)))
+    if ao>=70:
+        mercados.append({"mercado":f"Goles Equipo — {an} Over 0.5","prob":ao,"riesgo":100-ao,"cuota":_cuota(ao),"tipo":"GE","aprobado":ao>=85,"sintesis":f"{an} marco en {round(asc*100)}% de sus ultimos partidos."})
+
+    # Goles Equipo Over 1.5
+    h15=min(85,max(20,round(egh/(egh+0.8)*100))) if egh>=1.3 else 0
+    if h15>=50:
+        mercados.append({"mercado":f"Goles Equipo — {hn} Over 1.5","prob":h15,"riesgo":100-h15,"cuota":_cuota(h15),"tipo":"GE","aprobado":h15>=70,"sintesis":f"{hn} promedia {egh} goles/partido."})
+    a15=min(85,max(20,round(ega/(ega+0.8)*100))) if ega>=1.3 else 0
+    if a15>=50:
+        mercados.append({"mercado":f"Goles Equipo — {an} Over 1.5","prob":a15,"riesgo":100-a15,"cuota":_cuota(a15),"tipo":"GE","aprobado":a15>=70,"sintesis":f"{an} promedia {ega} goles/partido."})
+
+    # Clean Sheet
+    hcs_p=min(85,round(hcs_r*100*(1-asc+0.3)))
+    if hcs_p>=30:
+        mercados.append({"mercado":f"Clean Sheet — {hn}","prob":hcs_p,"riesgo":100-hcs_p,"cuota":_cuota(hcs_p),"tipo":"CS","aprobado":hcs_p>=70,"sintesis":f"{hn} dejo valla invicta en {round(hcs_r*100)}% de partidos. {an} no marco en {round(afts*100)}%."})
+    acs_p=min(85,round(acs_r*100*(1-hsc+0.3)))
+    if acs_p>=30:
+        mercados.append({"mercado":f"Clean Sheet — {an}","prob":acs_p,"riesgo":100-acs_p,"cuota":_cuota(acs_p),"tipo":"CS","aprobado":acs_p>=70,"sintesis":f"{an} dejo valla invicta en {round(acs_r*100)}% de partidos. {hn} no marco en {round(hfts*100)}%."})
+
+    # Victoria a Cero
+    wtn_h=min(80,round(ph*hcs_r*100)/100) if ph>=50 else 0
+    if wtn_h>=25:
+        mercados.append({"mercado":f"Victoria a Cero — {hn}","prob":wtn_h,"riesgo":100-wtn_h,"cuota":_cuota(wtn_h),"tipo":"WTN","aprobado":wtn_h>=70,"sintesis":f"{hn} gana ({ph}%) y mantiene valla invicta ({round(hcs_r*100)}%)."})
+    wtn_a=min(80,round(pa*acs_r*100)/100) if pa>=50 else 0
+    if wtn_a>=25:
+        mercados.append({"mercado":f"Victoria a Cero — {an}","prob":wtn_a,"riesgo":100-wtn_a,"cuota":_cuota(wtn_a),"tipo":"WTN","aprobado":wtn_a>=70,"sintesis":f"{an} gana ({pa}%) y mantiene valla invicta ({round(acs_r*100)}%)."})
+
+    # Primer Tiempo Over/Under 0.5
+    ght=ge*0.45
+    p1o=min(88,round(50+(ght-0.5)*40)) if ght>=0.5 else max(20,round(ght/0.5*40))
+    p1u=100-p1o
+    if p1o>=50:
+        mercados.append({"mercado":"1er Tiempo — Over 0.5 Goles","prob":p1o,"riesgo":100-p1o,"cuota":_cuota(p1o),"tipo":"HT","aprobado":p1o>=75,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Ritmo ofensivo temprano."})
+    if p1u>=40:
+        mercados.append({"mercado":"1er Tiempo — Under 0.5 Goles","prob":p1u,"riesgo":100-p1u,"cuota":_cuota(p1u),"tipo":"HT","aprobado":p1u>=70,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Equipos cautelosos en arranque."})
+
+    p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
+    if pn00>=70:
+        mercados.append({"mercado":"El Partido No Termina 0-0","prob":pn00,"riesgo":100-pn00,"cuota":_cuota(pn00),"tipo":"ESP","aprobado":pn00>=82,"sintesis":f"Promedio combinado: {ge} goles."})
+
+    mercados.sort(key=lambda x:x["prob"],reverse=True)
+
+    aprobados=[m for m in mercados if m["aprobado"]]
+    if ph>=pa+15: fav,conf=hn,("alta"if ph>=55 else"moderada")
+    elif pa>=ph+15: fav,conf=an,("alta"if pa>=55 else"moderada")
+    else: fav,conf=None,"baja"
+    if fav: texto=f"Victoria de {fav} en tiempo reglamentario. "
+    else: texto=f"Partido equilibrado entre {hn} ({ph}%) y {an} ({pa}%). Sin favorito claro. "
+    if hf["matches"]>0: texto+=f"{hn} llega con {hf['ppg']} PPG vs {af['ppg']} PPG. "
+    if hp and ap: texto+=f"Posiciones: {hn} #{hp.get('position','?')} vs {an} #{ap.get('position','?')}. "
+    texto+=f"Goles esperados: {ge}."
+    mp=f"{aprobados[0]['mercado']} ({aprobados[0]['prob']}% · cuota @{aprobados[0]['cuota']})" if aprobados else "Ninguno supera el umbral"
+    comb=""
+    if len(aprobados)>=2:
+        c2=[m for m in aprobados if m["tipo"]!=aprobados[0]["tipo"]]
+        if c2: comb=f"{c2[0]['mercado']} ({c2[0]['prob']}% · cuota @{c2[0]['cuota']}) como alternativa de mayor retorno."
+    ta=" · ".join(f"{m['mercado']} ({m['prob']}%)"for m in aprobados[:4])if aprobados else"Ninguno"
+
+    return{
+        "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
+        "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},
+        "goles_esperados":ge,
+        "forma":{"home":hf,"away":af},
+        "h2h":{"total":h2t,"home_wins":h2h_home_wins,"away_wins":h2h_away_wins,"draws":h2h_draws,"total_goals":h2h.get("totalGoals",0)},
+        "posiciones":{"home":pos_h,"away":pos_a,
+            "home_pts":hp.get("points")if hp else None,"away_pts":ap.get("points")if ap else None,
+            "home_gf":hp.get("goalsFor")if hp else None,"home_gc":hp.get("goalsAgainst")if hp else None,
+            "away_gf":ap.get("goalsFor")if ap else None,"away_gc":ap.get("goalsAgainst")if ap else None},
+        "mercados":mercados,
+        "veredicto":{"texto":texto,"favorito":fav,"mercados_aprobados":ta,"total_aprobados":len(aprobados),"mercado_principal":mp,"combinable":comb},
+    }
+
+def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
+    s=""
+    if form["matches"]>0:
+        r=_racha(form["form"])
+        if r[0]=="W"and r[1]>=2: s+=f"{team} en racha de {r[1]} victorias. "
+        elif r[0]=="L"and r[1]>=2: s+=f"Atencion: {team} viene de {r[1]} derrotas. "
+        s+=f"PPG: {form['ppg']}. "
+    if pos: s+=f"#{pos.get('position','?')} con {pos.get('points',0)} pts. "
+    s+=f"Probabilidad {'supera' if prob>=70 else 'no alcanza'} umbral (>=70%). "
+    return s
+
+@app.route("/estadisticas/json")
+@api_login_required
+def estadisticas_json():
+    _auto_verify_pending()
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT COUNT(*), SUM(mp_acertado),
+                 COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END),
+                 COUNT(CASE WHEN verificado=0 THEN 1 END)
+                 FROM predicciones""")
+    row = c.fetchone()
+    total = row[0] or 0
+    ganadas = int(row[1] or 0)
+    verificadas = row[2] or 0
+    pendientes = row[3] or 0
+    perdidas = verificadas - ganadas
+    acierto = round(ganadas / verificadas * 100, 1) if verificadas else 0
+    c.execute("""SELECT fecha, home, away, mercado_principal, mp_prob,
+                 verificado, mp_acertado FROM predicciones
+                 ORDER BY fecha DESC LIMIT 20""")
+    historial = [{"fecha":r[0][:10] if r[0] else "—","home":r[1],"away":r[2],
+                  "mercado_principal":r[3],"mp_prob":r[4],
+                  "verificado":r[5],"mp_acertado":r[6]} for r in c.fetchall()]
+    conn.close()
+    return jsonify({"total":total,"ganadas":ganadas,"perdidas":perdidas,
+                    "pendientes":pendientes,"acierto":acierto,"historial":historial})
+@app.route("/alertas")
+@api_login_required
+def alertas():
+    ahora = datetime.utcnow()
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota
+                 FROM predicciones WHERE verificado=0
+                 AND mercado_principal != '' AND mercado_principal NOT LIKE '%Ninguno%'
+                 ORDER BY fecha ASC""")
+    rows = c.fetchall()
+    conn.close()
+    alertas = []
+    for row in rows:
+        match_id, liga, fecha, home, away, mp, mp_prob, mp_cuota = row
+        if not fecha: continue
+        try:
+            fecha_dt = datetime.fromisoformat(fecha.replace('Z','').replace('+00:00',''))
+            diff = (fecha_dt - ahora).total_seconds()
+            if 0 <= diff <= 10800:
+                alertas.append({"match_id":match_id,"liga":liga,"home":home,"away":away,
+                    "mercado_principal":mp,"mp_prob":mp_prob,"mp_cuota":mp_cuota,
+                    "minutos_restantes":int(diff/60)})
+        except: continue
+    return jsonify({"alertas":alertas,"total":len(alertas)})
+if __name__=="__main__":
+    app.run(debug=True)

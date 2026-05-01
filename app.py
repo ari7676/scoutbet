@@ -1373,7 +1373,7 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     # Goles Equipo Over 1.5
     h15=min(85,max(20,round(egh/(egh+0.8)*100))) if egh>=1.3 else 0
     if h15>=50:
-        mercados.append({"mercado":f"Goles Equipo — {hn} Over 1.5","prob":h15,"riesgo":100-h15,"cuota":_cuota(h15),"tipo":"GE",,"aprobado":ph>=UMBRAL"sintesis":f"{hn} promedia {egh} goles/partido."})
+    mercados.append({"mercado":f"Goles Equipo — {hn} Over 1.5","prob":h15,"riesgo":100-h15,"cuota":_cuota(h15),"tipo":"GE","aprobado":h15>=70,"sintesis":f"{hn} promedia {egh} goles/partido."})
     a15=min(85,max(20,round(ega/(ega+0.8)*100))) if ega>=1.3 else 0
     if a15>=50:
         mercados.append({"mercado":f"Goles Equipo — {an} Over 1.5","prob":a15,"riesgo":100-a15,"cuota":_cuota(a15),"tipo":"GE","aprobado":ph>=UMBRAL,"sintesis":f"{an} promedia {ega} goles/partido."})

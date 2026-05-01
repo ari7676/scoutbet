@@ -1055,9 +1055,9 @@ function renderAnalysis(d, home, away) {
     <div class="veredicto-hero">
       <div class="v-label">MERCADO PRINCIPAL</div>
       <div class="v-mercado">${mainMarket.replace(/\n/g, "<br>")}</div>
-      <div style="display:flex;align-items:baseline;gap:10px;margin-top:8px">
-        <div class="v-prob">${mainProb}%</div>
-        <div class="v-sub">confianza del modelo</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <div class="v-prob" style="color:${mainProb>=70?'var(--neon)':mainProb>=55?'var(--warn)':'var(--live)'}">${mainProb}%</div>
+        ${mainProb<70?`<span style="font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.1em;padding:2px 6px;border-radius:3px;background:rgba(255,210,63,.12);color:var(--warn);border:1px solid rgba(255,210,63,.3)">${mainProb>=55?'MARGINAL':'BAJO'}</span>`:''}
       </div>
     </div>
     ` : `
@@ -1200,7 +1200,7 @@ function openModal(data) {
             MERCADO PRINCIPAL
           </div>
           <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--text)">${(v.texto||v.mercado_principal||"").replace(/\n/g,"<br>")}</div>
-          <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--neon);line-height:1">${v.mp_prob||0}%</div>
+          <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:${(v.mp_prob||0)>=70?'var(--neon)':(v.mp_prob||0)>=55?'var(--warn)":'var(--live)'};line-height:1">${v.mp_prob||0}%</div>
           ${v.mp_cuota ? `<div style="font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:4px">Cuota referencia: @${v.mp_cuota}</div>` : ''}
         </div>` : ''}
 

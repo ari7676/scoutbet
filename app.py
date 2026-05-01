@@ -1467,25 +1467,32 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     pos_h_score=round((1-(pos_h-1)/max(te-1,1))*100) if pos_h else 50
     pos_a_score=round((1-(pos_a-1)/max(te-1,1))*100) if pos_a else 50
 
+    # Calcular fuerza relativa de cada equipo (0-100)
     # Pesos: forma 30%, posicion 35%, localia 20%, h2h 15%
-    ph=round(forma_h_score*.30+h2h_score*.15+localia_h_score*.20+pos_h_score*.35)
-    pa=round(forma_a_score*.30+(100-h2h_score)*.15+localia_a_score*.20+pos_a_score*.35)
+    fuerza_h=forma_h_score*.30+h2h_score*.15+localia_h_score*.20+pos_h_score*.35
+    fuerza_a=forma_a_score*.30+(100-h2h_score)*.15+localia_a_score*.20+pos_a_score*.35
+    # Home advantage: +8 puntos de fuerza bruta al local
+    fuerza_h+=8
+    # Convertir fuerzas a probabilidades usando modelo logístico simple
+    total_f=fuerza_h+fuerza_a
+    raw_h=fuerza_h/total_f  # 0 a 1
+    raw_a=fuerza_a/total_f
+    # Probabilidad de empate: mayor cuando fuerzas similares
+    diff_f=abs(raw_h-raw_a)
+    pd_raw=max(0.10,0.30-diff_f*0.8)  # 10-30% segun equilibrio
+    # Distribuir el resto entre local y visitante
+    resto=1-pd_raw
+    ph_raw=raw_h*resto/max(raw_h+raw_a,0.01)
+    pa_raw=raw_a*resto/max(raw_h+raw_a,0.01)
+    ph=round(ph_raw*100); pa=round(pa_raw*100); pd=round(pd_raw*100)
     # Ajuste por fatiga
-    if fat_h and fat_h["score"]>=35: ph=max(5,ph-round(fat_h["score"]*0.12))
-    if fat_a and fat_a["score"]>=35: pa=max(5,pa-round(fat_a["score"]*0.12))
+    if fat_h and fat_h["score"]>=35: ph=max(5,ph-round(fat_h["score"]*0.10))
+    if fat_a and fat_a["score"]>=35: pa=max(5,pa-round(fat_a["score"]*0.10))
     # Ajuste por estado anímico
-    if animo_h:
-        ph=max(5,min(90,ph+round(animo_h["score"]*0.15)))
-    if animo_a:
-        pa=max(5,min(90,pa+round(animo_a["score"]*0.15)))
-    # Normalizar: empate tiene peso mínimo de 15%
-    pd=max(15,100-ph-pa)
+    if animo_h: ph=max(5,min(85,ph+round(animo_h["score"]*0.12)))
+    if animo_a: pa=max(5,min(85,pa+round(animo_a["score"]*0.12)))
+    # Renormalizar a 100%
     tp=ph+pa+pd
-    if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
-    # Home advantage post-norm (máx +6 para no aplastar visitante)
-    ph=min(88,ph+6);pa=max(5,pa);pd=max(5,100-ph-pa)
-    tp=ph+pa+pd
-    if tp>100: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
     if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
 
     egh=hf["gf_avg"]if hf["matches"]>0 else 1.3

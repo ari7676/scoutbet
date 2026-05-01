@@ -1005,7 +1005,7 @@ def _do_analyze_fd(codigo, match_id):
     animo_a=_estado_animico(af["form"],af["gf_avg"],af["gc_avg"]) if af["matches"]>0 else None
     resultado=_analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,
         h_arco=ts_h.get("al_arco_pj"),a_arco=ts_a.get("al_arco_pj"),
-        fat_h=fat_h,fat_a=fat_a,animo_h=animo_h,animo_a=animo_a)
+        fat_h=fat_h,fat_a=fat_a,animo_h=animo_h,animo_a=animo_a,arb_perfil=arb_perfil)
     # Agregar solo mercados de tiros al arco (unicos disponibles en _team_stats)
     mercados_adv=_mercados_avanzados_shots(ts_h,ts_a,hn,an)
     if mercados_adv:
@@ -1223,7 +1223,8 @@ def _racha(form):
 
 def _arbitro_perfil(name):
     if not name: return None
-    return {"nombre":name,"descripcion":_ref_description(name)}
+    desc, estilo, tarjetas = _ref_description(name)
+    return {"nombre":name,"descripcion":desc,"estilo":estilo,"tarjetas":tarjetas}
 
 def _ref_description(name):
     refs_db={
@@ -1283,8 +1284,8 @@ def _ref_description(name):
     key=name.lower().strip()
     if key in refs_db:
         r=refs_db[key]
-        return f"Estilo: {r['estilo']} · Tarjetas: {r['tarjetas']}. {r['desc']}"
-    return f"Sin perfil detallado disponible para {name}."
+        return f"Estilo: {r['estilo']} · Tarjetas: {r['tarjetas']}. {r['desc']}", r['estilo'], r['tarjetas']
+    return f"Sin perfil detallado disponible para {name}.", "Moderado", "Medio"
 
 
 def _search_as(name, lid, season):
@@ -1474,7 +1475,26 @@ def _cuota(prob_pct):
     return round(100/prob_pct*0.95, 2)
 
 
-def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=None,fat_a=None,animo_h=None,animo_a=None):
+def _ajuste_arbitro(arb_perfil):
+    """Devuelve ajustes de probabilidad basados en perfil del árbitro.
+    Retorna dict: {btts_boost, over_boost, cards_boost}
+    """
+    if not arb_perfil: return {"btts":0,"over":0,"cards":0}
+    estilo=arb_perfil.get("estilo","Moderado")
+    tarjetas=arb_perfil.get("tarjetas","Medio")
+    btts=0; over=0; cards=0
+    if estilo=="Permisivo":
+        btts=5; over=4; cards=-5
+    elif estilo=="Estricto":
+        btts=-3; over=-2; cards=8
+    if tarjetas=="Alto":
+        cards+=5; btts-=2
+    elif tarjetas=="Bajo":
+        cards-=5; btts+=3; over+=2
+    return {"btts":btts,"over":over,"cards":cards}
+
+
+def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=None,fat_a=None,animo_h=None,animo_a=None,arb_perfil=None):
     te=len(tt)if tt else 20
     forma_h_val=hf["ppg"] if hf["matches"]>0 else 0
     forma_a_val=af["ppg"] if af["matches"]>0 else 0
@@ -1589,7 +1609,9 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
 
     btts=min(82,max(20,round(hsc*50+asc*50)))
     if btts>=45:
-        mercados.append({"mercado":"BTTS — Ambos Anotan","prob":btts,"riesgo":100-btts,"cuota":_cuota(btts),"tipo":"BTTS","aprobado":btts>=UMBRALES["BTTS"],"sintesis":f"{hn} marca en {round(hsc*100)}%, {an} en {round(asc*100)}%."})
+        arb_adj=_ajuste_arbitro(arb_perfil)
+        btts_adj=min(95,max(5,btts+arb_adj["btts"]))
+        mercados.append({"mercado":"BTTS — Ambos Anotan","prob":btts_adj,"riesgo":100-btts_adj,"cuota":_cuota(btts_adj),"tipo":"BTTS","aprobado":btts_adj>=UMBRALES["BTTS"],"sintesis":f"{hn} marca en {round(hsc*100)}%, {an} en {round(asc*100)}%."})
 
     ho=min(95,max(30,round(hsc*100)))
     if ho>=UMBRALES["GE_15"]:

@@ -1393,18 +1393,12 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
         mercados.append({"mercado":f"Goles Equipo — {an} Over 0.5","prob":ao,"riesgo":100-ao,"cuota":_cuota(ao),"tipo":"GE","aprobado":ph>=UMBRAL,"sintesis":f"{an} marco en {round(asc*100)}% de sus ultimos partidos."})
 
     # Goles Equipo Over 1.5
-    if egh>=1.3:
-        mercados.append({"mercado":f"Goles Equipo — {hn} Over 1.5","prob":h15,"riesgo":100-h15,"cuota":_cuota(h15),"tipo":"GE","aprobado":h15>=70,"sintesis":f"{hn} promedia {egh} goles/partido."})
-    if ega>=1.3:
-        mercados.append({"mercado":f"Goles Equipo — {an} Over 1.5","prob":a15,"riesgo":100-a15,"cuota":_cuota(a15),"tipo":"GE","aprobado":a15>=70,"sintesis":f"{an} promedia {ega} goles/partido."})
-    # Clean Sheet
-    hcs_p=min(85,round(hcs_r*100*(1-asc+0.3)))
-    if hcs_p>=30:
-        mercados.append({"mercado":f"Clean Sheet — {hn}","prob":hcs_p,"riesgo":100-hcs_p,"cuota":_cuota(hcs_p),"tipo":"CS","aprobado":ph>=UMBRAL,"sintesis":f"{hn} dejo valla invicta en {round(hcs_r*100)}% de partidos. {an} no marco en {round(afts*100)}%."})
-    acs_p=min(85,round(acs_r*100*(1-hsc+0.3)))
-    if acs_p>=30:
-        mercados.append({"mercado":f"Clean Sheet — {an}","prob":acs_p,"riesgo":100-acs_p,"cuota":_cuota(acs_p),"tipo":"CS","aprobado":ph>=UMBRAL,"sintesis":f"{an} dejo valla invicta en {round(acs_r*100)}% de partidos. {hn} no marco en {round(hfts*100)}%."})
-
+    h15=min(85,max(20,round(egh/(egh+0.8)*100))) if egh>=1.3 else 0
+    if h15>=50:
+        mercados.append({"mercado":f"Goles Equipo — {hn} Over 1.5","prob":h15,"riesgo":100-h15,"cuota":_cuota(h15),"tipo":"GE","aprobado":h15>=UMBRALES["GE_15"],"sintesis":f"{hn} promedia {egh} goles/partido."})
+    a15=min(85,max(20,round(ega/(ega+0.8)*100))) if ega>=1.3 else 0
+    if a15>=50:
+        mercados.append({"mercado":f"Goles Equipo — {an} Over 1.5","prob":a15,"riesgo":100-a15,"cuota":_cuota(a15),"tipo":"GE","aprobado":a15>=UMBRALES["GE_15"],"sintesis":f"{an} promedia {ega} goles/partido."})
     # Victoria a Cero
     wtn_h=min(80,round(ph*hcs_r*100)/100) if ph>=50 else 0
     if wtn_h>=25:

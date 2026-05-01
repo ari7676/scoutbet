@@ -49,7 +49,7 @@ CACHE_TTL_FX_STATS = 604800  # 7 dias para stats por partido
 UMBRALES = {
     "1X2":       70,   # Resultado final (local/visita)
     "DRAW":      35,   # Empate
-    "DC":        68,   # Doble oportunidad
+    "DC":        65,   # Doble oportunidad
     "OU":        70,   # Over/Under 2.5, 3.5 goles totales
     "BTTS":      70,   # Ambos anotan
     "GE_05":     85,   # Goles equipo over 0.5
@@ -1626,8 +1626,17 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     def _mp_score(m):
         t = m.get("tipo","ZZZ")
         return (TIPO_PRIORIDAD.index(t) if t in TIPO_PRIORIDAD else 99, -m["prob"])
-    # Buscar mejor entre aprobados primero, sino entre todos los mercados
-    mp_candidato = min(aprobados, key=_mp_score) if aprobados else (min(mercados, key=_mp_score) if mercados else None)
+    # Si hay favorito, buscar su 1X2 entre TODOS los mercados (aprobado o no)
+    mp_candidato = None
+    if fav:
+        m1x2 = [m for m in mercados if m.get("tipo")=="1X2" and fav in m.get("mercado","")]
+        if m1x2: mp_candidato = max(m1x2, key=lambda m: m["prob"])
+    # Si no hay favorito o no encontró 1X2, buscar por prioridad entre aprobados
+    if not mp_candidato:
+        aprobados_prio = [m for m in aprobados if m.get("tipo") in ["1X2","DC"]]
+        if aprobados_prio: mp_candidato = min(aprobados_prio, key=_mp_score)
+        elif aprobados: mp_candidato = min(aprobados, key=_mp_score)
+        elif mercados: mp_candidato = min(mercados, key=_mp_score)
     mp=f"{mp_candidato['mercado']} ({mp_candidato['prob']}% · cuota @{mp_candidato['cuota']})" if mp_candidato else "Ninguno supera el umbral"
     mp_prob=mp_candidato['prob'] if mp_candidato else 0
     comb=""

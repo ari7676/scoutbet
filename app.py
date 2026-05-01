@@ -509,7 +509,7 @@ def partidos(codigo):
         season = liga.get("season")
         # Trae fixtures proximos y recientes
         desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
-        hasta = (hoy + timedelta(days=30)).strftime("%Y-%m-%d")
+        hasta = (hoy + timedelta(days=120)).strftime("%Y-%m-%d")
         data = as_get("/fixtures", {"league": as_id, "season": season, "from": desde, "to": hasta})
         if "error" in data:
             return jsonify({"response": [], "error": data["error"]})
@@ -609,7 +609,7 @@ def _auto_verify_pending():
 
 
 @app.route("/estadisticas")
-@login_required
+@api_login_required
 def estadisticas():
     _auto_verify_pending()
     conn = sqlite3.connect(DB_PATH)

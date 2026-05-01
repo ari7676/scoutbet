@@ -1374,9 +1374,7 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     if egh>=1.3:
         mercados.append({"mercado":f"Goles Equipo — {hn} Over 1.5","prob":h15,"riesgo":100-h15,"cuota":_cuota(h15),"tipo":"GE","aprobado":h15>=70,"sintesis":f"{hn} promedia {egh} goles/partido."})
     if ega>=1.3:
-    if a15>=50:
-        mercados.append({"mercado":f"Goles Equipo — {an} Over 1.5","prob":a15,"riesgo":100-a15,"cuota":_cuota(a15),"tipo":"GE","aprobado":ph>=UMBRAL,"sintesis":f"{an} promedia {ega} goles/partido."})
-
+        mercados.append({"mercado":f"Goles Equipo — {an} Over 1.5","prob":a15,"riesgo":100-a15,"cuota":_cuota(a15),"tipo":"GE","aprobado":a15>=70,"sintesis":f"{an} promedia {ega} goles/partido."})
     # Clean Sheet
     hcs_p=min(85,round(hcs_r*100*(1-asc+0.3)))
     if hcs_p>=30:

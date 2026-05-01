@@ -1001,9 +1001,11 @@ def _do_analyze_fd(codigo, match_id):
     fecha_partido=md.get("utcDate","")
     fat_h=_fatiga(fhr.get("matches",[]),fecha_partido)
     fat_a=_fatiga(far.get("matches",[]),fecha_partido)
+    animo_h=_estado_animico(hf["form"],hf["gf_avg"],hf["gc_avg"]) if hf["matches"]>0 else None
+    animo_a=_estado_animico(af["form"],af["gf_avg"],af["gc_avg"]) if af["matches"]>0 else None
     resultado=_analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,
         h_arco=ts_h.get("al_arco_pj"),a_arco=ts_a.get("al_arco_pj"),
-        fat_h=fat_h,fat_a=fat_a)
+        fat_h=fat_h,fat_a=fat_a,animo_h=animo_h,animo_a=animo_a)
     # Agregar solo mercados de tiros al arco (unicos disponibles en _team_stats)
     mercados_adv=_mercados_avanzados_shots(ts_h,ts_a,hn,an)
     if mercados_adv:
@@ -1017,6 +1019,7 @@ def _do_analyze_fd(codigo, match_id):
             v["total_aprobados"]=v.get("total_aprobados",0)+len(aprobados_adv)
             resultado["veredicto"]=v
     resultado["fatiga"]={"home":fat_h,"away":fat_a}
+    resultado["estado_animico"]={"home":animo_h,"away":animo_a}
     resultado["arbitro"]=arbitro_name
     resultado["arbitro_perfil"]=arb_perfil
     resultado["ultimos3"]={"home":hl3,"away":al3}
@@ -1171,6 +1174,41 @@ def _objetivo(pos):
     elif pos<=10: return f"en zona media, {pos}°"
     elif pos<=16: return f"intentando alejarse del descenso, {pos}°"
     else: return f"peleando no descender, {pos}°"
+
+
+def _estado_animico(forma, gf_avg, gc_avg):
+    """Score de estado anímico basado en tendencia reciente vs general.
+    Compara ultimos 3 partidos vs resto de la forma.
+    Retorna: score (-50 a +50), label, tendencia.
+    """
+    if not forma or len(forma) < 3:
+        return {"score": 0, "label": "Neutral", "tendencia": "estable"}
+    # Puntos: W=3, D=1, L=0
+    pts = {"W": 3, "D": 1, "L": 0}
+    ultimos3 = [pts.get(x, 0) for x in forma[:3]]
+    resto = [pts.get(x, 0) for x in forma[3:]] if len(forma) > 3 else []
+    ppg3 = sum(ultimos3) / len(ultimos3)
+    ppg_resto = sum(resto) / len(resto) if resto else ppg3
+    # Diferencia de rendimiento
+    diff = ppg3 - ppg_resto
+    # Score base por forma reciente
+    score_forma = round(ppg3 / 3 * 40) - 20  # -20 a +20
+    # Bonus por tendencia
+    if diff >= 1.0: tendencia = "en alza"; score_tend = 20
+    elif diff >= 0.5: tendencia = "mejorando"; score_tend = 10
+    elif diff <= -1.0: tendencia = "en caída"; score_tend = -20
+    elif diff <= -0.5: tendencia = "cayendo"; score_tend = -10
+    else: tendencia = "estable"; score_tend = 0
+    # Bonus goleador
+    score_goles = 10 if gf_avg >= 2.0 else (5 if gf_avg >= 1.5 else 0)
+    score_def = 10 if gc_avg <= 0.8 else (5 if gc_avg <= 1.2 else 0)
+    score = max(-50, min(50, score_forma + score_tend + score_goles + score_def))
+    if score >= 30: label = "Excelente momento"
+    elif score >= 15: label = "Buen momento"
+    elif score >= 0: label = "Momento regular"
+    elif score >= -15: label = "Momento bajo"
+    else: label = "Mal momento"
+    return {"score": score, "label": label, "tendencia": tendencia, "ppg3": round(ppg3, 2), "ppg_general": round(sum([pts.get(x,0) for x in forma])/len(forma), 2)}
 
 
 def _racha(form):
@@ -1399,7 +1437,7 @@ def _cuota(prob_pct):
     return round(100/prob_pct*0.95, 2)
 
 
-def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=None,fat_a=None):
+def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=None,fat_a=None,animo_h=None,animo_a=None):
     te=len(tt)if tt else 20
     forma_h_val=hf["ppg"] if hf["matches"]>0 else 0
     forma_a_val=af["ppg"] if af["matches"]>0 else 0
@@ -1434,6 +1472,11 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     # Ajuste por fatiga
     if fat_h and fat_h["score"]>=35: ph=max(5,ph-round(fat_h["score"]*0.12))
     if fat_a and fat_a["score"]>=35: pa=max(5,pa-round(fat_a["score"]*0.12))
+    # Ajuste por estado anímico
+    if animo_h:
+        ph=max(5,min(95,ph+round(animo_h["score"]*0.15)))
+    if animo_a:
+        pa=max(5,min(95,pa+round(animo_a["score"]*0.15)))
     pd=max(0,100-ph-pa)
     tp=ph+pa+pd
     if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
@@ -1551,6 +1594,11 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
         texto+=f"{hn} llega {fat_h['label'].lower()} ({fat_h['partidos_14d']} partidos en 14 días). "
     if fat_a and fat_a["score"]>=35:
         texto+=f"{an} llega {fat_a['label'].lower()} ({fat_a['partidos_14d']} partidos en 14 días). "
+    # Estado anímico
+    if animo_h and abs(animo_h["score"])>=15:
+        texto+=f"{hn}: {animo_h['label']} ({animo_h['tendencia']}, {animo_h['ppg3']} PPG últimos 3). "
+    if animo_a and abs(animo_a["score"])>=15:
+        texto+=f"{an}: {animo_a['label']} ({animo_a['tendencia']}, {animo_a['ppg3']} PPG últimos 3). "
     else: texto=f"Partido equilibrado entre {hn} ({ph}%) y {an} ({pa}%). Sin favorito claro. "
     if hf["matches"]>0: texto+=f"{hn} llega con {hf['ppg']} PPG vs {af['ppg']} PPG. "
     if hp and ap: texto+=f"Posiciones: {hn} #{hp.get('position','?')} vs {an} #{ap.get('position','?')}. "

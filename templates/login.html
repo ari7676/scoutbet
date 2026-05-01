@@ -1,42 +1,238 @@
-Login · HTML
-Copiar
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MatchIQ · Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>ScoutBet · Acceso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#060d1f;--surface:#0c1529;--surface2:#132040;--border:#1e3060;--gold:#d4a537;--text:#e8eaf0;--muted:#7b8494;--red:#ef4444;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-.box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px;width:100%;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,.5);}
-.brand{display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold);letter-spacing:3px;margin-bottom:6px;}
-.brand svg{width:28px;height:28px;}
-.sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px;}
-label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600;}
-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:18px;}
-input:focus{border-color:var(--gold);}
-.btn{width:100%;background:var(--gold);color:#060d1f;border:none;border-radius:8px;padding:12px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;}
-.btn:hover{background:#b8922e;}
-.err{background:rgba(239,68,68,.1);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:18px;text-align:center;}
+:root{
+  --bg:#0B1420;--bg2:#0F1C2E;--bg3:#17263C;
+  --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --text:#F5F7FA;--dim:#8A9AB2;--dim2:#5C6B82;
+  --neon:#00E28A;--neon-dim:rgba(0,226,138,.12);
+  --neon-glow:0 0 0 1px rgba(0,226,138,.35),0 0 24px rgba(0,226,138,.2);
+  --live:#FF3D54;
+  --font:'Inter',system-ui,sans-serif;
+  --display:'Oswald','Inter',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
+
+.page{
+  display:flex;height:100vh;
+}
+
+/* ── LEFT HERO ── */
+.hero{
+  flex:1 1 55%;position:relative;
+  background:
+    radial-gradient(ellipse at 20% 30%,rgba(0,226,138,.22) 0%,transparent 55%),
+    radial-gradient(ellipse at 80% 80%,rgba(0,134,255,.18) 0%,transparent 50%),
+    linear-gradient(180deg,#0B1420 0%,#050A12 100%);
+  padding:40px 48px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  overflow:hidden;
+}
+.field-lines{position:absolute;inset:0;opacity:.07;pointer-events:none;width:100%;height:100%}
+.hero-logo{display:flex;align-items:center;gap:10px;position:relative}
+.logo-icon{
+  width:28px;height:28px;border-radius:7px;
+  background:linear-gradient(135deg,var(--neon),#00A86B);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--neon-glow);
+}
+.logo-ball{
+  width:15px;height:15px;border-radius:50%;
+  border:1.5px solid var(--bg);
+  background:conic-gradient(from 0deg,var(--bg) 0 25%,transparent 25% 50%,var(--bg) 50% 75%,transparent 75%);
+}
+.logo-text{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:.08em}
+.logo-text span{color:var(--neon)}
+
+.hero-body{position:relative}
+.hero-tag{font-family:var(--mono);font-size:11px;color:var(--neon);letter-spacing:.25em;margin-bottom:18px}
+.hero-title{
+  font-family:var(--display);font-size:clamp(52px,7vw,84px);font-weight:700;
+  line-height:.92;letter-spacing:-.01em;text-transform:uppercase;margin-bottom:20px;
+}
+.hero-title .accent{
+  background:linear-gradient(135deg,var(--neon),#7FFFD4);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-desc{color:var(--dim);font-size:15px;max-width:460px;line-height:1.55;margin-bottom:32px}
+.hero-stats{display:flex;gap:32px}
+.hero-stat-val{font-family:var(--display);font-size:36px;font-weight:700;color:var(--neon);line-height:1}
+.hero-stat-lbl{font-size:11px;color:var(--dim);margin-top:4px;letter-spacing:.05em;text-transform:uppercase}
+
+.hero-footer{font-family:var(--mono);font-size:10px;color:var(--dim2);letter-spacing:.15em;position:relative}
+
+/* ── RIGHT FORM ── */
+.form-side{
+  flex:1 1 45%;background:var(--bg2);border-left:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;padding:40px;
+}
+.form-card{width:100%;max-width:360px}
+.form-tag{font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.2em;margin-bottom:10px}
+.form-title{font-family:var(--display);font-size:36px;font-weight:600;letter-spacing:.01em;margin-bottom:6px}
+.form-sub{color:var(--dim);font-size:13px;margin-bottom:28px}
+
+.field-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.field-label{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.12em}
+.field-input{
+  height:46px;border-radius:8px;background:var(--bg);
+  border:1px solid var(--line2);padding:0 14px;
+  font-size:14px;color:var(--text);font-family:var(--font);
+  outline:none;transition:border-color .15s;width:100%;
+}
+.field-input:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,226,138,.1)}
+
+.form-extras{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--dim);margin-bottom:20px;margin-top:4px}
+.remember{display:flex;align-items:center;gap:6px;cursor:pointer}
+.check-box{
+  width:14px;height:14px;border-radius:3px;
+  background:var(--neon);border:1px solid var(--neon);
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.check-box svg{color:var(--bg)}
+
+.btn-submit{
+  width:100%;height:48px;border:none;border-radius:8px;
+  background:var(--neon);color:var(--bg);
+  font-family:var(--display);font-size:16px;font-weight:700;
+  letter-spacing:.12em;cursor:pointer;
+  box-shadow:var(--neon-glow);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:filter .15s;
+}
+.btn-submit:hover{filter:brightness(1.1)}
+.btn-submit svg{color:var(--bg)}
+
+.form-divider{margin-top:28px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.form-divider-text{font-size:12px;color:var(--dim)}
+.form-divider-btn{
+  background:transparent;border:1px solid var(--line2);
+  color:var(--text);padding:8px 14px;border-radius:7px;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);
+  transition:all .15s;
+}
+.form-divider-btn:hover{border-color:var(--neon);color:var(--neon)}
+
+.err-box{
+  background:rgba(255,61,84,.1);border:1px solid rgba(255,61,84,.35);
+  color:var(--live);padding:10px 14px;border-radius:8px;
+  font-size:13px;margin-bottom:18px;text-align:center;
+}
+
+/* Mobile */
+@media(max-width:700px){
+  .page{flex-direction:column}
+  .hero{
+    flex:0 0 auto;padding:28px 24px 24px;
+    background:
+      radial-gradient(ellipse at 50% 0%,rgba(0,226,138,.2) 0%,transparent 60%),
+      linear-gradient(180deg,#0B1420 0%,#050A12 100%);
+  }
+  .hero-title{font-size:42px;margin-bottom:12px}
+  .hero-desc{display:none}
+  .hero-stats{gap:20px}
+  .hero-stat-val{font-size:24px}
+  .hero-footer{display:none}
+  .form-side{flex:1;border-left:none;border-top:1px solid var(--line);padding:24px 20px}
+}
+@keyframes apulse{0%,100%{box-shadow:0 0 0 3px rgba(0,226,138,.3)}50%{box-shadow:0 0 0 6px rgba(0,226,138,.08)}}
 </style>
 </head>
 <body>
-<div class="box">
-  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>MATCHIQ</div>
-  <div class="sub">Acceso restringido</div>
-  {% if error %}<div class="err">{{error}}</div>{% endif %}
-  <form method="POST">
-    <label>Usuario</label>
-    <input type="text" name="user" required autofocus>
-    <label>Contraseña</label>
-    <input type="password" name="pass" required>
-    <button class="btn" type="submit">Ingresar</button>
-  </form>
+<div class="page">
+  <!-- HERO -->
+  <div class="hero">
+    <svg class="field-lines" viewBox="0 0 700 800" preserveAspectRatio="none">
+      <rect x="50" y="50" width="600" height="700" fill="none" stroke="#00E28A" stroke-width="1"/>
+      <circle cx="350" cy="400" r="90" fill="none" stroke="#00E28A" stroke-width="1"/>
+      <line x1="50" y1="400" x2="650" y2="400" stroke="#00E28A" stroke-width="1"/>
+      <rect x="200" y="50" width="300" height="100" fill="none" stroke="#00E28A" stroke-width="1"/>
+      <rect x="200" y="650" width="300" height="100" fill="none" stroke="#00E28A" stroke-width="1"/>
+      <rect x="270" y="50" width="160" height="50" fill="none" stroke="#00E28A" stroke-width="1"/>
+      <rect x="270" y="700" width="160" height="50" fill="none" stroke="#00E28A" stroke-width="1"/>
+    </svg>
+
+    <div class="hero-logo">
+      <div class="logo-icon"><div class="logo-ball"></div></div>
+      <div class="logo-text">SCOUT<span>BET</span></div>
+    </div>
+
+    <div class="hero-body">
+      <div class="hero-tag">/ PLATAFORMA INTELIGENTE DE ANÁLISIS</div>
+      <h1 class="hero-title">
+        Leé el <span class="accent">partido</span>,<br>no la suerte.
+      </h1>
+      <p class="hero-desc">
+        Probabilidades en tiempo real, estadísticas xG y modelo propio sobre +2.400 partidos
+        del fútbol mundial. De Premier a Libertadores.
+      </p>
+      <div class="hero-stats">
+        <div>
+          <div class="hero-stat-val">2.4K</div>
+          <div class="hero-stat-lbl">partidos / semana</div>
+        </div>
+        <div>
+          <div class="hero-stat-val">71%</div>
+          <div class="hero-stat-lbl">precisión modelo</div>
+        </div>
+        <div>
+          <div class="hero-stat-val">10</div>
+          <div class="hero-stat-lbl">ligas activas</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-footer">SCOUTBET · v2.0 · BUENOS AIRES / MADRID</div>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-side">
+    <div class="form-card">
+      <div class="form-tag">/ ACCESO RESTRINGIDO</div>
+      <h2 class="form-title">INICIAR SESIÓN</h2>
+      <div class="form-sub">Ingresá con tu cuenta ScoutBet</div>
+
+      {% if error %}<div class="err-box">{{ error }}</div>{% endif %}
+
+      <form method="POST">
+        <div class="field-group">
+          <span class="field-label">USUARIO</span>
+          <input class="field-input" type="text" name="user" required autofocus placeholder="tu usuario">
+        </div>
+        <div class="field-group">
+          <span class="field-label">CONTRASEÑA</span>
+          <input class="field-input" type="password" name="pass" required placeholder="••••••••••••">
+        </div>
+
+        <div class="form-extras">
+          <label class="remember">
+            <span class="check-box">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            Mantener sesión
+          </label>
+        </div>
+
+        <button class="btn-submit" type="submit">
+          ENTRAR AL CAMPO
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </form>
+
+      <div class="form-divider">
+        <div class="form-divider-text">¿Problemas para ingresar?</div>
+        <button class="form-divider-btn">Contactar soporte</button>
+      </div>
+    </div>
+  </div>
 </div>
 </body>
 </html>
- 

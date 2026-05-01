@@ -1200,7 +1200,7 @@ function openModal(data) {
             MERCADO PRINCIPAL
           </div>
           <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--text)">${(v.texto||v.mercado_principal||"").replace(/\n/g,"<br>")}</div>
-          <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--neon)":'var(--live)'};line-height:1">${v.mp_prob||0}%</div>
+          <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--neon);line-height:1">${v.mp_prob||0}%</div>
           ${v.mp_cuota ? `<div style="font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:4px">Cuota referencia: @${v.mp_cuota}</div>` : ''}
         </div>` : ''}
 
@@ -1215,6 +1215,33 @@ function openModal(data) {
         <div class="insight-box">
           <div class="insight-title">RESUMEN</div>
           <div style="font-size:12px;color:var(--dim);line-height:1.7">${narracion}</div>
+        </div>` : ''}
+
+        ${d.arbitro ? `
+        <div class="insight-box">
+          <div class="insight-title">⚖️ ÁRBITRO</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px">${d.arbitro}</div>
+          ${d.arbitro_perfil ? `<div style="font-size:11px;color:var(--dim);line-height:1.5">${d.arbitro_perfil.descripcion||''}</div>` : ''}
+        </div>` : ''}
+
+        ${d.jugadores && (d.jugadores.home?.length || d.jugadores.away?.length) ? `
+        <div class="insight-box">
+          <div class="insight-title">⚽ JUGADORES CLAVE</div>
+          ${[{team: home, players: d.jugadores.home||[]}, {team: away, players: d.jugadores.away||}].map(({team,players}) => players.length ? `
+            <div style="margin-bottom:8px">
+              <div style="font-size:10px;font-family:var(--mono);color:var(--neon);letter-spacing:.08em;margin-bottom:4px">${team.toUpperCase()}</div>
+              ${players.map(p => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--line)">
+                  <div>
+                    <div style="font-size:12px;font-weight:600">${p.nombre}</div>
+                    <div style="font-size:10px;color:var(--dim)">${p.descripcion||''}</div>
+                  </div>
+                  <div style="text-align:right;flex-shrink:0;margin-left:8px">
+                    <div style="font-family:var(--mono);font-size:13px;color:var(--neon);font-weight:700">${p.goles} ⚽</div>
+                    ${p.asistencias ? `<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">${p.asistencias} 🅰️</div>` : ''}
+                  </div>
+                </div>`).join('')}
+            </div>` : '').join('')}
         </div>` : ''}
       </div>
     </div>`;

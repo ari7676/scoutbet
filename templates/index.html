@@ -1035,6 +1035,20 @@ function renderAnalysis(d, home, away) {
   }).join('');
 
   const narracion = d.narracion || d.narrativa || d.texto_narrativo || '';
+  const ea = d.estado_animico || {};
+  const animoH = ea.home; const animoA = ea.away;
+  const animoBadge = (team, animo) => {
+    if (!animo || Math.abs(animo.score) < 15) return '';
+    const color = animo.score >= 15 ? 'var(--neon)' : animo.score <= -15 ? 'var(--live)' : 'var(--warn)';
+    const w3 = (animo.forma3||'').split('').filter(x=>x==='W').length;
+    return `<div style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-top:1px solid var(--line)">
+      <span style="font-size:14px">${animo.icon||''}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;color:var(--dim);font-family:var(--mono);letter-spacing:.08em">${team.toUpperCase()}</div>
+        <div style="font-size:11px;font-weight:600;color:${color}">${animo.label} · ${animo.tendencia}</div>
+      </div>
+    </div>`;
+  };
 
   document.getElementById('panel-content').innerHTML = `
     ${aprobados > 0 ? `
@@ -1058,6 +1072,15 @@ function renderAnalysis(d, home, away) {
       <div style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.12em;margin-bottom:4px">COMBINABLE</div>
       <div style="font-size:13px;font-weight:600;margin-bottom:4px">${combinable}</div>
       <div style="font-family:var(--mono);font-size:13px;color:var(--warn);font-weight:700">${combProb}%</div>
+    </div>` : ''}
+
+    ${animoH || animoA ? `
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">ESTADO ANÍMICO</span>
+      </div>
+      ${animoBadge(home, animoH)}
+      ${animoBadge(away, animoA)}
     </div>` : ''}
 
     ${Object.keys(mercados).length > 0 ? `

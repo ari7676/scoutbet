@@ -1203,12 +1203,12 @@ def _estado_animico(forma, gf_avg, gc_avg):
     score_goles = 10 if gf_avg >= 2.0 else (5 if gf_avg >= 1.5 else 0)
     score_def = 10 if gc_avg <= 0.8 else (5 if gc_avg <= 1.2 else 0)
     score = max(-50, min(50, score_forma + score_tend + score_goles + score_def))
-    if score >= 30: label = "Excelente momento"
-    elif score >= 15: label = "Buen momento"
-    elif score >= 0: label = "Momento regular"
-    elif score >= -15: label = "Momento bajo"
-    else: label = "Mal momento"
-    return {"score": score, "label": label, "tendencia": tendencia, "ppg3": round(ppg3, 2), "ppg_general": round(sum([pts.get(x,0) for x in forma])/len(forma), 2)}
+    if score >= 30: label = "Excelente momento"; icon = "🔥"
+    elif score >= 15: label = "Buen momento"; icon = "📈"
+    elif score >= 0: label = "Momento regular"; icon = "➡️"
+    elif score >= -15: label = "Momento bajo"; icon = "📉"
+    else: label = "Mal momento"; icon = "❄️"
+    return {"score": score, "label": label, "icon": icon, "tendencia": tendencia, "ppg3": round(ppg3, 2), "ppg_general": round(sum([pts.get(x,0) for x in forma])/len(forma), 2)}
 
 
 def _racha(form):
@@ -1596,9 +1596,11 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
         texto+=f"{an} llega {fat_a['label'].lower()} ({fat_a['partidos_14d']} partidos en 14 días). "
     # Estado anímico
     if animo_h and abs(animo_h["score"])>=15:
-        texto+=f"{hn}: {animo_h['label']} ({animo_h['tendencia']}, {animo_h['ppg3']} PPG últimos 3). "
+        w3=hf["form"][:3].count("W"); d3=hf["form"][:3].count("D"); l3=hf["form"][:3].count("L")
+        texto+=f"{hn}: {animo_h['label']} ({animo_h['tendencia']}, {w3}V {d3}E {l3}D en últimos 3). "
     if animo_a and abs(animo_a["score"])>=15:
-        texto+=f"{an}: {animo_a['label']} ({animo_a['tendencia']}, {animo_a['ppg3']} PPG últimos 3). "
+        w3=af["form"][:3].count("W"); d3=af["form"][:3].count("D"); l3=af["form"][:3].count("L")
+        texto+=f"{an}: {animo_a['label']} ({animo_a['tendencia']}, {w3}V {d3}E {l3}D en últimos 3). "
     else: texto=f"Partido equilibrado entre {hn} ({ph}%) y {an} ({pa}%). Sin favorito claro. "
     if hf["matches"]>0: texto+=f"{hn} llega con {hf['ppg']} PPG vs {af['ppg']} PPG. "
     if hp and ap: texto+=f"Posiciones: {hn} #{hp.get('position','?')} vs {an} #{ap.get('position','?')}. "

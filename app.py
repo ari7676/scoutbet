@@ -1486,7 +1486,8 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     ech=hf["gc_avg"]if hf["matches"]>0 else 1.0
     ega=af["gf_avg"]if af["matches"]>0 else 1.0
     eca=af["gc_avg"]if af["matches"]>0 else 1.3
-    ge=round((egh+ega+ech+eca)/2,2)
+    # ge: 50% goles marcados + 25% goles recibidos (evita inflacion en duelos ofensivos)
+    ge=round(egh*0.5+ega*0.5+ech*0.25+eca*0.25,2)
     # Refinar ge con tiros al arco si disponibles (xG = shots_on / 3.5)
     if h_arco and a_arco and h_arco != "—" and a_arco != "—":
         try:
@@ -1589,23 +1590,22 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     if ph>=pa+15: fav,conf=hn,("alta"if ph>=55 else"moderada")
     elif pa>=ph+15: fav,conf=an,("alta"if pa>=55 else"moderada")
     else: fav,conf=None,"baja"
-    if fav: texto=f"Victoria de {fav} en tiempo reglamentario. "
-    # Agregar contexto de fatiga
+    lineas = []
+    if fav: lineas.append(f"Victoria de {fav} en tiempo reglamentario.")
+    else: lineas.append(f"Partido equilibrado entre {hn} ({ph}%) y {an} ({pa}%).")
+    if hp and ap: lineas.append(f"Posiciones: {hn} #{hp.get('position','?')} vs {an} #{ap.get('position','?')}.")
+    lineas.append(f"Goles esperados: {ge}.")
     if fat_h and fat_h["score"]>=35:
-        texto+=f"{hn} llega {fat_h['label'].lower()} ({fat_h['partidos_14d']} partidos en 14 días). "
+        lineas.append(f"{hn} llega {fat_h['label'].lower()} ({fat_h['partidos_14d']} partidos en 14 días).")
     if fat_a and fat_a["score"]>=35:
-        texto+=f"{an} llega {fat_a['label'].lower()} ({fat_a['partidos_14d']} partidos en 14 días). "
-    # Estado anímico
+        lineas.append(f"{an} llega {fat_a['label'].lower()} ({fat_a['partidos_14d']} partidos en 14 días).")
     if animo_h and abs(animo_h["score"])>=15:
         w3=hf["form"][:3].count("W"); d3=hf["form"][:3].count("D"); l3=hf["form"][:3].count("L")
-        texto+=f"{hn}: {animo_h['label']} ({animo_h['tendencia']}, {w3}V {d3}E {l3}D en últimos 3). "
+        lineas.append(f"{hn}: {animo_h['label']} ({animo_h['tendencia']}, {w3}V {d3}E {l3}D en últimos 3).")
     if animo_a and abs(animo_a["score"])>=15:
         w3=af["form"][:3].count("W"); d3=af["form"][:3].count("D"); l3=af["form"][:3].count("L")
-        texto+=f"{an}: {animo_a['label']} ({animo_a['tendencia']}, {w3}V {d3}E {l3}D en últimos 3). "
-    else: texto=f"Partido equilibrado entre {hn} ({ph}%) y {an} ({pa}%). Sin favorito claro. "
-    if hf["matches"]>0: texto+=f"{hn} llega con {hf['ppg']} PPG vs {af['ppg']} PPG. "
-    if hp and ap: texto+=f"Posiciones: {hn} #{hp.get('position','?')} vs {an} #{ap.get('position','?')}. "
-    texto+=f"Goles esperados: {ge}."
+        lineas.append(f"{an}: {animo_a['label']} ({animo_a['tendencia']}, {w3}V {d3}E {l3}D en últimos 3).")
+    texto = "\n".join(lineas)
     mp=f"{aprobados[0]['mercado']} ({aprobados[0]['prob']}% · cuota @{aprobados[0]['cuota']})" if aprobados else "Ninguno supera el umbral"
     mp_prob=aprobados[0]['prob'] if aprobados else 0
     comb=""

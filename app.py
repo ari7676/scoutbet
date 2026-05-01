@@ -488,11 +488,22 @@ def _mercados_avanzados(home, away, hn, an):
     return mercados
 
 
-@app.route("/diag/<codigo>")
-@api_login_required
 @app.route("/admin/clear-cache")
 @api_login_required
 def clear_cache():
+    global _cache
+    _cache = {}
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM analisis_cache")
+    deleted = c.rowcount
+    conn.commit(); conn.close()
+    return jsonify({"ok": True, "deleted": deleted})
+
+
+@app.route("/diag/<codigo>")
+@api_login_required
+def diag(codigo):
     global _cache
     _cache = {}
     conn = sqlite3.connect(DB_PATH)

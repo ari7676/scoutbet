@@ -1227,7 +1227,7 @@ function openModal(data) {
         ${d.jugadores && (d.jugadores.home?.length || d.jugadores.away?.length) ? `
         <div class="insight-box">
           <div class="insight-title">⚽ JUGADORES CLAVE</div>
-          ${[{team: home, players: d.jugadores.home||[]}, {team: away, players: d.jugadores.away||}].map(({team,players}) => players.length ? `
+          ${[{team: home, players: d.jugadores.home||[]}, {team: away, players: d.jugadores.away||[]}].map(function(item){ var team=item.team, players=item.players; return players.length ? `
             <div style="margin-bottom:8px">
               <div style="font-size:10px;font-family:var(--mono);color:var(--neon);letter-spacing:.08em;margin-bottom:4px">${team.toUpperCase()}</div>
               ${players.map(p => `
@@ -1241,7 +1241,7 @@ function openModal(data) {
                     ${p.asistencias ? `<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">${p.asistencias} 🅰️</div>` : ''}
                   </div>
                 </div>`).join('')}
-            </div>` : '').join('')}
+            </div>` : ''; }).join('')}
         </div>` : ''}
       </div>
     </div>`;

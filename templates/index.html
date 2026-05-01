@@ -821,7 +821,17 @@ async function analizarPartido(matchId, home, away) {
   analyzing = true;
   currentMatch = {home, away, id:matchId};
 
-  // Show loading in panel
+  const mobile = window.innerWidth <= 768;
+
+  if (mobile) {
+    const drawer = document.getElementById('mob-panel-drawer');
+    document.getElementById('mob-panel-content').innerHTML = `
+      <div class="loading"><div class="spinner"></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Analizando ${home} vs ${away}…</div></div>`;
+    drawer.classList.add('open');
+  }
+
+  // Show loading in desktop panel too
   document.getElementById('panel-empty').style.display = 'none';
   document.getElementById('panel-content').style.display = 'flex';
   document.getElementById('panel-badge').textContent = '…';
@@ -836,9 +846,18 @@ async function analizarPartido(matchId, home, away) {
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
     renderAnalysis(data, home, away);
+    if (mobile) {
+      // Copy rendered content to mobile drawer
+      setTimeout(() => {
+        const pc = document.getElementById('panel-content');
+        document.getElementById('mob-panel-content').innerHTML = pc.innerHTML;
+        document.getElementById('mob-panel-badge').textContent = document.getElementById('panel-badge').textContent;
+      }, 50);
+    }
   } catch(e) {
-    document.getElementById('panel-content').innerHTML = `
-      <div class="empty" style="color:var(--live)">Error: ${e.message}</div>`;
+    const errHtml = `<div class="empty" style="color:var(--live)">Error: ${e.message}</div>`;
+    document.getElementById('panel-content').innerHTML = errHtml;
+    if (mobile) document.getElementById('mob-panel-content').innerHTML = errHtml;
   } finally {
     analyzing = false;
   }
@@ -1125,27 +1144,7 @@ function setMobNav(name) {
 
 function isMobile() { return window.innerWidth <= 768; }
 
-// Override analizarPartido to show mobile drawer
-const _origAnalizar = analizarPartido;
-async function analizarPartido(matchId, home, away) {
-  if (isMobile()) {
-    // Open drawer immediately with loading
-    const drawer = document.getElementById('mob-panel-drawer');
-    document.getElementById('mob-panel-content').innerHTML = `
-      <div class="loading"><div class="spinner"></div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Analizando...</div></div>`;
-    drawer.classList.add('open');
-  }
-  await _origAnalizar(matchId, home, away);
-  if (isMobile()) {
-    // Copy panel content to drawer
-    const panelContent = document.getElementById('panel-content');
-    const mobContent = document.getElementById('mob-panel-content');
-    mobContent.innerHTML = panelContent.innerHTML;
-    const badge = document.getElementById('panel-badge').textContent;
-    document.getElementById('mob-panel-badge').textContent = badge;
-  }
-}
+
 
 // ── Init ───────────────────────────────────────────────────────────
 cargarLiga('PL');

@@ -335,14 +335,17 @@ nav button.active{color:var(--neon)}
   #app{grid-template-rows:52px 1fr;height:100dvh}
 
   /* Top bar mobile */
-  #topbar{padding:8px 14px;gap:10px}
+  #topbar{padding:0 12px;gap:8px;overflow:hidden}
   #topbar nav{display:none}
-  .topbar-search{display:flex}
+  .topbar-search{flex:1;min-width:0}
+  .topbar-search kbd{display:none}
   .topbar-bal{display:none}
-  #mob-menu-btn{display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text);padding:6px;margin-left:auto}
+  .avatar{display:none}
+  #mob-menu-btn{display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text);padding:6px;flex-shrink:0}
+  #topbar>div[style*="flex:1"]{display:none}
 
   /* Main: single column */
-  #main{grid-template-columns:1fr;overflow:auto}
+  #main{grid-template-columns:1fr;overflow:auto;overflow-x:hidden}
 
   /* Sidebar: hidden by default, slide-in drawer */
   #sidebar{
@@ -357,7 +360,7 @@ nav button.active{color:var(--neon)}
   #mob-overlay.open{opacity:1;pointer-events:all}
 
   /* Content: full width, bottom padding for nav */
-  #content{padding:12px 12px 70px;overflow-y:auto}
+  #content{padding:12px 12px 70px;overflow-y:auto;overflow-x:hidden}
 
   /* Right panel: hidden, shown as bottom drawer */
   #panel{display:none}

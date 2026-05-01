@@ -1009,7 +1009,7 @@ async function analizarPartido(matchId, home, away) {
 function renderAnalysis(d, home, away) {
   const v = d.veredicto || {};
   const mercados = d.mercados || {};
-  const aprobados = v.mercados_aprobados || v.total_aprobados || 0;
+  const aprobados = v.total_aprobados || 0;
   document.getElementById('panel-badge').textContent = aprobados;
 
   const mainMarket = v.mercado_principal || v.texto || 'Sin mercado aprobado';

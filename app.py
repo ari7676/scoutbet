@@ -1402,7 +1402,7 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
 
     p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
     if pn00>=70:
-        mercados.append({"mercado":"El Partido No Termina 0-0","prob":pn00,"riesgo":100-pn00,"cuota":_cuota(pn00),"tipo":"ESP","aprobado":ph>=UMBRAL"sintesis":f"Promedio combinado: {ge} goles."})
+        mercados.append({"mercado":"El Partido No Termina 0-0","prob":pn00,"riesgo":100-pn00,"cuota":_cuota(pn00),"tipo":"ESP","aprobado":"aprobado":pn00>=UMBRALES["NO00"],"sintesis":f"Promedio combinado: {ge} goles."})
 
     mercados.sort(key=lambda x:x["prob"],reverse=True)
 

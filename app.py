@@ -406,6 +406,32 @@ def _avg_fixture_stats(team_id, league_id, season):
     }
 
 
+def _mercados_avanzados_shots(home, away, hn, an):
+    """Mercados de tiros al arco usando datos de _team_stats."""
+    if not home or not away: return []
+    mercados = []
+    try:
+        h_a=home.get("al_arco_pj"); a_a=away.get("al_arco_pj")
+        if h_a and a_a and h_a != "—" and a_a != "—":
+            h_a=float(h_a); a_a=float(a_a)
+            diff=abs(h_a-a_a)
+            if diff>=1.5:
+                mas=hn if h_a>a_a else an
+                mas_v=round(max(h_a,a_a),1); men_v=round(min(h_a,a_a),1)
+                p=min(80,round(55+diff*8))
+                mercados.append({"mercado":f"Más tiros al arco — {mas}","prob":p,"riesgo":100-p,
+                    "cuota":_cuota(p),"tipo":"SHOTS_ON","aprobado":p>=UMBRALES["ADV"],
+                    "sintesis":f"{mas} promedia {mas_v} tiros al arco vs {men_v}/partido."})
+            total=round(h_a+a_a,1)
+            if total>=8:
+                p=min(80,round(50+(total-7.5)*8))
+                mercados.append({"mercado":"Tiros al Arco Totales Over 7.5","prob":p,"riesgo":100-p,
+                    "cuota":_cuota(p),"tipo":"SHOTS_ON","aprobado":p>=UMBRALES["ADV"],
+                    "sintesis":f"Combinado: {total} tiros al arco/partido."})
+    except: pass
+    return mercados
+
+
 def _mercados_avanzados(home, away, hn, an):
     """Genera mercados a partir de stats avanzadas."""
     if not home or not away: return []
@@ -974,8 +1000,8 @@ def _do_analyze_fd(codigo, match_id):
     ts_h=_team_stats(hs,hp,hf); ts_a=_team_stats(aws,ap,af)
     resultado=_analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,
         h_arco=ts_h.get("al_arco_pj"),a_arco=ts_a.get("al_arco_pj"))
-    # Agregar mercados avanzados (corners, tiros al arco, etc.) al resultado principal
-    mercados_adv=_mercados_avanzados(ts_h,ts_a,hn,an)
+    # Agregar solo mercados de tiros al arco (unicos disponibles en _team_stats)
+    mercados_adv=_mercados_avanzados_shots(ts_h,ts_a,hn,an)
     if mercados_adv:
         resultado["mercados"]=resultado.get("mercados",[])+mercados_adv
         aprobados_adv=[m for m in mercados_adv if m.get("aprobado")]

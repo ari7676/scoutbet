@@ -323,6 +323,110 @@ nav button.active{color:var(--neon)}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideInLeft{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+
+/* ── MOBILE ─────────────────────────────────────────────── */
+#mob-nav{display:none}
+#mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40}
+#mob-panel-drawer{display:none}
+
+@media(max-width:768px){
+  html,body{overflow:auto}
+  #app{grid-template-rows:52px 1fr;height:100dvh}
+
+  /* Top bar mobile */
+  #topbar{padding:8px 14px;gap:10px}
+  #topbar nav{display:none}
+  .topbar-search{display:none}
+  .topbar-bal{display:none}
+  #mob-menu-btn{display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text);padding:6px;margin-left:auto}
+
+  /* Main: single column */
+  #main{grid-template-columns:1fr;overflow:auto}
+
+  /* Sidebar: hidden by default, slide-in drawer */
+  #sidebar{
+    position:fixed;left:0;top:52px;bottom:56px;
+    width:240px;z-index:50;
+    transform:translateX(-100%);
+    transition:transform .25s ease;
+    background:var(--bg2);border-right:1px solid var(--line2);
+  }
+  #sidebar.open{transform:translateX(0)}
+  #mob-overlay{display:block;opacity:0;pointer-events:none;transition:opacity .25s}
+  #mob-overlay.open{opacity:1;pointer-events:all}
+
+  /* Content: full width, bottom padding for nav */
+  #content{padding:12px 12px 70px;overflow-y:auto}
+
+  /* Right panel: hidden, shown as bottom drawer */
+  #panel{display:none}
+  #mob-panel-drawer{
+    display:block;
+    position:fixed;bottom:56px;left:0;right:0;
+    background:var(--bg2);border-top:2px solid var(--neon);
+    z-index:45;max-height:75vh;overflow-y:auto;
+    transform:translateY(100%);transition:transform .3s ease;
+  }
+  #mob-panel-drawer.open{transform:translateY(0)}
+  #mob-panel-close{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 16px;border-bottom:1px solid var(--line);
+    font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.05em;
+    position:sticky;top:0;background:var(--bg2);z-index:1;
+  }
+
+  /* Bottom navigation */
+  #mob-nav{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    position:fixed;bottom:0;left:0;right:0;height:56px;
+    background:var(--bg2);border-top:1px solid var(--line);z-index:50;
+  }
+  .mob-nav-btn{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:3px;background:transparent;border:none;color:var(--dim);
+    font-family:var(--mono);font-size:9px;letter-spacing:.06em;
+  }
+  .mob-nav-btn.active{color:var(--neon)}
+  .mob-nav-btn svg{width:16px;height:16px}
+
+  /* Hero card mobile */
+  .hero-card{
+    grid-template-columns:1fr auto 1fr;
+    padding:14px 12px;gap:10px;margin-bottom:12px;
+  }
+  .hero-name{font-size:12px}
+  .hero-vs{font-size:24px}
+  .hero-time{font-size:10px}
+
+  /* Match rows mobile */
+  .match-row{
+    grid-template-columns:52px 1fr auto;
+    gap:8px;padding:10px 10px;
+  }
+  .match-hour{font-size:12px}
+  .match-date{font-size:9px}
+  .match-team-name{font-size:13px}
+  .match-comp{font-size:8px}
+  .odds{display:none}
+
+  /* Chips mobile */
+  .chips{gap:4px;margin-bottom:10px}
+  .chip{padding:4px 9px;font-size:10px}
+
+  /* Stats mobile */
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .stat-val{font-size:20px}
+
+  /* Detail modal mobile */
+  #detail-modal{padding:0;align-items:flex-end}
+  .modal-card{border-radius:16px 16px 0 0;max-height:90vh;overflow-y:auto}
+  .modal-body{grid-template-columns:1fr;gap:14px}
+  .field-hero{padding:16px 14px}
+
+  /* Hide hero on mobile to save space */
+  #hero-zona{display:none}
+}
 </style>
 </head>
 <body>
@@ -360,6 +464,9 @@ nav button.active{color:var(--neon)}
       <button class="dep" onclick="setView('stats')">STATS</button>
     </div>
     <div class="avatar">SB</div>
+    <button id="mob-menu-btn" onclick="toggleSidebar()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
   </div>
 
   <!-- MAIN 3-COLUMN -->
@@ -1001,8 +1108,81 @@ async function loadStats() {
   }
 }
 
+// ── Mobile ────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mob-overlay').classList.toggle('open');
+}
+
+function setMobNav(name) {
+  document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('mobnav-' + name);
+  if (btn) btn.classList.add('active');
+  // Close sidebar if open
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mob-overlay').classList.remove('open');
+}
+
+function isMobile() { return window.innerWidth <= 768; }
+
+// Override analizarPartido to show mobile drawer
+const _origAnalizar = analizarPartido;
+async function analizarPartido(matchId, home, away) {
+  if (isMobile()) {
+    // Open drawer immediately with loading
+    const drawer = document.getElementById('mob-panel-drawer');
+    document.getElementById('mob-panel-content').innerHTML = `
+      <div class="loading"><div class="spinner"></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Analizando...</div></div>`;
+    drawer.classList.add('open');
+  }
+  await _origAnalizar(matchId, home, away);
+  if (isMobile()) {
+    // Copy panel content to drawer
+    const panelContent = document.getElementById('panel-content');
+    const mobContent = document.getElementById('mob-panel-content');
+    mobContent.innerHTML = panelContent.innerHTML;
+    const badge = document.getElementById('panel-badge').textContent;
+    document.getElementById('mob-panel-badge').textContent = badge;
+  }
+}
+
 // ── Init ───────────────────────────────────────────────────────────
 cargarLiga('PL');
 </script>
+<!-- Mobile overlay -->
+<div id="mob-overlay" onclick="toggleSidebar()"></div>
+
+<!-- Mobile panel drawer -->
+<div id="mob-panel-drawer">
+  <div id="mob-panel-close">
+    <span>⚡ ANÁLISIS <span id="mob-panel-badge" class="badge" style="background:var(--neon);color:var(--bg);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;font-family:var(--mono)">—</span></span>
+    <button onclick="document.getElementById('mob-panel-drawer').classList.remove('open')" style="background:transparent;border:none;color:var(--dim);font-size:18px;padding:4px">✕</button>
+  </div>
+  <div id="mob-panel-content" style="padding:12px;display:flex;flex-direction:column;gap:10px">
+    <div class="empty">Seleccioná un partido para ver el análisis</div>
+  </div>
+</div>
+
+<!-- Bottom nav mobile -->
+<nav id="mob-nav">
+  <button class="mob-nav-btn active" id="mobnav-dashboard" onclick="setView('dashboard');setMobNav('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    INICIO
+  </button>
+  <button class="mob-nav-btn" id="mobnav-live" onclick="setView('live');setMobNav('live')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="var(--live)" stroke="var(--live)"/></svg>
+    EN VIVO
+  </button>
+  <button class="mob-nav-btn" id="mobnav-ligas" onclick="toggleSidebar();setMobNav('ligas')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+    LIGAS
+  </button>
+  <button class="mob-nav-btn" id="mobnav-stats" onclick="setView('stats');setMobNav('stats')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>
+    STATS
+  </button>
+</nav>
+
 </body>
 </html>

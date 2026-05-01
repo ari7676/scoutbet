@@ -1470,21 +1470,22 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     # Pesos: forma 30%, posicion 35%, localia 20%, h2h 15%
     ph=round(forma_h_score*.30+h2h_score*.15+localia_h_score*.20+pos_h_score*.35)
     pa=round(forma_a_score*.30+(100-h2h_score)*.15+localia_a_score*.20+pos_a_score*.35)
-    ph=ph+8  # Home advantage antes de normalizar
     # Ajuste por fatiga
     if fat_h and fat_h["score"]>=35: ph=max(5,ph-round(fat_h["score"]*0.12))
     if fat_a and fat_a["score"]>=35: pa=max(5,pa-round(fat_a["score"]*0.12))
     # Ajuste por estado anímico
     if animo_h:
-        ph=max(5,ph+round(animo_h["score"]*0.15))
+        ph=max(5,min(90,ph+round(animo_h["score"]*0.15)))
     if animo_a:
-        pa=max(5,pa+round(animo_a["score"]*0.15))
-    # Normalizar incluyendo peso base de empate
-    raw_total=ph+pa+18
-    ph=round(ph/raw_total*100)
-    pa=round(pa/raw_total*100)
-    pd=max(5,100-ph-pa)
+        pa=max(5,min(90,pa+round(animo_a["score"]*0.15)))
+    # Normalizar: empate tiene peso mínimo de 15%
+    pd=max(15,100-ph-pa)
     tp=ph+pa+pd
+    if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
+    # Home advantage post-norm (máx +6 para no aplastar visitante)
+    ph=min(88,ph+6);pa=max(5,pa);pd=max(5,100-ph-pa)
+    tp=ph+pa+pd
+    if tp>100: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
     if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
 
     egh=hf["gf_avg"]if hf["matches"]>0 else 1.3

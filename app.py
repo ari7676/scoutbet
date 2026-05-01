@@ -1467,8 +1467,9 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     pos_h_score=round((1-(pos_h-1)/max(te-1,1))*100) if pos_h else 50
     pos_a_score=round((1-(pos_a-1)/max(te-1,1))*100) if pos_a else 50
 
-    ph=round(forma_h_score*.25+h2h_score*.10+localia_h_score*.35+pos_h_score*.30)
-    pa=round(forma_a_score*.25+(100-h2h_score)*.10+localia_a_score*.35+pos_a_score*.30)
+    # Pesos: forma 30%, posicion 35%, localia 20%, h2h 15%
+    ph=round(forma_h_score*.30+h2h_score*.15+localia_h_score*.20+pos_h_score*.35)
+    pa=round(forma_a_score*.30+(100-h2h_score)*.15+localia_a_score*.20+pos_a_score*.35)
     ph=min(95,ph+8)
     # Ajuste por fatiga
     if fat_h and fat_h["score"]>=35: ph=max(5,ph-round(fat_h["score"]*0.12))

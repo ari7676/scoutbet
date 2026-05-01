@@ -990,7 +990,7 @@ def _do_analyze_fd(codigo, match_id):
     h2h=md.get("head2head",{})
     refs=md.get("referees",[])
     arbitro_name=refs[0]["name"] if refs else None
-    sc=fd_get(f"/competitions/{codigo}/scorers",{"limit":15})
+    sc=fd_get(f"/competitions/{codigo}/scorers",{"limit":50})
     jh=_enrich(_jugadores(sc.get("scorers",[]),hid),hn,hf)
     ja=_enrich(_jugadores(sc.get("scorers",[]),aid),an,af)
     hs=_get_as(hn,liga.get("as_id"),liga.get("season"))
@@ -1227,6 +1227,7 @@ def _arbitro_perfil(name):
 
 def _ref_description(name):
     refs_db={
+        # Premier League
         "michael oliver":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA de alto perfil. Tendencia a mostrar tarjetas."},
         "anthony taylor":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Experimentado árbitro internacional."},
         "paul tierney":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a dejar jugar."},
@@ -1240,9 +1241,44 @@ def _ref_description(name):
         "david coote":{"estilo":"Estricto","tarjetas":"Alto","desc":"Alto promedio de tarjetas."},
         "peter bankes":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro consistente."},
         "andy madley":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Deja fluir el juego."},
-        "jarred gillett":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro australiano."},
+        "jarred gillett":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro australiano de perfil equilibrado."},
         "tony harrington":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil moderado."},
         "samuel barrott":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro joven en ascenso."},
+        "craig pawson":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Veterano de la Premier League. Gestión equilibrada del juego."},
+        "graham scott":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro experimentado de la Premier League."},
+        "thomas bramall":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro en ascenso en la élite inglesa."},
+        "matt donohue":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a favorecer el juego fluido."},
+        "david webb":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro de perfil neutro."},
+        "lewis smith":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro joven de la Premier League."},
+        "john brooks":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Permite contacto físico."},
+        # La Liga
+        "jose luis munuera montero":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA. Alta tendencia a sancionar."},
+        "ricardo de burgos bengoetxea":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro FIFA experimentado."},
+        "alejandro hernandez hernandez":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA de perfil exigente."},
+        "carlos del cerro grande":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro veterano de La Liga."},
+        "juan martinez munuera":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil equilibrado en La Liga."},
+        "isidro diaz de mera escuderos":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a dejar jugar en La Liga."},
+        "guillermo cuadra ferrer":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro consistente de La Liga."},
+        # Serie A
+        "maurizio mariani":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA italiano. Alto promedio de tarjetas."},
+        "daniele orsato":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Árbitro FIFA. Permite el juego físico."},
+        "marco guida":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro experimentado de Serie A."},
+        "gianluca rocchi":{"estilo":"Moderado","tarjetas":"Medio","desc":"Exárbitro, ahora designador en Serie A."},
+        "davide massa":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA italiano exigente."},
+        # Bundesliga
+        "felix zwayer":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA alemán. Alta frecuencia de sanciones."},
+        "deniz aytekin":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro FIFA experimentado."},
+        "daniel siebert":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro FIFA alemán equilibrado."},
+        "tobias welz":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a favorecer el juego."},
+        # Ligue 1
+        "francois letexier":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA francés. Muy exigente."},
+        "clement turpin":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro FIFA experimentado de Ligue 1."},
+        "benoit bastien":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro de perfil moderado."},
+        # Champions League adicionales
+        "slavko vincic":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro FIFA esloveno. Gestión equilibrada."},
+        "felix brych":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA alemán de alta exigencia."},
+        "istvan kovacs":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro FIFA rumano."},
+        "sandro scharer":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro FIFA suizo equilibrado."},
     }
     key=name.lower().strip()
     if key in refs_db:

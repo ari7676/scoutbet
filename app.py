@@ -998,8 +998,12 @@ def _do_analyze_fd(codigo, match_id):
     arb_perfil=_arbitro_perfil(arbitro_name)
 
     ts_h=_team_stats(hs,hp,hf); ts_a=_team_stats(aws,ap,af)
+    fecha_partido=md.get("utcDate","")
+    fat_h=_fatiga(fhr.get("matches",[]),fecha_partido)
+    fat_a=_fatiga(far.get("matches",[]),fecha_partido)
     resultado=_analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,
-        h_arco=ts_h.get("al_arco_pj"),a_arco=ts_a.get("al_arco_pj"))
+        h_arco=ts_h.get("al_arco_pj"),a_arco=ts_a.get("al_arco_pj"),
+        fat_h=fat_h,fat_a=fat_a)
     # Agregar solo mercados de tiros al arco (unicos disponibles en _team_stats)
     mercados_adv=_mercados_avanzados_shots(ts_h,ts_a,hn,an)
     if mercados_adv:
@@ -1012,6 +1016,7 @@ def _do_analyze_fd(codigo, match_id):
             v["mercados_aprobados"]=f"{ta_actual} · {extra}" if ta_actual and ta_actual!="Ninguno" else extra
             v["total_aprobados"]=v.get("total_aprobados",0)+len(aprobados_adv)
             resultado["veredicto"]=v
+    resultado["fatiga"]={"home":fat_h,"away":fat_a}
     resultado["arbitro"]=arbitro_name
     resultado["arbitro_perfil"]=arb_perfil
     resultado["ultimos3"]={"home":hl3,"away":al3}
@@ -1354,12 +1359,47 @@ def _enrich(players,team,form):
     return players
 
 
+def _fatiga(matches, fecha_partido=None):
+    """Calcula nivel de fatiga basado en densidad de partidos recientes.
+    Retorna dict con: dias_descanso, partidos_14d, score (0=fresco, 100=muy fatigado), label.
+    """
+    if not matches:
+        return {"dias_descanso": None, "partidos_14d": 0, "score": 0, "label": "Sin datos"}
+    try:
+        ref = datetime.fromisoformat(fecha_partido[:19]) if fecha_partido else datetime.utcnow()
+        fechas = []
+        for m in matches:
+            f = m.get("utcDate") or m.get("fecha", "")
+            if f:
+                try: fechas.append(datetime.fromisoformat(f[:19]))
+                except: pass
+        if not fechas:
+            return {"dias_descanso": None, "partidos_14d": 0, "score": 0, "label": "Sin datos"}
+        fechas_pasadas = [f for f in fechas if f < ref]
+        if not fechas_pasadas:
+            return {"dias_descanso": None, "partidos_14d": 0, "score": 0, "label": "Sin datos"}
+        ultimo = max(fechas_pasadas)
+        dias = (ref - ultimo).days
+        partidos_14d = sum(1 for f in fechas_pasadas if (ref - f).days <= 14)
+        # Score: pesa dias de descanso y densidad
+        score_descanso = max(0, min(50, (4 - dias) * 15)) if dias <= 4 else 0
+        score_densidad = max(0, min(50, (partidos_14d - 2) * 20)) if partidos_14d >= 3 else 0
+        score = score_descanso + score_densidad
+        if score >= 60: label = "Muy fatigado"
+        elif score >= 35: label = "Fatigado"
+        elif score >= 15: label = "Algo cansado"
+        else: label = "Descansado"
+        return {"dias_descanso": dias, "partidos_14d": partidos_14d, "score": score, "label": label}
+    except:
+        return {"dias_descanso": None, "partidos_14d": 0, "score": 0, "label": "Sin datos"}
+
+
 def _cuota(prob_pct):
     if prob_pct<=0: return "—"
     return round(100/prob_pct*0.95, 2)
 
 
-def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None):
+def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=None,fat_a=None):
     te=len(tt)if tt else 20
     forma_h_val=hf["ppg"] if hf["matches"]>0 else 0
     forma_a_val=af["ppg"] if af["matches"]>0 else 0
@@ -1391,6 +1431,9 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None):
     ph=round(forma_h_score*.25+h2h_score*.10+localia_h_score*.35+pos_h_score*.30)
     pa=round(forma_a_score*.25+(100-h2h_score)*.10+localia_a_score*.35+pos_a_score*.30)
     ph=min(95,ph+8)
+    # Ajuste por fatiga
+    if fat_h and fat_h["score"]>=35: ph=max(5,ph-round(fat_h["score"]*0.12))
+    if fat_a and fat_a["score"]>=35: pa=max(5,pa-round(fat_a["score"]*0.12))
     pd=max(0,100-ph-pa)
     tp=ph+pa+pd
     if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
@@ -1503,6 +1546,11 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None):
     elif pa>=ph+15: fav,conf=an,("alta"if pa>=55 else"moderada")
     else: fav,conf=None,"baja"
     if fav: texto=f"Victoria de {fav} en tiempo reglamentario. "
+    # Agregar contexto de fatiga
+    if fat_h and fat_h["score"]>=35:
+        texto+=f"{hn} llega {fat_h['label'].lower()} ({fat_h['partidos_14d']} partidos en 14 días). "
+    if fat_a and fat_a["score"]>=35:
+        texto+=f"{an} llega {fat_a['label'].lower()} ({fat_a['partidos_14d']} partidos en 14 días). "
     else: texto=f"Partido equilibrado entre {hn} ({ph}%) y {an} ({pa}%). Sin favorito claro. "
     if hf["matches"]>0: texto+=f"{hn} llega con {hf['ppg']} PPG vs {af['ppg']} PPG. "
     if hp and ap: texto+=f"Posiciones: {hn} #{hp.get('position','?')} vs {an} #{ap.get('position','?')}. "

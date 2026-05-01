@@ -47,7 +47,7 @@ CACHE_TTL_FX_STATS = 604800  # 7 dias para stats por partido
 
 # ── UMBRALES DE APROBACION ─────────────────────────────────
 UMBRALES = {
-    "1X2":       70,   # Resultado final (local/visita)
+    "1X2":       63,   # Resultado final (local/visita)
     "DRAW":      35,   # Empate
     "DC":        65,   # Doble oportunidad
     "OU":        70,   # Over/Under 2.5, 3.5 goles totales

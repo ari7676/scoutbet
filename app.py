@@ -1505,7 +1505,9 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     if h_arco and a_arco and h_arco != "—" and a_arco != "—":
         try:
             xg_shots=round(float(h_arco)/3.5+float(a_arco)/3.5,2)
-            ge=round(ge*0.6+xg_shots*0.4,2)
+            # Solo ajustar si xg_shots es similar al ge base (evita inflacion por estimaciones)
+            if abs(xg_shots-ge)<=1.0:
+                ge=round(ge*0.7+xg_shots*0.3,2)
         except: pass
     hfts=hf["failed_to_score"]/max(hf["matches"],1);afts=af["failed_to_score"]/max(af["matches"],1)
     hcs_r=hf["clean_sheets"]/max(hf["matches"],1);acs_r=af["clean_sheets"]/max(af["matches"],1)

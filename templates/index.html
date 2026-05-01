@@ -1227,20 +1227,22 @@ async function loadStats() {
     const res = await fetch('/estadisticas');
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
-    document.getElementById('s-total').textContent = data.total || '—';
+    const total = (data.ganadas||0) + (data.perdidas||0) + (data.pendientes||0);
+    document.getElementById('s-total').textContent = total || data.total || '—';
     document.getElementById('s-acierto').textContent = data.acierto ? data.acierto + '%' : '—';
-    document.getElementById('s-gp').textContent = data.ganadas != null ? `${data.ganadas} / ${data.perdidas}` : '—';
-    document.getElementById('s-pend').textContent = data.pendientes || '—';
+    document.getElementById('s-gp').textContent = `${data.ganadas||0} / ${data.perdidas||0}`;
+    document.getElementById('s-pend').textContent = data.pendientes || '0';
 
     if (data.historial && data.historial.length > 0) {
       document.getElementById('hist-list').innerHTML = data.historial.map(h => `
         <div class="hist-row">
           <div class="hist-date">${h.fecha||'—'}</div>
-          <div style="font-size:12px;font-weight:500">${h.home||''} vs ${h.away||''}</div>
-          <div style="font-size:11px;color:var(--dim)">${h.mercado_principal||'—'}</div>
-          <div style="font-family:var(--mono);font-size:11px;color:${probColor(h.mp_prob)}">${h.mp_prob||0}%</div>
-          <div>
-            ${h.verificado ? `<span class="result-badge ${h.mp_acertado?'ok':'bad'}">${h.mp_acertado?'GANADA':'PERDIDA'}</span>`
+          <div style="font-size:12px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.home||''} vs ${h.away||''}</div>
+          <div style="font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.mercado_principal||'—'}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:${probColor(h.mp_prob)};text-align:right">${h.mp_prob||'—'}%</div>
+          <div style="text-align:right">
+            ${h.verificado
+              ? `<span class="result-badge ${h.mp_acertado?'ok':'bad'}">${h.mp_acertado?'✓ GANADA':'✗ PERDIDA'}</span>`
               : `<span class="result-badge pend">PENDIENTE</span>`}
           </div>
         </div>`).join('');

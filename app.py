@@ -49,6 +49,13 @@ CACHE_TTL_FX_STATS = 604800  # 7 dias para stats por partido
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS analisis_cache (
+    match_id INTEGER,
+    liga TEXT,
+    resultado TEXT,
+    creado TEXT,
+    PRIMARY KEY (match_id, liga)
+)""")
     c.execute("""CREATE TABLE IF NOT EXISTS predicciones (
         match_id INTEGER PRIMARY KEY,
         liga TEXT,
@@ -73,6 +80,30 @@ def init_db():
 
 init_db()
 
+def get_cached_analysis(match_id, liga):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT resultado, creado FROM analisis_cache WHERE match_id=? AND liga=?", (match_id, liga))
+        row = c.fetchone()
+        conn.close()
+        if not row: return None
+        resultado = json.loads(row[0])
+        age = (datetime.utcnow() - datetime.fromisoformat(row[1])).total_seconds()
+        if age < 21600: return resultado  # cache 6 horas
+        return None
+    except: return None
+
+def save_cached_analysis(match_id, liga, resultado):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("INSERT OR REPLACE INTO analisis_cache (match_id, liga, resultado, creado) VALUES (?,?,?,?)",
+                  (match_id, liga, json.dumps(resultado, ensure_ascii=False), datetime.utcnow().isoformat()))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Cache error: {e}")
 
 def save_prediction(match_id, liga, fecha, home, away, veredicto):
     """Guarda la prediccion cuando se analiza un partido."""
@@ -617,13 +648,15 @@ def estadisticas():
 
 
 def _do_analyze(codigo, match_id):
-    """Logica de analisis reutilizable. Detecta source de la liga."""
+    cached = get_cached_analysis(match_id, codigo)
+    if cached:
+        return cached
     liga = LIGAS.get(codigo, {})
     source = liga.get("source", "fd")
-    if source == "as":
-        return _do_analyze_as(codigo, match_id, liga)
-    return _do_analyze_fd(codigo, match_id)
-
+    resultado = _do_analyze_as(codigo, match_id, liga) if source == "as" else _do_analyze_fd(codigo, match_id)
+    if "error" not in resultado:
+        save_cached_analysis(match_id, codigo, resultado)
+    return resultado
 
 def _do_analyze_as(codigo, match_id, liga):
     """Analisis usando api-sports (para Serie A)."""

@@ -1400,5 +1400,31 @@ def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
     s+=f"Probabilidad {'supera' if prob>=70 else 'no alcanza'} umbral (>=70%). "
     return s
 
+@app.route("/estadisticas/json")
+@api_login_required
+def estadisticas_json():
+    _auto_verify_pending()
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT COUNT(*), SUM(mp_acertado),
+                 COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END),
+                 COUNT(CASE WHEN verificado=0 THEN 1 END)
+                 FROM predicciones""")
+    row = c.fetchone()
+    total = row[0] or 0
+    ganadas = int(row[1] or 0)
+    verificadas = row[2] or 0
+    pendientes = row[3] or 0
+    perdidas = verificadas - ganadas
+    acierto = round(ganadas / verificadas * 100, 1) if verificadas else 0
+    c.execute("""SELECT fecha, home, away, mercado_principal, mp_prob,
+                 verificado, mp_acertado FROM predicciones
+                 ORDER BY fecha DESC LIMIT 20""")
+    historial = [{"fecha":r[0][:10] if r[0] else "—","home":r[1],"away":r[2],
+                  "mercado_principal":r[3],"mp_prob":r[4],
+                  "verificado":r[5],"mp_acertado":r[6]} for r in c.fetchall()]
+    conn.close()
+    return jsonify({"total":total,"ganadas":ganadas,"perdidas":perdidas,
+                    "pendientes":pendientes,"acierto":acierto,"historial":historial})
 if __name__=="__main__":
     app.run(debug=True)

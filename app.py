@@ -1459,5 +1459,30 @@ def estadisticas_json():
     conn.close()
     return jsonify({"total":total,"ganadas":ganadas,"perdidas":perdidas,
                     "pendientes":pendientes,"acierto":acierto,"historial":historial})
+@app.route("/alertas")
+@api_login_required
+def alertas():
+    ahora = datetime.utcnow()
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota
+                 FROM predicciones WHERE verificado=0
+                 AND mercado_principal != '' AND mercado_principal NOT LIKE '%Ninguno%'
+                 ORDER BY fecha ASC""")
+    rows = c.fetchall()
+    conn.close()
+    alertas = []
+    for row in rows:
+        match_id, liga, fecha, home, away, mp, mp_prob, mp_cuota = row
+        if not fecha: continue
+        try:
+            fecha_dt = datetime.fromisoformat(fecha.replace('Z','').replace('+00:00',''))
+            diff = (fecha_dt - ahora).total_seconds()
+            if 0 <= diff <= 10800:
+                alertas.append({"match_id":match_id,"liga":liga,"home":home,"away":away,
+                    "mercado_principal":mp,"mp_prob":mp_prob,"mp_cuota":mp_cuota,
+                    "minutos_restantes":int(diff/60)})
+        except: continue
+    return jsonify({"alertas":alertas,"total":len(alertas)})
 if __name__=="__main__":
     app.run(debug=True)

@@ -38,7 +38,7 @@ a{text-decoration:none}
 #app{display:grid;grid-template-rows:auto 1fr;height:100vh;overflow:hidden}
 
 /* Top bar */
-#topbar{
+#topbar{position:relative;
   display:flex;align-items:center;gap:20px;
   padding:10px 20px;
   background:rgba(11,20,32,.9);
@@ -453,6 +453,18 @@ nav button.active{color:var(--neon)}
       </button>
     </nav>
     <div style="flex:1"></div>
+    <div id="bell-btn" onclick="toggleAlertas()" style="position:relative;cursor:pointer;padding:6px 8px;border-radius:8px;background:var(--bg2);border:1px solid var(--line);display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="1.8"><path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16l-2-2zM10 20a2 2 0 0 0 4 0"/></svg>
+      <span id="bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--live);color:#fff;font-size:9px;font-weight:700;font-family:var(--mono);padding:1px 5px;border-radius:999px;min-width:16px;text-align:center"></span>
+    </div>
+    <!-- Alertas dropdown -->
+    <div id="alertas-panel" style="display:none;position:absolute;top:52px;right:180px;width:360px;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.05em">⚡ ALERTAS — PRÓXIMAS 3HS</span>
+        <button onclick="toggleAlertas()" style="background:transparent;border:none;color:var(--dim);cursor:pointer;font-size:16px">✕</button>
+      </div>
+      <div id="alertas-list" style="max-height:320px;overflow-y:auto;padding:8px"></div>
+    </div>
     <div class="topbar-search">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       Buscar liga, equipo…
@@ -1253,6 +1265,50 @@ async function loadStats() {
     document.getElementById('hist-list').innerHTML = `<div class="empty" style="color:var(--live)">Error: ${e.message}</div>`;
   }
 }
+
+// ── Alertas ───────────────────────────────────────────────────────
+let alertasOpen = false;
+
+async function loadAlertas() {
+  try {
+    const res = await fetch('/alertas');
+    if (!res.ok) return;
+    const data = await res.json();
+    const alertas = data.alertas || [];
+    const badge = document.getElementById('bell-badge');
+    if (alertas.length > 0) {
+      badge.textContent = alertas.length;
+      badge.style.display = 'block';
+      badge.style.animation = 'pulse 1.4s infinite';
+    } else {
+      badge.style.display = 'none';
+    }
+    const list = document.getElementById('alertas-list');
+    if (alertas.length === 0) {
+      list.innerHTML = '<div class="empty" style="padding:20px">Sin partidos con alertas en las próximas 3 horas</div>';
+    } else {
+      list.innerHTML = alertas.map(a => `
+        <div onclick="analizarPartido(${a.match_id},'${a.home.replace(/'/g,'_')}','${a.away.replace(/'/g,'_')}');toggleAlertas()" style="padding:10px 12px;border-radius:8px;margin-bottom:6px;background:var(--bg);border:1px solid var(--line);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--neon)'" onmouseout="this.style.borderColor='var(--line)'">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-family:var(--mono);font-size:9px;color:var(--neon);letter-spacing:.1em">${a.liga} · EN ${a.minutos_restantes} MIN</span>
+            <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--neon)">${a.mp_prob||0}%</span>
+          </div>
+          <div style="font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.02em;margin-bottom:3px">${a.home} vs ${a.away}</div>
+          <div style="font-size:11px;color:var(--dim)">${a.mercado_principal||'—'}</div>
+        </div>`).join('');
+    }
+  } catch(e) { console.log('Alertas error:', e); }
+}
+
+function toggleAlertas() {
+  alertasOpen = !alertasOpen;
+  document.getElementById('alertas-panel').style.display = alertasOpen ? 'block' : 'none';
+  if (alertasOpen) loadAlertas();
+}
+
+// Load alerts on startup and every 5 minutes
+setTimeout(loadAlertas, 2000);
+setInterval(loadAlertas, 300000);
 
 // ── Mobile ────────────────────────────────────────────────────────
 function toggleSidebar() {

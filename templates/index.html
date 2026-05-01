@@ -465,11 +465,16 @@ nav button.active{color:var(--neon)}
       </div>
       <div id="alertas-list" style="max-height:320px;overflow-y:auto;padding:8px"></div>
     </div>
-    <div class="topbar-search">
+    <div class="topbar-search" style="cursor:text" onclick="focusSearch()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      Buscar liga, equipo…
-      <kbd>⌘K</kbd>
+      <input id="search-input" placeholder="Buscar liga, equipo…" 
+        style="background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:12px;width:100%;caret-color:var(--neon)"
+        oninput="buscarPartidos(this.value)"
+        onkeydown="if(event.key==='Escape'){this.value='';buscarPartidos('')}">
+      <kbd id="search-kbd" style="flex-shrink:0">⌘K</kbd>
     </div>
+    <!-- Search results dropdown -->
+    <div id="search-results" style="display:none;position:absolute;top:52px;left:50%;transform:translateX(-50%);width:420px;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden;max-height:400px;overflow-y:auto"></div>
     <div class="topbar-bal" id="desktop-bell-btn" onclick="toggleAlertas()" style="cursor:pointer;position:relative">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--neon)" stroke-width="1.8"><path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16l-2-2zM10 20a2 2 0 0 0 4 0"/></svg>
       <span class="amt">Alertas</span>
@@ -1263,6 +1268,87 @@ async function loadStats() {
     }
   } catch(e) {
     document.getElementById('hist-list').innerHTML = `<div class="empty" style="color:var(--live)">Error: ${e.message}</div>`;
+  }
+}
+
+// ── Buscador ──────────────────────────────────────────────────────
+function focusSearch() {
+  document.getElementById('search-input').focus();
+}
+
+// Keyboard shortcut Cmd/Ctrl+K
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('search-input').focus();
+  }
+});
+
+// Close search on click outside
+document.addEventListener('click', e => {
+  const panel = document.getElementById('search-results');
+  const input = document.getElementById('search-input');
+  if (!panel.contains(e.target) && e.target !== input) {
+    panel.style.display = 'none';
+  }
+});
+
+function buscarPartidos(q) {
+  const panel = document.getElementById('search-results');
+  const kbd = document.getElementById('search-kbd');
+  
+  if (!q || q.trim().length < 2) {
+    panel.style.display = 'none';
+    kbd.style.display = 'inline';
+    // Restore all matches
+    renderMatches(allMatches);
+    return;
+  }
+  
+  kbd.style.display = 'none';
+  const ql = q.toLowerCase();
+  
+  // Search across all loaded matches
+  const results = allMatches.filter(m => {
+    const home = (m.home || m.homeTeam || '').toLowerCase();
+    const away = (m.away || m.awayTeam || '').toLowerCase();
+    const comp = (m.competicion || m.competition || '').toLowerCase();
+    return home.includes(ql) || away.includes(ql) || comp.includes(ql);
+  });
+
+  // Also search across all leagues if query is long enough
+  if (q.trim().length >= 3) {
+    panel.style.display = 'block';
+    if (results.length === 0) {
+      panel.innerHTML = '<div class="empty" style="padding:16px">Sin resultados para "' + q + '"</div>';
+    } else {
+      panel.innerHTML = `
+        <div style="padding:8px 14px;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em;border-bottom:1px solid var(--line)">${results.length} RESULTADO${results.length!==1?'S':''}</div>
+        ${results.slice(0,8).map(m => {
+          const dt = fmtDate(m.fecha || m.utcDate);
+          const home = m.home || m.homeTeam || '';
+          const away = m.away || m.awayTeam || '';
+          const comp = m.competicion || m.competition || currentLiga;
+          const mid = m.id || m.match_id;
+          return `<div onclick="analizarPartido(${mid},'${home.replace(/'/g,'_')}','${away.replace(/'/g,'_')}');document.getElementById('search-input').value='';document.getElementById('search-results').style.display='none'" 
+            style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;transition:background .1s"
+            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
+            <div style="flex:1;min-width:0">
+              <div style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:3px">${comp.toUpperCase()} · ${dt.label||''} ${dt.time||''}</div>
+              <div style="font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${home.toUpperCase()} <span style="color:var(--dim)">vs</span> ${away.toUpperCase()}</div>
+            </div>
+            ${m.tiene_prediccion ? '<span style="font-family:var(--mono);font-size:9px;color:var(--neon);background:var(--neon-dim);padding:2px 6px;border-radius:3px;flex-shrink:0">✓ PRED</span>' : ''}
+          </div>`;
+        }).join('')}
+        ${results.length > 8 ? `<div style="padding:8px 14px;font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center">+${results.length-8} más — refiná la búsqueda</div>` : ''}`;
+    }
+  } else {
+    panel.style.display = 'none';
+  }
+  
+  // Filter match list in dashboard
+  if (document.getElementById('view-dashboard').classList.contains('active')) {
+    renderMatches(results);
   }
 }
 

@@ -337,7 +337,7 @@ nav button.active{color:var(--neon)}
   /* Top bar mobile */
   #topbar{padding:8px 14px;gap:10px}
   #topbar nav{display:none}
-  .topbar-search{display:none}
+  .topbar-search{display:flex}
   .topbar-bal{display:none}
   #mob-menu-btn{display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text);padding:6px;margin-left:auto}
 
@@ -615,8 +615,7 @@ nav button.active{color:var(--neon)}
       </div>
       <div id="panel-body">
         <div class="empty" id="panel-empty">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--dim2)" stroke-width="1.2" style="margin-bottom:10px"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-          <div>Seleccioná un partido<br>para ver el análisis</div>
+          <div style="color:var(--dim);font-size:12px;text-align:center">Seleccioná un partido<br>para ver el análisis</div>
         </div>
         <div id="panel-content" style="display:none;flex-direction:column;gap:12px"></div>
       </div>

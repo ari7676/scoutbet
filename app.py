@@ -611,7 +611,7 @@ def _auto_verify_pending():
 @app.route("/estadisticas")
 @api_login_required
 def estadisticas():
-    _auto_verify_pending()
+# _auto_verify_pending()
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""SELECT COUNT(*), SUM(mp_acertado), SUM(comb_acertado),

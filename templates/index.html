@@ -646,9 +646,134 @@ function setView(name) {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
+const TEAM_COLORS = {
+  // Premier League
+  'Arsenal FC':['#EF0107','#FFFFFF'], 'Arsenal':['#EF0107','#FFFFFF'],
+  'Chelsea FC':['#034694','#FFFFFF'], 'Chelsea':['#034694','#FFFFFF'],
+  'Liverpool FC':['#C8102E','#00B2A9'], 'Liverpool':['#C8102E','#00B2A9'],
+  'Manchester City FC':['#6CABDD','#1C2C5B'], 'Manchester City':['#6CABDD','#1C2C5B'],
+  'Manchester United FC':['#DA291C','#FBE122'], 'Manchester United':['#DA291C','#FBE122'],
+  'Tottenham Hotspur FC':['#132257','#FFFFFF'], 'Tottenham':['#132257','#FFFFFF'],
+  'Newcastle United FC':['#241F20','#FFFFFF'], 'Newcastle United':['#241F20','#FFFFFF'],
+  'Aston Villa FC':['#670E36','#95BFE5'], 'Aston Villa':['#670E36','#95BFE5'],
+  'West Ham United FC':['#7A263A','#1BB1E7'], 'West Ham':['#7A263A','#1BB1E7'],
+  'Brighton & Hove Albion FC':['#0057B8','#FFCD00'], 'Brighton':['#0057B8','#FFCD00'],
+  'Brentford FC':['#D20000','#FFFFFF'], 'Brentford':['#D20000','#FFFFFF'],
+  'Fulham FC':['#CC0000','#FFFFFF'], 'Fulham':['#CC0000','#FFFFFF'],
+  'Crystal Palace FC':['#1B458F','#C4122E'], 'Crystal Palace':['#1B458F','#C4122E'],
+  'Everton FC':['#003399','#FFFFFF'], 'Everton':['#003399','#FFFFFF'],
+  'Wolverhampton Wanderers FC':['#FDB913','#231F20'], 'Wolverhampton':['#FDB913','#231F20'],
+  'Nottingham Forest FC':['#DD0000','#FFFFFF'], 'Nottingham Forest':['#DD0000','#FFFFFF'],
+  'AFC Bournemouth':['#DA291C','#000000'], 'Bournemouth':['#DA291C','#000000'],
+  'Leicester City FC':['#003090','#FDBE11'], 'Leicester':['#003090','#FDBE11'],
+  'Ipswich Town FC':['#0044A9','#FFFFFF'], 'Ipswich':['#0044A9','#FFFFFF'],
+  'Sunderland AFC':['#EB172B','#FFFFFF'], 'Sunderland':['#EB172B','#FFFFFF'],
+  'Leeds United FC':['#FFCD00','#1D428A'], 'Leeds United':['#FFCD00','#1D428A'],
+  'Burnley FC':['#6C1D45','#99D6EA'], 'Burnley':['#6C1D45','#99D6EA'],
+  // La Liga
+  'FC Barcelona':['#A50044','#004D98'], 'Barcelona':['#A50044','#004D98'],
+  'Real Madrid CF':['#FFFFFF','#00529F'], 'Real Madrid':['#FEBE10','#00529F'],
+  'Club Atlético de Madrid':['#CB3524','#272E61'], 'Atlético de Madrid':['#CB3524','#272E61'],
+  'Sevilla FC':['#D71920','#FFFFFF'], 'Sevilla':['#D71920','#FFFFFF'],
+  'Real Betis Balompié':['#00954C','#FFFFFF'], 'Real Betis':['#00954C','#FFFFFF'],
+  'Villarreal CF':['#FFD700','#009BDE'], 'Villarreal':['#FFD700','#009BDE'],
+  'Athletic Club':['#EE2523','#FFFFFF'], 'Athletic Bilbao':['#EE2523','#FFFFFF'],
+  'Real Sociedad':['#0067B1','#FFFFFF'], 'Real Sociedad de Fútbol':['#0067B1','#FFFFFF'],
+  'Valencia CF':['#FF7900','#000000'], 'Valencia':['#FF7900','#000000'],
+  'Girona FC':['#CD1127','#FFFFFF'], 'Girona':['#CD1127','#FFFFFF'],
+  'RCD Mallorca':['#D2122E','#FFD700'], 'Mallorca':['#D2122E','#FFD700'],
+  'Deportivo Alavés':['#1E3A6E','#FFFFFF'], 'Alavés':['#1E3A6E','#FFFFFF'],
+  'RC Celta de Vigo':['#8DBCE8','#FFFFFF'], 'Celta de Vigo':['#8DBCE8','#FFFFFF'],
+  'CA Osasuna':['#C02B26','#003DA5'], 'Osasuna':['#C02B26','#003DA5'],
+  'Levante UD':['#D2232A','#003DA5'], 'Levante':['#D2232A','#003DA5'],
+  'FC Barcelona B':['#A50044','#004D98'],
+  'Getafe CF':['#0087CA','#FFFFFF'], 'Getafe':['#0087CA','#FFFFFF'],
+  'Rayo Vallecano':['#CC0000','#FFFFFF'], 'Rayo Vallecano de Madrid':['#CC0000','#FFFFFF'],
+  'UD Las Palmas':['#FFDD00','#003DA5'], 'Las Palmas':['#FFDD00','#003DA5'],
+  'Real Valladolid CF':['#8B0032','#FFFFFF'], 'Valladolid':['#8B0032','#FFFFFF'],
+  'Elche CF':['#00954C','#FFFFFF'], 'Elche':['#00954C','#FFFFFF'],
+  // Serie A
+  'Juventus FC':['#000000','#FFFFFF'], 'Juventus':['#000000','#FFFFFF'],
+  'AC Milan':['#FB090B','#000000'], 'Milan':['#FB090B','#000000'],
+  'Inter Milan':['#0068A8','#000000'], 'Inter':['#0068A8','#000000'], 'FC Internazionale Milano':['#0068A8','#000000'],
+  'AS Roma':['#8E1F2F','#F5A623'], 'Roma':['#8E1F2F','#F5A623'],
+  'SSC Napoli':['#087AC2','#FFFFFF'], 'Napoli':['#087AC2','#FFFFFF'],
+  'Atalanta BC':['#1C3B6E','#000000'], 'Atalanta':['#1C3B6E','#000000'],
+  'SS Lazio':['#87CEEB','#FFFFFF'], 'Lazio':['#87CEEB','#FFFFFF'],
+  'ACF Fiorentina':['#4B0082','#FFFFFF'], 'Fiorentina':['#4B0082','#FFFFFF'],
+  'Torino FC':['#8B0000','#FFFFFF'], 'Torino':['#8B0000','#FFFFFF'],
+  'Bologna FC 1909':['#003DA5','#CC0000'], 'Bologna':['#003DA5','#CC0000'],
+  'Udinese Calcio':['#000000','#FFFFFF'], 'Udinese':['#000000','#FFFFFF'],
+  'Genoa CFC':['#8B0000','#003DA5'], 'Genoa':['#8B0000','#003DA5'],
+  'Cagliari Calcio':['#CC0000','#003DA5'], 'Cagliari':['#CC0000','#003DA5'],
+  'US Sassuolo Calcio':['#00843D','#000000'], 'Sassuolo':['#00843D','#000000'],
+  'Hellas Verona FC':['#003DA5','#FFD700'], 'Verona':['#003DA5','#FFD700'],
+  // Bundesliga
+  'FC Bayern München':['#DC052D','#0066B2'], 'Bayern Munich':['#DC052D','#0066B2'], 'Bayern München':['#DC052D','#0066B2'],
+  'Borussia Dortmund':['#FDE100','#000000'], 'Dortmund':['#FDE100','#000000'],
+  'Bayer 04 Leverkusen':['#E32221','#000000'], 'Leverkusen':['#E32221','#000000'],
+  'RB Leipzig':['#CC0000','#003DA5'], 'Leipzig':['#CC0000','#003DA5'],
+  'Borussia Mönchengladbach':['#000000','#FFFFFF'], 'Gladbach':['#000000','#FFFFFF'],
+  'Eintracht Frankfurt':['#E1000F','#000000'], 'Frankfurt':['#E1000F','#000000'],
+  'VfB Stuttgart':['#E32219','#FFFFFF'], 'Stuttgart':['#E32219','#FFFFFF'],
+  'SC Freiburg':['#CC0000','#000000'], 'Freiburg':['#CC0000','#000000'],
+  'TSG 1899 Hoffenheim':['#1961AC','#FFFFFF'], 'Hoffenheim':['#1961AC','#FFFFFF'],
+  'FC Augsburg':['#BA3733','#007A3D'], 'Augsburg':['#BA3733','#007A3D'],
+  'Werder Bremen':['#1D9053','#FFFFFF'], 'Bremen':['#1D9053','#FFFFFF'],
+  // Ligue 1
+  'Paris Saint-Germain FC':['#004170','#DA291C'], 'PSG':['#004170','#DA291C'],
+  'Olympique de Marseille':['#2FAEE0','#FFFFFF'], 'Marseille':['#2FAEE0','#FFFFFF'],
+  'Olympique Lyonnais':['#FFFFFF','#CC0000'], 'Lyon':['#FFFFFF','#CC0000'],
+  'AS Monaco FC':['#CC0000','#FFFFFF'], 'Monaco':['#CC0000','#FFFFFF'],
+  'LOSC Lille':['#CC0000','#003DA5'], 'Lille':['#CC0000','#003DA5'],
+  'RC Lens':['#FFD700','#CC0000'], 'Lens':['#FFD700','#CC0000'],
+  'Stade Rennais FC':['#CC0000','#000000'], 'Rennes':['#CC0000','#000000'],
+  'OGC Nice':['#CC0000','#000000'], 'Nice':['#CC0000','#000000'],
+  // Champions League extras
+  'SL Benfica':['#CC0000','#FFFFFF'], 'Benfica':['#CC0000','#FFFFFF'],
+  'FC Porto':['#003DA5','#FFFFFF'], 'Porto':['#003DA5','#FFFFFF'],
+  'Sporting CP':['#00843D','#FFD700'], 'Sporting':['#00843D','#FFD700'],
+  'Ajax':['#D2122E','#FFFFFF'], 'AFC Ajax':['#D2122E','#FFFFFF'],
+  'PSV Eindhoven':['#CC0000','#FFFFFF'], 'PSV':['#CC0000','#FFFFFF'],
+  'Club Brugge KV':['#003DA5','#000000'], 'Club Brugge':['#003DA5','#000000'],
+  'Celtic FC':['#16A94D','#FFFFFF'], 'Celtic':['#16A94D','#FFFFFF'],
+  'Rangers FC':['#003DA5','#FFFFFF'], 'Rangers':['#003DA5','#FFFFFF'],
+  'FC Red Bull Salzburg':['#CC0000','#003DA5'], 'Salzburg':['#CC0000','#003DA5'],
+  // Brasileirao
+  'Flamengo':['#CC0000','#000000'], 'CR Flamengo':['#CC0000','#000000'],
+  'Palmeiras':['#006437','#FFFFFF'], 'SE Palmeiras':['#006437','#FFFFFF'],
+  'São Paulo FC':['#CC0000','#000000'], 'São Paulo':['#CC0000','#000000'],
+  'Fluminense FC':['#6B1D45','#8B0032'], 'Fluminense':['#6B1D45','#8B0032'],
+  'Atlético Mineiro':['#000000','#FFFFFF'], 'Atlético-MG':['#000000','#FFFFFF'],
+  'Grêmio FBPA':['#003DA5','#000000'], 'Grêmio':['#003DA5','#000000'],
+  'Sport Club Internacional':['#CC0000','#FFFFFF'], 'Internacional':['#CC0000','#FFFFFF'],
+  'Corinthians':['#000000','#FFFFFF'], 'SC Corinthians Paulista':['#000000','#FFFFFF'],
+  'Santos FC':['#000000','#FFFFFF'], 'Santos':['#000000','#FFFFFF'],
+  'Botafogo':['#000000','#FFFFFF'], 'Botafogo de Futebol e Regatas':['#000000','#FFFFFF'],
+};
+
+function getTeamColors(name) {
+  if (!name) return ['#1a4a8a','#0d2244'];
+  // Try exact match first
+  if (TEAM_COLORS[name]) return TEAM_COLORS[name];
+  // Try partial match
+  const nl = name.toLowerCase();
+  for (const [k, v] of Object.entries(TEAM_COLORS)) {
+    const kl = k.toLowerCase();
+    if (nl.includes(kl) || kl.includes(nl)) return v;
+  }
+  // Fallback: generate color from name
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  const h = Math.abs(hash) % 360;
+  return [`hsl(${h},60%,35%)`, `hsl(${(h+180)%360},40%,20%)`];
+}
+
 function crestHTML(name, color1, color2, size=28) {
-  const initials = (name || 'TM').split(' ').map(w=>w[0]).join('').slice(0,3);
-  return `<div class="crest" style="width:${size}px;height:${size}px;background:linear-gradient(135deg,${color1||'#333'},${color2||'#555'});font-size:${size*.36}px;color:#fff">${initials}</div>`;
+  const colors = getTeamColors(name);
+  const c1 = colors[0], c2 = colors[1];
+  const initials = (name || 'TM').split(' ').filter(w=>w.length>1).map(w=>w[0]).join('').slice(0,3).toUpperCase();
+  return `<div class="crest" style="width:${size}px;height:${size}px;background:linear-gradient(135deg,${c1},${c2});font-size:${size*.34}px;color:#fff;letter-spacing:-.5px">${initials}</div>`;
 }
 
 function fmtDate(utcDate) {

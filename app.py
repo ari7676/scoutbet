@@ -334,7 +334,7 @@ def partidos(codigo):
             goals = fx.get("goals", {})
             status = fixture.get("status", {}).get("short", "NS")
             estado = "FINISHED" if status in ("FT", "AET", "PEN") else ("SCHEDULED" if status == "NS" else status)
-            resultado = f"{goals.get('home', 0)}-{goals.get('away', 0)}" if estado == "FINISHED" else None
+            resultado = f"{goals.get('home', 0)}-{goals.get('away', 0)}" if estado in ("FINISHED","IN_PLAY","HALFTIME","LIVE") else None
             mid = fixture.get("id")
             pred = preds.get(mid)
             if estado == "FINISHED" and pred and not pred["verif"]:
@@ -362,7 +362,7 @@ def partidos(codigo):
             estado = m["status"]
             if not m["homeTeam"].get("name") or not m["awayTeam"].get("name"):
                 continue
-            resultado = f"{score.get('home',0)}-{score.get('away',0)}" if estado == "FINISHED" else None
+            resultado = f"{score.get('home',0)}-{score.get('away',0)}" if estado in ("FINISHED","IN_PLAY","HALFTIME","PAUSED") else None
             pred = preds.get(m["id"])
             if estado == "FINISHED" and pred and not pred["verif"]:
                 verify_prediction(m["id"], score.get('home', 0), score.get('away', 0))

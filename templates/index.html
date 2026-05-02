@@ -722,11 +722,9 @@ function toggleAlertas(){alertasOpen=!alertasOpen;document.getElementById('alert
 
 setTimeout(loadAlertas,2000);setInterval(loadAlertas,300000);
 // Auto-refresh en vivo cada 60 segundos
-setInterval(()=>{
-  if(document.getElementById('view-live').classList.contains('active')){
-    loadLive();
-  }
-},60000);
+setInterval(async()=>{
+  try{ await fetch('/estadisticas/json'); }catch(e){}
+},300000);
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('mob-overlay').classList.toggle('open');}
 
 // FIX LIGAS: no cerrar el sidebar al presionar LIGAS en la nav mobile

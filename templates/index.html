@@ -161,6 +161,8 @@ nav button.active,nav button:hover{background:var(--neon-dim);color:var(--neon)}
 #mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40}
 #mob-panel-drawer{display:none}
 @media(max-width:768px){
+  .hist-row{grid-template-columns:60px 1fr 60px 70px}
+  .hist-row span:nth-child(3){display:none}
   html,body{overflow:auto}
   #app{grid-template-rows:52px 1fr;height:100dvh}
   #topbar{padding:0 12px;gap:8px;overflow:hidden}

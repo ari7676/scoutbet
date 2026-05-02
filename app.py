@@ -1242,10 +1242,16 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     def _mp_score(m):
         t=m.get("tipo","ZZZ")
         return(TIPO_PRIORIDAD.index(t)if t in TIPO_PRIORIDAD else 99,-m["prob"])
-    mp_candidato=None
+    mp_candidato = None
     if fav:
-        m1x2=[m for m in mercados if m.get("tipo")=="1X2" and fav in m.get("mercado","")]
-        if m1x2:mp_candidato=max(m1x2,key=lambda m:m["prob"])
+        # Buscar 1X2 aprobado del favorito
+        m1x2 = [m for m in aprobados if m.get("tipo")=="1X2" and fav in m.get("mercado","")]
+        if m1x2:
+            mp_candidato = max(m1x2, key=lambda m: m["prob"])
+        else:
+            # Si no hay 1X2 aprobado, usar DC aprobado del favorito
+            mdc = [m for m in aprobados if m.get("tipo")=="DC" and fav in m.get("mercado","")]
+            if mdc: mp_candidato = max(mdc, key=lambda m: m["prob"])
     if not mp_candidato:
         aprobados_prio=[m for m in aprobados if m.get("tipo")in["1X2","DC"]]
         if aprobados_prio:mp_candidato=min(aprobados_prio,key=_mp_score)

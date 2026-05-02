@@ -213,10 +213,6 @@ nav button.active,nav button:hover{background:var(--neon-dim);color:var(--neon)}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         Dashboard
       </button>
-      <button onclick="setView('live')" id="nav-live">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="var(--live)"><circle cx="5" cy="5" r="4"/></svg>
-        En Vivo
-      </button>
       <button onclick="setView('stats')" id="nav-stats">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>
         Estadísticas
@@ -365,10 +361,6 @@ nav button.active,nav button:hover{background:var(--neon-dim);color:var(--neon)}
   <button class="mob-nav-btn active" id="mobnav-dashboard" onclick="setView('dashboard');setMobNav('dashboard')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
     INICIO
-  </button>
-  <button class="mob-nav-btn" id="mobnav-live" onclick="setView('live');setMobNav('live')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="var(--live)" stroke="var(--live)"/></svg>
-    EN VIVO
   </button>
   <button class="mob-nav-btn" id="mobnav-ligas" onclick="toggleSidebar();setMobNav('ligas')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
@@ -535,8 +527,7 @@ function renderMatches(matches){
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         ${m.tiene_prediccion?`<span style="font-family:var(--mono);font-size:9px;color:var(--neon);background:var(--neon-dim);border:1px solid rgba(0,226,138,.3);padding:2px 6px;border-radius:3px">&#10003; PRED</span>`:''}
         ${m.resultado?`<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--dim)">${m.resultado}</span>`:''}
-        <button class="chip" style="font-size:10px;padding:4px 10px">Analizar</button>
-      </div>
+        </div>
     </div>`;
   }).join('');
 }

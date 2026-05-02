@@ -698,6 +698,7 @@ function buscarPartidos(q){
     (m.away||m.awayTeam||'').toLowerCase().includes(ql)||
     (m.competicion||m.competition||'').toLowerCase().includes(ql)
   );
+  console.log('query:', q, 'allMatches:', allMatches.length, 'results:', results.length);
   renderMatches(results);
 }
 

@@ -667,7 +667,9 @@ async function loadLive(){
   document.getElementById('live-count').textContent=liveMatches.length?`· ${liveMatches.length}`:'';
   if(!liveMatches.length){document.getElementById('live-list').innerHTML='<div class="empty">No hay partidos en vivo en este momento.</div>';return;}
   document.getElementById('live-list').innerHTML=liveMatches.map(m=>{
-    const hs=m.score?.fullTime?.home??m.goles_local??0,as_=m.score?.fullTime?.away??m.goles_visitante??0;
+    const res_str=m.resultado||'';
+    const parts=res_str.split('-');
+    const hs=parts[0]||'0', as_=parts[1]||'0';
     const sh=(m.homeTeam||m.home||'').replace(/'/g,"\\'"),sa=(m.awayTeam||m.away||'').replace(/'/g,"\\'");
     const mid=m.id||m.match_id;
     const liga=m.competicion||m.competition||'';

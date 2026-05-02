@@ -334,7 +334,7 @@ def partidos(codigo):
             goals = fx.get("goals", {})
             status = fixture.get("status", {}).get("short", "NS")
             estado = "FINISHED" if status in ("FT", "AET", "PEN") else ("SCHEDULED" if status == "NS" else status)
-            resultado = f"{goals.get('home', 0)}-{goals.get('away', 0)}" if estado in ("FINISHED","IN_PLAY","HALFTIME","LIVE") else None
+            resultado = f"{goals.get('home', 0)}-{goals.get('away', 0)}" if estado == "FINISHED" else None
             mid = fixture.get("id")
             pred = preds.get(mid)
             if estado == "FINISHED" and pred and not pred["verif"]:
@@ -362,7 +362,7 @@ def partidos(codigo):
             estado = m["status"]
             if not m["homeTeam"].get("name") or not m["awayTeam"].get("name"):
                 continue
-            resultado = f"{score.get('home',0)}-{score.get('away',0)}" if estado in ("FINISHED","IN_PLAY","HALFTIME","PAUSED") else None
+            resultado = f"{score.get('home',0)}-{score.get('away',0)}" if estado == "FINISHED" else None
             pred = preds.get(m["id"])
             if estado == "FINISHED" and pred and not pred["verif"]:
                 verify_prediction(m["id"], score.get('home', 0), score.get('away', 0))
@@ -414,7 +414,6 @@ def _auto_verify_pending():
 @app.route("/estadisticas")
 @api_login_required
 def estadisticas():
-    _auto_verify_pending()
     conn = get_db()
     c = conn.cursor()
     c.execute("""SELECT COUNT(*), SUM(mp_acertado), SUM(comb_acertado),
@@ -1199,20 +1198,19 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
     if pn00>=UMBRALES["NO00_SHOW"]:
         mercados.append({"mercado":"El Partido No Termina 0-0","prob":pn00,"riesgo":100-pn00,"cuota":_cuota(pn00),"tipo":"ESP","aprobado":pn00>=UMBRALES["NO00"],"sintesis":f"Promedio combinado: {ge} goles."})
-    # Mercado de tarjetas basado en árbitro
+    # Mercado de tarjetas basado en arbitro
     if arb_perfil:
-    tarjetas = arb_perfil.get("tarjetas", "Medio")
-    estilo = arb_perfil.get("estilo", "Moderado")
-    if tarjetas == "Alto":
-        p = 72
-        mercados.append({"mercado": f"Tarjetas Amarillas Over 3.5", "prob": p, "riesgo": 100-p,
-            "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
-            "sintesis": f"Árbitro {arb_perfil.get('nombre','')} — perfil estricto, alto promedio de tarjetas."})
-    elif tarjetas == "Bajo":
-        p = 68
-        mercados.append({"mercado": f"Tarjetas Amarillas Under 3.5", "prob": p, "riesgo": 100-p,
-            "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
-            "sintesis": f"Árbitro {arb_perfil.get('nombre','')} — perfil permisivo, bajo promedio de tarjetas."})
+        tarjetas = arb_perfil.get("tarjetas", "Medio")
+        if tarjetas == "Alto":
+            p = 72
+            mercados.append({"mercado": "Tarjetas Amarillas Over 3.5", "prob": p, "riesgo": 100-p,
+                "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
+                "sintesis": f"Arbitro {arb_perfil.get(chr(39)+'nombre'+chr(39),'')} perfil estricto."})
+        elif tarjetas == "Bajo":
+            p = 68
+            mercados.append({"mercado": "Tarjetas Amarillas Under 3.5", "prob": p, "riesgo": 100-p,
+                "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
+                "sintesis": f"Arbitro {arb_perfil.get(chr(39)+'nombre'+chr(39),'')} perfil permisivo."})
     mercados.sort(key=lambda x:x["prob"],reverse=True)
     aprobados=[m for m in mercados if m["aprobado"]]
     if ph>=pa+15:fav,conf=hn,("alta"if ph>=55 else"moderada")
@@ -1250,22 +1248,7 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
             comb=f"{c2[0]['mercado']} ({c2[0]['prob']}% - cuota @{c2[0]['cuota']}) como alternativa de mayor retorno."
             comb_prob=c2[0]['prob']
     ta=" - ".join(f"{m['mercado']} ({m['prob']}%)"for m in aprobados[:4])if aprobados else"Ninguno"
-    # Mercado de tarjetas basado en árbitro
-    if arb_perfil:
-        tarjetas = arb_perfil.get("tarjetas", "Medio")
-        if tarjetas == "Alto":
-            p = 72
-            mercados.append({"mercado": "Tarjetas Amarillas Over 3.5", "prob": p, "riesgo": 100-p,
-                "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
-                "sintesis": f"Arbitro {arb_perfil.get('nombre','')} — perfil estricto."})
-        elif tarjetas == "Bajo":
-            p = 68
-            mercados.append({"mercado": "Tarjetas Amarillas Under 3.5", "prob": p, "riesgo": 100-p,
-                "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
-                "sintesis": f"Arbitro {arb_perfil.get('nombre','')} — perfil permisivo."})
-
-        mercados.sort(key=lambda x:x["prob"],reverse=True)
-        return{
+    return{
         "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
         "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},
         "goles_esperados":ge,"forma":{"home":hf,"away":af},
@@ -1364,4 +1347,4 @@ def _mercados_avanzados(home,away,hn,an):
     return mercados
 
 if __name__=="__main__":
-    app.run(debug=True)q
+    app.run(debug=True)

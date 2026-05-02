@@ -517,7 +517,7 @@ function renderMatches(matches){
     const mid=m.id||m.match_id,jornada=m.jornada?'J'+m.jornada:(m.stage||''),comp=m.competicion||m.competition||currentLiga;
     const sh=home.replace(/'/g,'_').replace(/"/g,'_'),sa=away.replace(/'/g,'_').replace(/"/g,'_');
     return `<div class="match-row" onclick="analizarPartido(${mid},'${sh}','${sa}')">
-      <div class="match-time">${isLive?`<div class="live-tag"><span class="dot"></span> LIVE</div>`:`<div class="match-date">${dt.label||''}</div><div class="match-hour">${dt.time||'—'}</div>`}</div>
+    <div class="match-time">${isLive?`<div class="live-tag"><span class="dot"></span> LIVE</div><div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">${estado==='HALFTIME'?'HT':'EN JUEGO'}</div>`:`<div class="match-date">${dt.label||''}</div><div class="match-hour">${dt.time||'—'}</div>`}</div>
       <div style="min-width:0">
         <div class="match-comp">${comp.toUpperCase()} · ${jornada}</div>
         <div class="match-team">${crestHTML(home,'#1a4a8a','#0d2244',22)}<span class="match-team-name">${home.toUpperCase()}</span></div>

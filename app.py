@@ -1250,6 +1250,21 @@ if arb_perfil:
             comb=f"{c2[0]['mercado']} ({c2[0]['prob']}% - cuota @{c2[0]['cuota']}) como alternativa de mayor retorno."
             comb_prob=c2[0]['prob']
     ta=" - ".join(f"{m['mercado']} ({m['prob']}%)"for m in aprobados[:4])if aprobados else"Ninguno"
+    # Mercado de tarjetas basado en árbitro
+    if arb_perfil:
+        tarjetas = arb_perfil.get("tarjetas", "Medio")
+        if tarjetas == "Alto":
+            p = 72
+            mercados.append({"mercado": "Tarjetas Amarillas Over 3.5", "prob": p, "riesgo": 100-p,
+                "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
+                "sintesis": f"Arbitro {arb_perfil.get('nombre','')} — perfil estricto."})
+        elif tarjetas == "Bajo":
+            p = 68
+            mercados.append({"mercado": "Tarjetas Amarillas Under 3.5", "prob": p, "riesgo": 100-p,
+                "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
+                "sintesis": f"Arbitro {arb_perfil.get('nombre','')} — perfil permisivo."})
+
+    mercados.sort(key=lambda x:x["prob"],reverse=True)
     return{
         "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
         "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},

@@ -651,19 +651,33 @@ function openModal(data){
 function closeModal(e){if(e.target===document.getElementById('detail-modal'))document.getElementById('detail-modal').classList.remove('open');}
 
 async function loadLive(){
-  const liveMatches=allMatches.filter(m=>m.status==='IN_PLAY'||m.live);
+  document.getElementById('live-list').innerHTML='<div class="loading"><div class="spinner"></div><div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Buscando partidos en vivo…</div></div>';
+  const ligas=['PL','PD','SA','BL1','FL1','CL','BSA','PPL'];
+  let liveMatches=[];
+  for(const code of ligas){
+    try{
+      const res=await fetch(`/partidos/${code}`);
+      if(!res.ok)continue;
+      const data=await res.json();
+      const matches=data.response||data.partidos||data.matches||[];
+      const live=matches.filter(m=>m.estado==='IN_PLAY'||m.estado==='HALFTIME'||m.status==='IN_PLAY'||m.live);
+      liveMatches=liveMatches.concat(live);
+    }catch(e){}
+  }
   document.getElementById('live-count').textContent=liveMatches.length?`· ${liveMatches.length}`:'';
-  if(!liveMatches.length){document.getElementById('live-list').innerHTML='<div class="empty">No hay partidos en vivo.</div>';return;}
+  if(!liveMatches.length){document.getElementById('live-list').innerHTML='<div class="empty">No hay partidos en vivo en este momento.</div>';return;}
   document.getElementById('live-list').innerHTML=liveMatches.map(m=>{
     const hs=m.score?.fullTime?.home??m.goles_local??0,as_=m.score?.fullTime?.away??m.goles_visitante??0;
     const sh=(m.homeTeam||m.home||'').replace(/'/g,"\\'"),sa=(m.awayTeam||m.away||'').replace(/'/g,"\\'");
-    return `<div class="match-row" onclick="analizarPartido(${m.id||m.match_id},'${sh}','${sa}')">
+    const mid=m.id||m.match_id;
+    const liga=m.competicion||m.competition||'';
+    return `<div class="match-row" onclick="analizarPartido(${mid},'${sh}','${sa}')">
       <div class="match-time"><div class="live-tag"><span class="dot"></span> LIVE</div><div style="font-family:var(--mono);font-size:13px;font-weight:700;margin-top:3px;color:var(--live)">${m.minute||''}'</div></div>
-      <div><div class="match-comp">${(m.competition||'').toUpperCase()}</div>
+      <div><div class="match-comp">${liga.toUpperCase()}</div>
         <div class="match-team">${crestHTML(m.homeTeam||m.home,'#1a4a8a','#0d2244',22)}<span class="match-team-name">${(m.homeTeam||m.home||'').toUpperCase()}</span><span class="score">${hs}</span></div>
         <div class="match-team">${crestHTML(m.awayTeam||m.away,'#8a1a1a','#441a0d',22)}<span class="match-team-name">${(m.awayTeam||m.away||'').toUpperCase()}</span><span class="score">${as_}</span></div>
       </div>
-      <div><button class="chip active" onclick="event.stopPropagation();analizarPartido(${m.id||m.match_id},'${sh}','${sa}')">Analizar</button></div>
+      <div><button class="chip active" onclick="event.stopPropagation();analizarPartido(${mid},'${sh}','${sa}')">Analizar</button></div>
     </div>`;
   }).join('');
 }

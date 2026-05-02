@@ -682,7 +682,6 @@ async function loadStats(){
 
 function focusSearch(){document.getElementById('search-input').focus();}
 document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();document.getElementById('search-input').focus();}});
-document.addEventListener('click',e=>{const p=document.getElementById('search-results'),i=document.getElementById('search-input');if(!p.contains(e.target)&&e.target!==i)p.style.display='none';});
 
 function buscarPartidos(q){
   const kbd=document.getElementById('search-kbd');

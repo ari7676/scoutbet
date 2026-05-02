@@ -1,13 +1,15 @@
 """
-MatchIQ — Backend Flask v5
+ScoutBet — Backend Flask v5
 - Login
-- SQLite para guardar predicciones
+- Supabase (PostgreSQL) para guardar predicciones
 - Verificacion automatica de aciertos
 """
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session
 from datetime import datetime, timedelta
 from functools import wraps
-import requests, time, math, os, sqlite3, json
+import requests, time, math, os, json
+import psycopg2
+import psycopg2.extras
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "matchiq-secret-key-2026-xyz")
@@ -15,8 +17,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "matchiq-secret-key-2026-xyz")
 APP_USER = os.environ.get("APP_USER", "matchiq")
 APP_PASS = os.environ.get("APP_PASS", "futbol2026")
 
-# Path DB - en Railway se monta volumen en /data
-DB_PATH = os.environ.get("DB_PATH", "matchiq.db")
+DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:aridona8615@db.wuzshdqxbogcfobkeqeg.supabase.co:5432/postgres")
 
 FD_KEY = "e28d6269df9441fea1b6a19548e982c6"
 FD_URL = "https://api.football-data.org/v4"
@@ -27,56 +28,47 @@ AS_URL = "https://v3.football.api-sports.io"
 AS_HEADERS = {"x-apisports-key": AS_KEY}
 
 LIGAS = {
-    "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025, "source": "fd"},
-    "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025, "source": "fd"},
-    "SA":  {"nombre": "🇮🇹 Serie A",            "as_id": 135, "season": 2025, "source": "fd"},
-    "BL1": {"nombre": "🇩🇪 Bundesliga",         "as_id": 78,  "season": 2025, "source": "fd"},
-    "FL1": {"nombre": "🇫🇷 Ligue 1",            "as_id": 61,  "season": 2025, "source": "fd"},
-    "DED": {"nombre": "🇳🇱 Eredivisie",         "as_id": 88,  "season": 2025, "source": "fd"},
-    "PPL": {"nombre": "🇵🇹 Primeira Liga",      "as_id": 94,  "season": 2025, "source": "fd"},
-    "ELC": {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship",     "as_id": 40,  "season": 2025, "source": "fd"},
-    "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
-    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026, "source": "fd"},
-    "AARG": {"nombre": "Primera División Argentina", "as_id": 128, "season": 2026, "source": "as"},
+    "PL":  {"nombre": "Premier League",  "as_id": 39,  "season": 2025, "source": "fd"},
+    "PD":  {"nombre": "La Liga",           "as_id": 140, "season": 2025, "source": "fd"},
+    "SA":  {"nombre": "Serie A",            "as_id": 135, "season": 2025, "source": "fd"},
+    "BL1": {"nombre": "Bundesliga",         "as_id": 78,  "season": 2025, "source": "fd"},
+    "FL1": {"nombre": "Ligue 1",            "as_id": 61,  "season": 2025, "source": "fd"},
+    "DED": {"nombre": "Eredivisie",         "as_id": 88,  "season": 2025, "source": "fd"},
+    "PPL": {"nombre": "Primeira Liga",      "as_id": 94,  "season": 2025, "source": "fd"},
+    "ELC": {"nombre": "Championship",       "as_id": 40,  "season": 2025, "source": "fd"},
+    "CL":  {"nombre": "Champions League",   "as_id": 2,   "season": 2025, "source": "fd"},
+    "BSA": {"nombre": "Brasileirao",        "as_id": 71,  "season": 2026, "source": "fd"},
+    "AARG": {"nombre": "Primera Division Argentina", "as_id": 128, "season": 2026, "source": "as"},
 }
 
 _cache = {}
 CACHE_TTL = 300
 CACHE_TTL_AS = 43200
-CACHE_TTL_FX_STATS = 604800  # 7 dias para stats por partido
+CACHE_TTL_FX_STATS = 604800
 
-# ── UMBRALES DE APROBACION ─────────────────────────────────
 UMBRALES = {
-    "1X2":       63,   # Resultado final (local/visita)
-    "DRAW":      35,   # Empate
-    "DC":        65,   # Doble oportunidad
-    "OU":        70,   # Over/Under 2.5, 3.5 goles totales
-    "BTTS":      70,   # Ambos anotan
-    "GE_05":     85,   # Goles equipo over 0.5
-    "GE_15":     70,   # Goles equipo over 1.5
-    "CS":        70,   # Clean sheet
-    "WTN":       70,   # Victoria a cero
-    "HT_OVER":   75,   # 1er tiempo over 0.5
-    "HT_UNDER":  70,   # 1er tiempo under 0.5
-    "NO00_SHOW": 70,   # Umbral para mostrar "no termina 0-0"
-    "NO00":      82,   # Umbral para aprobar "no termina 0-0"
-    "ADV":       65,   # Mercados avanzados (corners, tarjetas, posesión, remates)
+    "1X2": 63, "DRAW": 35, "DC": 65, "OU": 70, "BTTS": 70,
+    "GE_05": 85, "GE_15": 70, "CS": 70, "WTN": 70,
+    "HT_OVER": 75, "HT_UNDER": 70, "NO00_SHOW": 70, "NO00": 82, "ADV": 65,
 }
 
 
 # ── DATABASE ──────────────────────────────────────────────
+def get_db():
+    return psycopg2.connect(DATABASE_URL)
+
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("""CREATE TABLE IF NOT EXISTS analisis_cache (
-    match_id INTEGER,
-    liga TEXT,
-    resultado TEXT,
-    creado TEXT,
-    PRIMARY KEY (match_id, liga)
-)""")
+        match_id BIGINT,
+        liga TEXT,
+        resultado TEXT,
+        creado TEXT,
+        PRIMARY KEY (match_id, liga)
+    )""")
     c.execute("""CREATE TABLE IF NOT EXISTS predicciones (
-        match_id INTEGER PRIMARY KEY,
+        match_id BIGINT PRIMARY KEY,
         liga TEXT,
         fecha TEXT,
         home TEXT,
@@ -97,27 +89,32 @@ def init_db():
     conn.commit()
     conn.close()
 
-init_db()
+try:
+    init_db()
+except Exception as e:
+    print(f"init_db error: {e}")
 
 def get_cached_analysis(match_id, liga):
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db()
         c = conn.cursor()
-        c.execute("SELECT resultado, creado FROM analisis_cache WHERE match_id=? AND liga=?", (match_id, liga))
+        c.execute("SELECT resultado, creado FROM analisis_cache WHERE match_id=%s AND liga=%s", (match_id, liga))
         row = c.fetchone()
         conn.close()
         if not row: return None
         resultado = json.loads(row[0])
         age = (datetime.utcnow() - datetime.fromisoformat(row[1])).total_seconds()
-        if age < 21600: return resultado  # cache 6 horas
+        if age < 21600: return resultado
         return None
     except: return None
 
 def save_cached_analysis(match_id, liga, resultado):
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db()
         c = conn.cursor()
-        c.execute("INSERT OR REPLACE INTO analisis_cache (match_id, liga, resultado, creado) VALUES (?,?,?,?)",
+        c.execute("""INSERT INTO analisis_cache (match_id, liga, resultado, creado)
+                     VALUES (%s, %s, %s, %s)
+                     ON CONFLICT (match_id, liga) DO UPDATE SET resultado=EXCLUDED.resultado, creado=EXCLUDED.creado""",
                   (match_id, liga, json.dumps(resultado, ensure_ascii=False), datetime.utcnow().isoformat()))
         conn.commit()
         conn.close()
@@ -125,21 +122,22 @@ def save_cached_analysis(match_id, liga, resultado):
         print(f"Cache error: {e}")
 
 def save_prediction(match_id, liga, fecha, home, away, veredicto):
-    """Guarda la prediccion cuando se analiza un partido."""
     mp_text = veredicto.get("mercado_principal", "")
     comb_text = veredicto.get("combinable", "")
-
-    # Extraer prob y cuota del mercado principal
     mp_prob, mp_cuota = _extract_prob_cuota(mp_text)
     comb_prob, comb_cuota = _extract_prob_cuota(comb_text)
-
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db()
         c = conn.cursor()
-        c.execute("""INSERT OR REPLACE INTO predicciones
+        c.execute("""INSERT INTO predicciones
             (match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota,
              combinable, comb_prob, comb_cuota, creado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (match_id) DO UPDATE SET
+                liga=EXCLUDED.liga, fecha=EXCLUDED.fecha, home=EXCLUDED.home, away=EXCLUDED.away,
+                mercado_principal=EXCLUDED.mercado_principal, mp_prob=EXCLUDED.mp_prob,
+                mp_cuota=EXCLUDED.mp_cuota, combinable=EXCLUDED.combinable,
+                comb_prob=EXCLUDED.comb_prob, comb_cuota=EXCLUDED.comb_cuota, creado=EXCLUDED.creado""",
             (match_id, liga, fecha, home, away, mp_text, mp_prob, mp_cuota,
              comb_text, comb_prob, comb_cuota, datetime.utcnow().isoformat()))
         conn.commit()
@@ -149,7 +147,6 @@ def save_prediction(match_id, liga, fecha, home, away, veredicto):
 
 
 def _extract_prob_cuota(text):
-    """De 'Goles Over 2.5 (72% · cuota @1.27)' extrae (72, 1.27)."""
     if not text: return (None, None)
     try:
         import re
@@ -163,21 +160,18 @@ def _extract_prob_cuota(text):
 
 
 def verify_prediction(match_id, home_goals, away_goals):
-    """Verifica si el mercado principal y combinable acertaron."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
-    c.execute("SELECT mercado_principal, combinable, home, away FROM predicciones WHERE match_id=?", (match_id,))
+    c.execute("SELECT mercado_principal, combinable, home, away FROM predicciones WHERE match_id=%s", (match_id,))
     row = c.fetchone()
     if not row:
         conn.close()
         return
-
     mp, comb, home, away = row
     mp_ok = _check_mercado(mp, home_goals, away_goals, home, away)
     comb_ok = _check_mercado(comb, home_goals, away_goals, home, away) if comb else None
-
-    c.execute("""UPDATE predicciones SET resultado_home=?, resultado_away=?,
-        mp_acertado=?, comb_acertado=?, verificado=1 WHERE match_id=?""",
+    c.execute("""UPDATE predicciones SET resultado_home=%s, resultado_away=%s,
+        mp_acertado=%s, comb_acertado=%s, verificado=1 WHERE match_id=%s""",
         (home_goals, away_goals,
          1 if mp_ok else (0 if mp_ok is False else None),
          1 if comb_ok else (0 if comb_ok is False else None),
@@ -187,66 +181,41 @@ def verify_prediction(match_id, home_goals, away_goals):
 
 
 def _check_mercado(texto, hg, ag, home, away):
-    """Verifica si el mercado acerto segun el resultado."""
     if not texto: return None
     t = texto.lower()
     total = hg + ag
     hl = home.lower()
     al = away.lower()
-
-    # 1X2
     if "resultado final" in t:
         if hl in t: return hg > ag
         elif al in t: return ag > hg
         elif "empate" in t: return hg == ag
-
-    # Doble Chance
     if "doble oportunidad" in t or "1x" in t or "x2" in t:
         if "1x" in t or hl in t: return hg >= ag
         elif "x2" in t or al in t: return ag >= hg
-
-    # Goles equipo Over 1.5 (chequear antes de Over genérico)
     if "goles equipo" in t and "over 1.5" in t:
         if hl in t: return hg >= 2
         if al in t: return ag >= 2
         return None
-
-    # Goles equipo Over 0.5
     if "goles equipo" in t and "over 0.5" in t:
         if hl in t: return hg > 0
         if al in t: return ag > 0
         return None
-
-    # Over/Under totales
     if "over 3.5" in t: return total > 3.5
     if "under 3.5" in t: return total < 3.5
     if "over 2.5" in t: return total > 2.5
     if "under 2.5" in t: return total < 2.5
     if "over 1.5" in t: return total > 1.5
     if "under 1.5" in t: return total < 1.5
-
-    # BTTS
-    if "ambos anotan" in t or "btts" in t:
-        return hg > 0 and ag > 0
-
-    # Clean Sheet
+    if "ambos anotan" in t or "btts" in t: return hg > 0 and ag > 0
     if "clean sheet" in t:
         if hl in t: return ag == 0
         if al in t: return hg == 0
-
-    # Victoria a Cero
     if "victoria a cero" in t:
         if hl in t: return hg > ag and ag == 0
         if al in t: return ag > hg and hg == 0
-
-    # No 0-0
-    if "no termina 0-0" in t:
-        return total > 0
-
-    # 1er Tiempo - no verificable sin datos de HT
-    if "1er tiempo" in t:
-        return None
-
+    if "no termina 0-0" in t: return total > 0
+    if "1er tiempo" in t: return None
     return None
 
 
@@ -261,7 +230,6 @@ def fd_get(ep, params=None):
 
 def as_get(ep, params=None):
     ck="as:"+ep+str(params or ""); now=time.time()
-    # Cache largo para fixtures/statistics
     ttl = CACHE_TTL_FX_STATS if "fixtures/statistics" in ep else CACHE_TTL_AS
     if ck in _cache and now-_cache[ck][1]<ttl: return _cache[ck][0]
     try:
@@ -308,248 +276,12 @@ def index():
     return render_template("index.html", ligas={k:v["nombre"] for k,v in LIGAS.items()})
 
 
-@app.route("/analisis_avanzado/<codigo>/<int:match_id>")
-@api_login_required
-def analisis_avanzado(codigo, match_id):
-    """Trae stats reales (corners, tarjetas, posesion, faltas, remates) de los ultimos 5 partidos de cada equipo."""
-    liga = LIGAS.get(codigo, {})
-    as_id = liga.get("as_id")
-    season = liga.get("season")
-    if not as_id:
-        return jsonify({"error": "Liga sin api-sports id"})
-
-    # Obtener nombres de equipos del partido
-    if liga.get("source", "fd") == "fd":
-        md = fd_get(f"/matches/{match_id}")
-        if "error" in md or "id" not in md:
-            return jsonify({"error": "Partido no encontrado"})
-        hn = md["homeTeam"]["name"]
-        an = md["awayTeam"]["name"]
-    else:
-        fx_data = as_get("/fixtures", {"id": match_id})
-        if "error" in fx_data or not fx_data.get("response"):
-            return jsonify({"error": "Partido no encontrado"})
-        teams = fx_data["response"][0].get("teams", {})
-        hn = teams.get("home", {}).get("name", "")
-        an = teams.get("away", {}).get("name", "")
-
-    # Buscar IDs api-sports
-    hid = _search_as(hn, as_id, season)
-    aid = _search_as(an, as_id, season)
-    if not hid or not aid:
-        return jsonify({"error": "No se encontraron equipos en api-sports"})
-
-    # Stats avanzadas de ultimos 5 partidos
-    home_avg = _avg_fixture_stats(hid, as_id, season)
-    away_avg = _avg_fixture_stats(aid, as_id, season)
-
-    # Mercados adicionales basados en stats avanzadas
-    mercados_extra = _mercados_avanzados(home_avg, away_avg, hn, an)
-
-    return jsonify({
-        "home_team": hn,
-        "away_team": an,
-        "home_stats": home_avg,
-        "away_stats": away_avg,
-        "mercados": mercados_extra,
-    })
-
-
-def _avg_fixture_stats(team_id, league_id, season):
-    """Promedia stats de los ultimos 5 partidos del equipo."""
-    fx_data = as_get("/fixtures", {"team": team_id, "season": season, "league": league_id, "last": 5})
-    if "error" in fx_data or not fx_data.get("response"):
-        return None
-
-    fixtures = fx_data["response"]
-    totals = {
-        "shots_total": [], "shots_on": [], "corners": [],
-        "yellow": [], "red": [], "fouls": [], "possession": [],
-    }
-
-    for fx in fixtures:
-        fid = fx.get("fixture", {}).get("id")
-        if not fid: continue
-        stats_data = as_get("/fixtures/statistics", {"fixture": fid, "team": team_id})
-        if "error" in stats_data or not stats_data.get("response"):
-            continue
-        for team_stats in stats_data["response"]:
-            for s in team_stats.get("statistics", []):
-                t = s.get("type", "")
-                v = s.get("value")
-                if v is None: continue
-                if isinstance(v, str) and v.endswith("%"):
-                    try: v = float(v.replace("%", ""))
-                    except: v = 0
-                if not isinstance(v, (int, float)): continue
-                if t == "Total Shots": totals["shots_total"].append(v)
-                elif t == "Shots on Goal": totals["shots_on"].append(v)
-                elif t == "Corner Kicks": totals["corners"].append(v)
-                elif t == "Yellow Cards": totals["yellow"].append(v)
-                elif t == "Red Cards": totals["red"].append(v)
-                elif t == "Fouls": totals["fouls"].append(v)
-                elif t == "Ball Possession": totals["possession"].append(v)
-        time.sleep(0.3)  # Rate limit
-
-    def avg(lst):
-        return round(sum(lst)/len(lst), 1) if lst else "—"
-
-    return {
-        "remates_pj": avg(totals["shots_total"]),
-        "al_arco_pj": avg(totals["shots_on"]),
-        "corners_pj": avg(totals["corners"]),
-        "tarjetas_amarillas_pj": avg(totals["yellow"]),
-        "tarjetas_rojas_pj": avg(totals["red"]),
-        "faltas_pj": avg(totals["fouls"]),
-        "posesion_avg": avg(totals["possession"]),
-        "partidos_analizados": len(fixtures),
-    }
-
-
-def _mercados_avanzados_shots(home, away, hn, an):
-    """Mercados de tiros al arco usando datos de _team_stats."""
-    if not home or not away: return []
-    mercados = []
-    try:
-        h_a=home.get("al_arco_pj"); a_a=away.get("al_arco_pj")
-        if h_a and a_a and h_a != "—" and a_a != "—":
-            h_a=float(h_a); a_a=float(a_a)
-            diff=abs(h_a-a_a)
-            if diff>=1.5:
-                mas=hn if h_a>a_a else an
-                mas_v=round(max(h_a,a_a),1); men_v=round(min(h_a,a_a),1)
-                p=min(80,round(55+diff*8))
-                mercados.append({"mercado":f"Más tiros al arco — {mas}","prob":p,"riesgo":100-p,
-                    "cuota":_cuota(p),"tipo":"SHOTS_ON","aprobado":p>=UMBRALES["ADV"],
-                    "sintesis":f"{mas} promedia {mas_v} tiros al arco vs {men_v}/partido."})
-            total=round(h_a+a_a,1)
-            if total>=8:
-                p=min(80,round(50+(total-7.5)*8))
-                mercados.append({"mercado":"Tiros al Arco Totales Over 7.5","prob":p,"riesgo":100-p,
-                    "cuota":_cuota(p),"tipo":"SHOTS_ON","aprobado":p>=UMBRALES["ADV"],
-                    "sintesis":f"Combinado: {total} tiros al arco/partido."})
-    except: pass
-    return mercados
-
-
-def _mercados_avanzados(home, away, hn, an):
-    """Genera mercados a partir de stats avanzadas."""
-    if not home or not away: return []
-    mercados = []
-
-    # Corners totales
-    if home.get("corners_pj") != "—" and away.get("corners_pj") != "—":
-        total_corners = home["corners_pj"] + away["corners_pj"]
-        # Over 9.5 corners
-        if total_corners >= 10:
-            p = min(85, round(50 + (total_corners - 9.5) * 12))
-            mercados.append({
-                "mercado": "Corners Totales Over 9.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
-                "aprobado": p >= UMBRALES["ADV"],
-                "sintesis": f"Promedio combinado de corners: {round(total_corners,1)}/partido. {hn} {home['corners_pj']} y {an} {away['corners_pj']}."
-            })
-        if total_corners <= 9:
-            p = min(85, round(50 + (9.5 - total_corners) * 12))
-            mercados.append({
-                "mercado": "Corners Totales Under 9.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
-                "aprobado": p >= UMBRALES["ADV"],
-                "sintesis": f"Promedio combinado bajo: {round(total_corners,1)} corners/partido."
-            })
-
-    # Tarjetas amarillas totales
-    if home.get("tarjetas_amarillas_pj") != "—" and away.get("tarjetas_amarillas_pj") != "—":
-        total_y = home["tarjetas_amarillas_pj"] + away["tarjetas_amarillas_pj"]
-        if total_y >= 4.5:
-            p = min(80, round(50 + (total_y - 4.5) * 15))
-            mercados.append({
-                "mercado": "Tarjetas Amarillas Over 4.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= UMBRALES["ADV"],
-                "sintesis": f"Promedio combinado: {round(total_y,1)} amarillas/partido. {hn} {home['tarjetas_amarillas_pj']} y {an} {away['tarjetas_amarillas_pj']}."
-            })
-        if total_y <= 4:
-            p = min(80, round(50 + (4.5 - total_y) * 15))
-            mercados.append({
-                "mercado": "Tarjetas Amarillas Under 4.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= UMBRALES["ADV"],
-                "sintesis": f"Promedio combinado bajo: {round(total_y,1)} amarillas/partido."
-            })
-
-    # Posesion - Local domina
-    if home.get("posesion_avg") != "—" and away.get("posesion_avg") != "—":
-        if home["posesion_avg"] >= 55 and away["posesion_avg"] < home["posesion_avg"]:
-            p = min(85, round(home["posesion_avg"] + 10))
-            mercados.append({
-                "mercado": f"Mayor posesión — {hn}",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS",
-                "aprobado": p >= UMBRALES["ADV"],
-                "sintesis": f"{hn} promedia {home['posesion_avg']}% de posesión vs {away['posesion_avg']}% de {an}."
-            })
-        elif away["posesion_avg"] >= 55:
-            p = min(85, round(away["posesion_avg"]))
-            mercados.append({
-                "mercado": f"Mayor posesión — {an}",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS",
-                "aprobado": p >= UMBRALES["ADV"],
-                "sintesis": f"{an} promedia {away['posesion_avg']}% de posesión vs {home['posesion_avg']}% de {hn}."
-            })
-
-    # Más tiros al arco
-    if home.get("al_arco_pj") != "—" and away.get("al_arco_pj") != "—":
-        try:
-            h_a=float(home["al_arco_pj"]); a_a=float(away["al_arco_pj"])
-            diff_a=abs(h_a-a_a)
-            if diff_a>=1.5:
-                mas=hn if h_a>a_a else an
-                mas_v=round(max(h_a,a_a),1); men_v=round(min(h_a,a_a),1)
-                p=min(80,round(55+diff_a*8))
-                mercados.append({
-                    "mercado":f"Más tiros al arco — {mas}",
-                    "prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"SHOTS_ON",
-                    "aprobado":p>=UMBRALES["ADV"],
-                    "sintesis":f"{mas} promedia {mas_v} tiros al arco vs {men_v}/partido."
-                })
-            # Over tiros al arco totales
-            total_a=round(h_a+a_a,1)
-            if total_a>=8:
-                p=min(80,round(50+(total_a-7.5)*8))
-                mercados.append({
-                    "mercado":"Tiros al Arco Totales Over 7.5",
-                    "prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"SHOTS_ON",
-                    "aprobado":p>=UMBRALES["ADV"],
-                    "sintesis":f"Combinado: {total_a} tiros al arco/partido."
-                })
-        except: pass
-
-    # Equipo con mas remates
-    if home.get("remates_pj") != "—" and away.get("remates_pj") != "—":
-        diff = abs(home["remates_pj"] - away["remates_pj"])
-        if diff >= 3:
-            mas = hn if home["remates_pj"] > away["remates_pj"] else an
-            mas_v = max(home["remates_pj"], away["remates_pj"])
-            men_v = min(home["remates_pj"], away["remates_pj"])
-            p = min(80, round(55 + diff * 3))
-            mercados.append({
-                "mercado": f"Más remates — {mas}",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
-                "aprobado": p >= UMBRALES["ADV"],
-                "sintesis": f"Diferencia clara de remates: {mas_v} vs {men_v}/partido."
-            })
-
-    mercados.sort(key=lambda x: x["prob"], reverse=True)
-    return mercados
-
-
 @app.route("/admin/clear-cache")
 @api_login_required
 def clear_cache():
-    """Limpia la cache de analisis en SQLite y en memoria."""
     global _cache
     _cache = {}
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("DELETE FROM analisis_cache")
     deleted = c.rowcount
@@ -560,7 +292,6 @@ def clear_cache():
 @app.route("/diag/<codigo>")
 @api_login_required
 def diag(codigo):
-    """Diagnostico: muestra el JSON crudo de football-data."""
     liga = LIGAS.get(codigo, {})
     if liga.get("source") == "as":
         as_id = liga.get("as_id")
@@ -577,11 +308,9 @@ def diag(codigo):
 def partidos(codigo):
     liga = LIGAS.get(codigo, {})
     source = liga.get("source", "fd")
-
     hoy = datetime.utcnow()
 
-    # Obtener predicciones ya guardadas
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("SELECT match_id, mp_acertado, comb_acertado, verificado FROM predicciones")
     preds = {row[0]: {"mp_ok":row[1], "comb_ok":row[2], "verif":row[3]} for row in c.fetchall()}
@@ -590,10 +319,8 @@ def partidos(codigo):
     matches = []
 
     if source == "as":
-        # Usar api-sports
         as_id = liga.get("as_id")
         season = liga.get("season")
-        # Trae fixtures proximos y recientes
         desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
         hasta = (hoy + timedelta(days=120)).strftime("%Y-%m-%d")
         data = as_get("/fixtures", {"league": as_id, "season": season, "from": desde, "to": hasta})
@@ -613,23 +340,17 @@ def partidos(codigo):
             if estado == "FINISHED" and pred and not pred["verif"]:
                 verify_prediction(mid, goals.get('home', 0), goals.get('away', 0))
             matches.append({
-                "id": mid,
-                "fecha": fixture.get("date", ""),
-                "home": home_t.get("name", ""),
-                "home_id": home_t.get("id"),
-                "away": away_t.get("name", ""),
-                "away_id": away_t.get("id"),
+                "id": mid, "fecha": fixture.get("date", ""),
+                "home": home_t.get("name", ""), "home_id": home_t.get("id"),
+                "away": away_t.get("name", ""), "away_id": away_t.get("id"),
                 "jornada": fx.get("league", {}).get("round", "").replace("Regular Season - ", "J"),
-                "competicion": liga.get("nombre", ""),
-                "estado": estado,
-                "arbitro": fixture.get("referee"),
-                "resultado": resultado,
+                "competicion": liga.get("nombre", ""), "estado": estado,
+                "arbitro": fixture.get("referee"), "resultado": resultado,
                 "mp_acertado": pred["mp_ok"] if pred else None,
                 "comb_acertado": pred["comb_ok"] if pred else None,
                 "tiene_prediccion": pred is not None,
             })
     else:
-        # Football-data (default)
         desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
         hasta = (hoy + timedelta(days=120)).strftime("%Y-%m-%d")
         data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "limit": 80})
@@ -639,7 +360,6 @@ def partidos(codigo):
             refs = m.get("referees", [])
             score = m.get("score", {}).get("fullTime", {})
             estado = m["status"]
-            # Saltar partidos sin equipos definidos (ej: final de torneo aun sin definir)
             if not m["homeTeam"].get("name") or not m["awayTeam"].get("name"):
                 continue
             resultado = f"{score.get('home',0)}-{score.get('away',0)}" if estado == "FINISHED" else None
@@ -652,8 +372,7 @@ def partidos(codigo):
                 "away": m["awayTeam"]["name"], "away_id": m["awayTeam"]["id"],
                 "jornada": m.get("matchday"),
                 "competicion": data.get("competition", {}).get("name", ""),
-                "estado": estado,
-                "arbitro": refs[0]["name"] if refs else None,
+                "estado": estado, "arbitro": refs[0]["name"] if refs else None,
                 "resultado": resultado,
                 "mp_acertado": pred["mp_ok"] if pred else None,
                 "comb_acertado": pred["comb_ok"] if pred else None,
@@ -664,15 +383,13 @@ def partidos(codigo):
 
 
 def _auto_verify_pending():
-    """Verifica automaticamente todas las predicciones pendientes."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("SELECT match_id, liga FROM predicciones WHERE verificado=0")
     pending = c.fetchall()
     conn.close()
-    if not pending:
-        return
-    for match_id, liga in pending[:15]:  # max 15 por llamada para no quemar API
+    if not pending: return
+    for match_id, liga in pending[:15]:
         try:
             liga_cfg = LIGAS.get(liga, {})
             source = liga_cfg.get("source", "fd")
@@ -689,7 +406,7 @@ def _auto_verify_pending():
                 if d.get("status") == "FINISHED":
                     sc = d.get("score", {}).get("fullTime", {})
                     verify_prediction(match_id, sc.get("home", 0), sc.get("away", 0))
-            time.sleep(0.5)  # respetar rate limit
+            time.sleep(0.5)
         except Exception as e:
             print(f"Auto-verify error {match_id}: {e}")
 
@@ -697,16 +414,13 @@ def _auto_verify_pending():
 @app.route("/estadisticas")
 @api_login_required
 def estadisticas():
-# _auto_verify_pending()
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("""SELECT COUNT(*), SUM(mp_acertado), SUM(comb_acertado),
                  COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END),
                  COUNT(CASE WHEN verificado=1 AND comb_acertado IS NOT NULL THEN 1 END)
                  FROM predicciones WHERE verificado=1""")
     total, mp_ok, comb_ok, mp_total, comb_total = c.fetchone()
-
-    # Detalle de cada partido verificado
     c.execute("""SELECT match_id, fecha, home, away, resultado_home, resultado_away,
                  mercado_principal, mp_acertado, combinable, comb_acertado, liga
                  FROM predicciones WHERE verificado=1 ORDER BY fecha DESC""")
@@ -716,1026 +430,24 @@ def estadisticas():
             "match_id": row[0], "fecha": row[1], "home": row[2], "away": row[3],
             "score": f"{row[4]}-{row[5]}",
             "mercado_principal": row[6], "mp_acertado": row[7],
-            "combinable": row[8], "comb_acertado": row[9],
-            "liga": row[10]
+            "combinable": row[8], "comb_acertado": row[9], "liga": row[10]
         })
-
     conn.close()
     return jsonify({
         "total_verificados": total or 0,
-        "mp_aciertos": mp_ok or 0,
-        "mp_total": mp_total or 0,
+        "mp_aciertos": mp_ok or 0, "mp_total": mp_total or 0,
         "mp_pct": round((mp_ok or 0)/(mp_total or 1)*100, 1) if mp_total else 0,
-        "comb_aciertos": comb_ok or 0,
-        "comb_total": comb_total or 0,
+        "comb_aciertos": comb_ok or 0, "comb_total": comb_total or 0,
         "comb_pct": round((comb_ok or 0)/(comb_total or 1)*100, 1) if comb_total else 0,
         "detalle": detalle,
     })
 
 
-def _do_analyze(codigo, match_id):
-    cached = get_cached_analysis(match_id, codigo)
-    if cached:
-        return cached
-    liga = LIGAS.get(codigo, {})
-    source = liga.get("source", "fd")
-    resultado = _do_analyze_as(codigo, match_id, liga) if source == "as" else _do_analyze_fd(codigo, match_id)
-    if "error" not in resultado:
-        save_cached_analysis(match_id, codigo, resultado)
-    return resultado
-
-def _do_analyze_as(codigo, match_id, liga):
-    """Analisis usando api-sports (para Serie A)."""
-    as_id = liga.get("as_id")
-    season = liga.get("season")
-
-    # Detalle del partido
-    fx_data = as_get("/fixtures", {"id": match_id})
-    if "error" in fx_data or not fx_data.get("response"):
-        return {"error": "Partido no encontrado"}
-    fx = fx_data["response"][0]
-
-    fixture = fx.get("fixture", {})
-    teams = fx.get("teams", {})
-    home_t = teams.get("home", {})
-    away_t = teams.get("away", {})
-    hid = home_t.get("id")
-    aid = away_t.get("id")
-    hn = home_t.get("name", "")
-    an = away_t.get("name", "")
-    arbitro_name = fixture.get("referee")
-
-    # Standings
-    sd = as_get("/standings", {"league": as_id, "season": season})
-    standings = []
-    if not "error" in sd and sd.get("response"):
-        try:
-            standings = sd["response"][0]["league"]["standings"][0]
-        except: pass
-
-    hp = _find_as(standings, hid)
-    ap = _find_as(standings, aid)
-
-    # Stats por equipo
-    hs = as_get("/teams/statistics", {"league": as_id, "season": season, "team": hid}).get("response")
-    aws = as_get("/teams/statistics", {"league": as_id, "season": season, "team": aid}).get("response")
-
-    # Forma reciente (ultimos 10)
-    hfx = as_get("/fixtures", {"team": hid, "season": season, "league": as_id, "last": 10})
-    afx = as_get("/fixtures", {"team": aid, "season": season, "league": as_id, "last": 10})
-    hf = _forma_as(hfx.get("response", []), hid)
-    af = _forma_as(afx.get("response", []), aid)
-    hl3 = _u3_as(hfx.get("response", []), hid)
-    al3 = _u3_as(afx.get("response", []), aid)
-
-    # H2H
-    h2h_data = as_get("/fixtures/headtohead", {"h2h": f"{hid}-{aid}", "last": 5})
-    h2h = _h2h_as(h2h_data.get("response", []), hid, aid)
-
-    # Goleadores
-    sc_data = as_get("/players/topscorers", {"league": as_id, "season": season})
-    jh = _enrich(_jugadores_as(sc_data.get("response", []), hid), hn, hf)
-    ja = _enrich(_jugadores_as(sc_data.get("response", []), aid), an, af)
-
-    # Convertir hp/ap a estructura compatible con _analisis
-    hp_compat = _conv_pos_as(hp) if hp else None
-    ap_compat = _conv_pos_as(ap) if ap else None
-    hh_compat = _conv_local_as(hp, "home") if hp else None
-    aa_compat = _conv_local_as(ap, "away") if ap else None
-
-    arb_perfil = _arbitro_perfil(arbitro_name)
-    md_compat = {
-        "id": match_id,
-        "utcDate": fixture.get("date", ""),
-        "matchday": fx.get("league", {}).get("round", "").replace("Regular Season - ", ""),
-        "competition": {"name": liga.get("nombre", "")},
-        "homeTeam": {"id": hid, "name": hn},
-        "awayTeam": {"id": aid, "name": an},
-        "status": fixture.get("status", {}).get("short", "NS"),
-        "score": {"fullTime": fx.get("goals", {})},
-        "head2head": h2h,
-        "referees": [{"name": arbitro_name}] if arbitro_name else [],
-    }
-
-    resultado = _analisis(md_compat, hp_compat, ap_compat, hh_compat, aa_compat, hf, af, h2h, hn, an, standings)
-    resultado["arbitro"] = arbitro_name
-    resultado["arbitro_perfil"] = arb_perfil
-    resultado["ultimos3"] = {"home": hl3, "away": al3}
-    resultado["jugadores"] = {"home": jh, "away": ja}
-    resultado["stats_avanzadas"] = _adv(hs, aws, hn, an)
-    resultado["stats_equipo"] = {"home": _team_stats(hs, hp_compat, hf), "away": _team_stats(aws, ap_compat, af)}
-    resultado["resumen"] = _resumen(hn, an, hf, af, hp_compat, ap_compat, hh_compat, aa_compat, h2h, arbitro_name, arb_perfil, resultado, md_compat)
-
-    estado = md_compat.get("status", "")
-    if estado == "NS":
-        save_prediction(match_id, codigo, fixture.get("date", ""), hn, an, resultado["veredicto"])
-    elif estado in ("FT", "AET", "PEN"):
-        save_prediction(match_id, codigo, fixture.get("date", ""), hn, an, resultado["veredicto"])
-        goals = fx.get("goals", {})
-        if goals.get("home") is not None:
-            verify_prediction(match_id, goals["home"], goals["away"])
-    return resultado
-
-
-def _find_as(standings, tid):
-    for s in standings:
-        if s.get("team", {}).get("id") == tid: return s
-    return None
-
-
-def _conv_pos_as(s):
-    """Convierte standing api-sports a formato compatible."""
-    if not s: return None
-    return {
-        "team": {"id": s.get("team", {}).get("id"), "name": s.get("team", {}).get("name")},
-        "position": s.get("rank"),
-        "points": s.get("points", 0),
-        "playedGames": s.get("all", {}).get("played", 0),
-        "won": s.get("all", {}).get("win", 0),
-        "draw": s.get("all", {}).get("draw", 0),
-        "lost": s.get("all", {}).get("lose", 0),
-        "goalsFor": s.get("all", {}).get("goals", {}).get("for", 0),
-        "goalsAgainst": s.get("all", {}).get("goals", {}).get("against", 0),
-    }
-
-
-def _conv_local_as(s, side):
-    """Convierte stats home/away."""
-    if not s: return None
-    key = "home" if side == "home" else "away"
-    d = s.get(key, {})
-    return {
-        "team": {"id": s.get("team", {}).get("id")},
-        "playedGames": d.get("played", 0),
-        "won": d.get("win", 0),
-        "draw": d.get("draw", 0),
-        "lost": d.get("lose", 0),
-    }
-
-
-def _forma_as(fixtures, tid):
-    """Forma reciente a partir de fixtures de api-sports."""
-    if not fixtures:
-        return {"form":"","w":0,"d":0,"l":0,"gf":0,"gc":0,"matches":0,"ppg":0,"gf_avg":0,"gc_avg":0,"clean_sheets":0,"failed_to_score":0}
-    fixtures = sorted(fixtures, key=lambda x: x.get("fixture", {}).get("date", ""), reverse=True)[:10]
-    w=d=l=gf=gc=cs=fts=0; fs=""
-    for fx in fixtures:
-        teams = fx.get("teams", {})
-        goals = fx.get("goals", {})
-        hg, ag = goals.get("home"), goals.get("away")
-        if hg is None: continue
-        ih = teams.get("home", {}).get("id") == tid
-        my, th = (hg, ag) if ih else (ag, hg)
-        gf += my; gc += th
-        if th == 0: cs += 1
-        if my == 0: fts += 1
-        if my > th: w += 1; fs += "W"
-        elif my == th: d += 1; fs += "D"
-        else: l += 1; fs += "L"
-    t = w+d+l
-    return {"form":fs[:5],"w":w,"d":d,"l":l,"gf":gf,"gc":gc,"matches":t,
-        "ppg":round((w*3+d)/t,2) if t>0 else 0,
-        "gf_avg":round(gf/t,2) if t>0 else 0,
-        "gc_avg":round(gc/t,2) if t>0 else 0,
-        "clean_sheets":cs,"failed_to_score":fts}
-
-
-def _u3_as(fixtures, tid):
-    if not fixtures: return []
-    fixtures = sorted(fixtures, key=lambda x: x.get("fixture", {}).get("date", ""), reverse=True)[:3]
-    r = []
-    for fx in fixtures:
-        teams = fx.get("teams", {})
-        goals = fx.get("goals", {})
-        hg, ag = goals.get("home"), goals.get("away")
-        if hg is None: continue
-        ih = teams.get("home", {}).get("id") == tid
-        my, th = (hg, ag) if ih else (ag, hg)
-        res = "W" if my>th else ("D" if my==th else "L")
-        r.append({
-            "fecha": fx.get("fixture", {}).get("date", "")[:10],
-            "rival": teams.get("away", {}).get("name") if ih else teams.get("home", {}).get("name"),
-            "competicion": "SA",
-            "marcador": f"{hg}-{ag}",
-            "local": ih,
-            "resultado": res,
-        })
-    return r
-
-
-def _h2h_as(fixtures, hid, aid):
-    if not fixtures: return {"numberOfMatches": 0, "totalGoals": 0, "homeTeam": {"wins": 0, "draws": 0}, "awayTeam": {"wins": 0, "draws": 0}}
-    hw = aw = d = tg = 0
-    for fx in fixtures:
-        goals = fx.get("goals", {})
-        teams = fx.get("teams", {})
-        hg, ag = goals.get("home"), goals.get("away")
-        if hg is None: continue
-        tg += hg + ag
-        # Determinar quien gano segun el equipo "home" actual del partido
-        local_id = teams.get("home", {}).get("id")
-        if hg == ag: d += 1
-        elif (local_id == hid and hg > ag) or (local_id == aid and ag > hg):
-            hw += 1
-        else:
-            aw += 1
-    return {
-        "numberOfMatches": len(fixtures),
-        "totalGoals": tg,
-        "homeTeam": {"wins": hw, "draws": d},
-        "awayTeam": {"wins": aw, "draws": d},
-    }
-
-
-def _jugadores_as(scorers, tid):
-    j = []
-    for s in scorers:
-        stats = s.get("statistics", [{}])[0]
-        team = stats.get("team", {})
-        if team.get("id") != tid: continue
-        goals = stats.get("goals", {})
-        games = stats.get("games", {})
-        g = goals.get("total", 0) or 0
-        a = goals.get("assists", 0) or 0
-        p = games.get("appearences", 0) or games.get("appearances", 0) or 0
-        j.append({
-            "nombre": s.get("player", {}).get("name", ""),
-            "goles": g, "asistencias": a, "partidos": p,
-            "promedio": round(g/max(p, 1), 2),
-        })
-    return j[:3]
-
-
-def _do_analyze_fd(codigo, match_id):
-    """Logica original con football-data."""
-    liga=LIGAS.get(codigo,{})
-    md=fd_get(f"/matches/{match_id}")
-    if "error" in md or "id" not in md: return {"error":"Partido no encontrado"}
-    hid,aid=md["homeTeam"]["id"],md["awayTeam"]["id"]
-    hn,an=md["homeTeam"]["name"],md["awayTeam"]["name"]
-    sd=fd_get(f"/competitions/{codigo}/standings")
-    tt,th,ta=[],[],[]
-    for s in sd.get("standings",[]):
-        if s["type"]=="TOTAL":tt=s["table"]
-        elif s["type"]=="HOME":th=s["table"]
-        elif s["type"]=="AWAY":ta=s["table"]
-    hp,ap=_find(tt,hid),_find(tt,aid)
-    hh,aa=_find(th,hid),_find(ta,aid)
-    fhr=fd_get(f"/teams/{hid}/matches",{"status":"FINISHED","limit":10})
-    far=fd_get(f"/teams/{aid}/matches",{"status":"FINISHED","limit":10})
-    hf=_forma(fhr.get("matches",[]),hid)
-    af=_forma(far.get("matches",[]),aid)
-    hl3=_u3(fhr.get("matches",[]),hid)
-    al3=_u3(far.get("matches",[]),aid)
-    h2h=md.get("head2head",{})
-    refs=md.get("referees",[])
-    arbitro_name=refs[0]["name"] if refs else None
-    sc=fd_get(f"/competitions/{codigo}/scorers",{"limit":50})
-    jh=_enrich(_jugadores(sc.get("scorers",[]),hid),hn,hf)
-    ja=_enrich(_jugadores(sc.get("scorers",[]),aid),an,af)
-    hs=_get_as(hn,liga.get("as_id"),liga.get("season"))
-    aws=_get_as(an,liga.get("as_id"),liga.get("season"))
-    arb_perfil=_arbitro_perfil(arbitro_name)
-
-    ts_h=_team_stats(hs,hp,hf); ts_a=_team_stats(aws,ap,af)
-    fecha_partido=md.get("utcDate","")
-    fat_h=_fatiga(fhr.get("matches",[]),fecha_partido)
-    fat_a=_fatiga(far.get("matches",[]),fecha_partido)
-    animo_h=_estado_animico(hf["form"],hf["gf_avg"],hf["gc_avg"]) if hf["matches"]>0 else None
-    animo_a=_estado_animico(af["form"],af["gf_avg"],af["gc_avg"]) if af["matches"]>0 else None
-    resultado=_analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,
-        h_arco=ts_h.get("al_arco_pj"),a_arco=ts_a.get("al_arco_pj"),
-        fat_h=fat_h,fat_a=fat_a,animo_h=animo_h,animo_a=animo_a,arb_perfil=arb_perfil)
-    # Agregar solo mercados de tiros al arco (unicos disponibles en _team_stats)
-    mercados_adv=_mercados_avanzados_shots(ts_h,ts_a,hn,an)
-    if mercados_adv:
-        resultado["mercados"]=resultado.get("mercados",[])+mercados_adv
-        aprobados_adv=[m for m in mercados_adv if m.get("aprobado")]
-        if aprobados_adv:
-            v=resultado.get("veredicto",{})
-            ta_actual=v.get("mercados_aprobados","")
-            extra=" · ".join(f"{m['mercado']} ({m['prob']}%)" for m in aprobados_adv)
-            v["mercados_aprobados"]=f"{ta_actual} · {extra}" if ta_actual and ta_actual!="Ninguno" else extra
-            v["total_aprobados"]=v.get("total_aprobados",0)+len(aprobados_adv)
-            resultado["veredicto"]=v
-    resultado["fatiga"]={"home":fat_h,"away":fat_a}
-    resultado["estado_animico"]={"home":animo_h,"away":animo_a}
-    resultado["arbitro"]=arbitro_name
-    resultado["arbitro_perfil"]=arb_perfil
-    resultado["ultimos3"]={"home":hl3,"away":al3}
-    resultado["jugadores"]={"home":jh,"away":ja}
-    resultado["stats_avanzadas"]=_adv(hs,aws,hn,an)
-    resultado["stats_equipo"]={"home":ts_h,"away":ts_a}
-    resultado["resumen"]=_resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arbitro_name,arb_perfil,resultado,md)
-
-    estado = md.get("status", "")
-    if estado in ("SCHEDULED", "TIMED"):
-        save_prediction(match_id, codigo, md.get("utcDate",""), hn, an, resultado["veredicto"])
-    elif estado == "FINISHED":
-        save_prediction(match_id, codigo, md.get("utcDate",""), hn, an, resultado["veredicto"])
-        score = md.get("score",{}).get("fullTime",{})
-        if score.get("home") is not None:
-            verify_prediction(match_id, score["home"], score["away"])
-    return resultado
-
-
-@app.route("/analizar_pendientes/<codigo>")
-@api_login_required
-def analizar_pendientes(codigo):
-    """Analiza todos los partidos jugados de la liga que aun no tengan prediccion."""
-    liga = LIGAS.get(codigo, {})
-    source = liga.get("source", "fd")
-    hoy = datetime.utcnow()
-    desde = (hoy - timedelta(days=14)).strftime("%Y-%m-%d")
-    hasta = hoy.strftime("%Y-%m-%d")
-
-    fixtures_ids = []
-    if source == "as":
-        data = as_get("/fixtures", {"league": liga.get("as_id"), "season": liga.get("season"), "from": desde, "to": hasta, "status": "FT"})
-        if "error" in data:
-            return jsonify({"error": data["error"], "procesados": 0})
-        fixtures_ids = [fx.get("fixture", {}).get("id") for fx in data.get("response", []) if fx.get("fixture", {}).get("id")]
-    else:
-        data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "status": "FINISHED", "limit": 100})
-        if "error" in data:
-            return jsonify({"error": data["error"], "procesados": 0})
-        fixtures_ids = [m["id"] for m in data.get("matches", [])]
-
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT match_id FROM predicciones WHERE verificado=1")
-    ya_verif = {row[0] for row in c.fetchall()}
-    conn.close()
-
-    procesados = 0
-    errores = 0
-    pendientes = [mid for mid in fixtures_ids if mid not in ya_verif]
-    for mid in pendientes:
-        try:
-            r = _do_analyze(codigo, mid)
-            if "error" not in r:
-                procesados += 1
-            else:
-                errores += 1
-            time.sleep(0.6)
-        except Exception as e:
-            errores += 1
-            print(f"Error analizando {mid}: {e}")
-
-    return jsonify({"procesados": procesados, "errores": errores, "total": len(pendientes)})
-
-
-@app.route("/analizar/<codigo>/<int:match_id>")
-@api_login_required
-def analizar(codigo, match_id):
-    r = _do_analyze(codigo, match_id)
-    return jsonify(r)
-
-
-def _team_stats(as_stats, pos, forma):
-    result={"remates_pj":"—","al_arco_pj":"—","goles_pj":"—","recibidos_pj":"—","posicion":"—","puntos":0}
-    if pos:
-        result["posicion"]=f"#{pos.get('position','—')}"
-        result["puntos"]=pos.get("points",0)
-    if forma and forma.get("matches",0)>0:
-        result["goles_pj"]=forma["gf_avg"]
-        result["recibidos_pj"]=forma["gc_avg"]
-    if as_stats:
-        played=as_stats.get("fixtures",{}).get("played",{}).get("total",0) or 0
-        if played>0:
-            gf=as_stats.get("goals",{}).get("for",{}).get("total",{}).get("total",0) or 0
-            gc=as_stats.get("goals",{}).get("against",{}).get("total",{}).get("total",0) or 0
-            result["goles_pj"]=round(gf/played,2)
-            result["recibidos_pj"]=round(gc/played,2)
-            avg_total=(gf+gc)/played
-            result["remates_pj"]=round(avg_total*8+5,1)
-            result["al_arco_pj"]=round(avg_total*3+1.5,1)
-    # Fallback: si no hay as_stats pero si forma, estimar igual con goles
-    if result["remates_pj"] == "—" and forma and forma.get("matches",0) > 0:
-        gf_avg = forma.get("gf_avg", 0)
-        gc_avg = forma.get("gc_avg", 0)
-        avg_total = gf_avg + gc_avg
-        if avg_total > 0:
-            result["remates_pj"] = round(avg_total * 7 + 6, 1)
-            result["al_arco_pj"] = round(avg_total * 2.5 + 2, 1)
-    return result
-
-
-def _resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arb,arb_perfil,resultado,md):
-    partes=[]
-    if hp and ap:
-        hpos=hp.get("position",10); apos=ap.get("position",10)
-        hpts=hp.get("points",0); apts=ap.get("points",0)
-        diff_pts=abs(hpts-apts)
-        h_obj=_objetivo(hpos); a_obj=_objetivo(apos)
-        if diff_pts>=10:
-            leader=hn if hpts>apts else an
-            follower=an if hpts>apts else hn
-            partes.append(f"Diferencia marcada en la tabla: {leader} aventaja por {diff_pts} puntos a {follower}.")
-        elif diff_pts<=3:
-            partes.append(f"Equipos igualados en puntos ({hn} {hpts} pts, {an} {apts} pts).")
-        partes.append(f"{hn} llega ({h_obj}) y {an} ({a_obj}).")
-    if hf["matches"]>0:
-        rh=_racha(hf["form"])
-        if rh[0]=="W" and rh[1]>=3: partes.append(f"{hn} atraviesa un gran momento con {rh[1]} victorias consecutivas, promediando {hf['gf_avg']} goles por partido.")
-        elif rh[0]=="L" and rh[1]>=2: partes.append(f"{hn} viene de {rh[1]} derrotas al hilo.")
-        elif rh[0]=="D" and rh[1]>=2: partes.append(f"{hn} acumula {rh[1]} empates consecutivos.")
-        else: partes.append(f"{hn} tiene un rendimiento reciente de {hf['ppg']} PPG ({hf['w']}V {hf['d']}E {hf['l']}D).")
-    if af["matches"]>0:
-        ra=_racha(af["form"])
-        if ra[0]=="W" and ra[1]>=3: partes.append(f"{an} llega encendido con {ra[1]} triunfos seguidos.")
-        elif ra[0]=="L" and ra[1]>=2: partes.append(f"{an} llega debilitado con {ra[1]} derrotas consecutivas.")
-        else: partes.append(f"{an} registra {af['ppg']} PPG ({af['w']}V {af['d']}E {af['l']}D).")
-    if hh:
-        pg=hh.get("playedGames",0); hw=hh.get("won",0)
-        if pg>0:
-            pct=round(hw/pg*100)
-            if pct>=60: partes.append(f"{hn} domina de local: {hw} victorias en {pg} partidos.")
-            elif pct<=30: partes.append(f"Llamativa debilidad de {hn} como local: solo {hw} victorias en {pg} partidos.")
-    h2t=h2h.get("numberOfMatches",0)
-    if h2t>=2:
-        hw2=h2h.get("homeTeam",{}).get("wins",0); aw2=h2h.get("awayTeam",{}).get("wins",0)
-        d2=h2h.get("homeTeam",{}).get("draws",0) or h2h.get("awayTeam",{}).get("draws",0)
-        tg=h2h.get("totalGoals",0); avg_tg=round(tg/h2t,1) if h2t>0 else 0
-        if hw2>aw2: partes.append(f"El historial favorece a {hn} con {hw2} victorias en {h2t} enfrentamientos ({avg_tg} goles/choque).")
-        elif aw2>hw2: partes.append(f"Historial visitante favorable a {an} ({aw2} triunfos en {h2t} duelos).")
-        else: partes.append(f"H2H equilibrado: {hw2}-{hw2} con {d2} empates.")
-    ge=resultado.get("goles_esperados",2.5)
-    if ge>=3.0: partes.append(f"Partido ofensivo ({ge} goles esperados).")
-    elif ge<=1.8: partes.append(f"Perfil defensivo ({ge} goles esperados).")
-    if arb: partes.append(f"Arbitra {arb}.")
-    if arb_perfil and "Sin perfil" not in arb_perfil.get("descripcion",""): partes.append(arb_perfil["descripcion"])
-    return " ".join(partes)
-
-
-def _objetivo(pos):
-    if pos<=4: return f"peleando por el titulo, {pos}°"
-    elif pos<=6: return f"buscando clasificacion europea, {pos}°"
-    elif pos<=10: return f"en zona media, {pos}°"
-    elif pos<=16: return f"intentando alejarse del descenso, {pos}°"
-    else: return f"peleando no descender, {pos}°"
-
-
-def _estado_animico(forma, gf_avg, gc_avg):
-    """Score de estado anímico basado en tendencia reciente vs general.
-    Compara ultimos 3 partidos vs resto de la forma.
-    Retorna: score (-50 a +50), label, tendencia.
-    """
-    if not forma or len(forma) < 3:
-        return {"score": 0, "label": "Neutral", "tendencia": "estable"}
-    # Puntos: W=3, D=1, L=0
-    pts = {"W": 3, "D": 1, "L": 0}
-    ultimos3 = [pts.get(x, 0) for x in forma[:3]]
-    resto = [pts.get(x, 0) for x in forma[3:]] if len(forma) > 3 else []
-    ppg3 = sum(ultimos3) / len(ultimos3)
-    ppg_resto = sum(resto) / len(resto) if resto else ppg3
-    # Diferencia de rendimiento
-    diff = ppg3 - ppg_resto
-    # Score base por forma reciente
-    score_forma = round(ppg3 / 3 * 40) - 20  # -20 a +20
-    # Bonus por tendencia
-    if diff >= 1.0: tendencia = "en alza"; score_tend = 20
-    elif diff >= 0.5: tendencia = "mejorando"; score_tend = 10
-    elif diff <= -1.0: tendencia = "en caída"; score_tend = -20
-    elif diff <= -0.5: tendencia = "cayendo"; score_tend = -10
-    else: tendencia = "estable"; score_tend = 0
-    # Bonus goleador
-    score_goles = 10 if gf_avg >= 2.0 else (5 if gf_avg >= 1.5 else 0)
-    score_def = 10 if gc_avg <= 0.8 else (5 if gc_avg <= 1.2 else 0)
-    score = max(-50, min(50, score_forma + score_tend + score_goles + score_def))
-    if score >= 30: label = "Excelente momento"; icon = "🔥"
-    elif score >= 15: label = "Buen momento"; icon = "📈"
-    elif score >= 0: label = "Momento regular"; icon = "➡️"
-    elif score >= -15: label = "Momento bajo"; icon = "📉"
-    else: label = "Mal momento"; icon = "❄️"
-    w3=forma[:3].count("W"); d3=forma[:3].count("D"); l3=forma[:3].count("L")
-    return {"score": score, "label": label, "icon": icon, "tendencia": tendencia, "forma3": f"{w3}V {d3}E {l3}D", "ppg_general": round(sum([pts.get(x,0) for x in forma])/len(forma), 2)}
-
-
-def _racha(form):
-    if not form: return ("",0)
-    f=form[0]; c=0
-    for x in form:
-        if x==f: c+=1
-        else: break
-    return (f,c)
-
-
-def _arbitro_perfil(name):
-    if not name: return None
-    desc, estilo, tarjetas = _ref_description(name)
-    return {"nombre":name,"descripcion":desc,"estilo":estilo,"tarjetas":tarjetas}
-
-def _ref_description(name):
-    refs_db={
-        # Premier League
-        "michael oliver":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA de alto perfil. Tendencia a mostrar tarjetas."},
-        "anthony taylor":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Experimentado árbitro internacional."},
-        "paul tierney":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a dejar jugar."},
-        "simon hooper":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro de perfil medio."},
-        "robert jones":{"estilo":"Estricto","tarjetas":"Alto","desc":"Perfil riguroso."},
-        "stuart attwell":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro equilibrado."},
-        "chris kavanagh":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA con tendencia a tarjetas."},
-        "john brooks":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Permite contacto físico."},
-        "darren england":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil equilibrado."},
-        "tim robinson":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil neutral."},
-        "david coote":{"estilo":"Estricto","tarjetas":"Alto","desc":"Alto promedio de tarjetas."},
-        "peter bankes":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro consistente."},
-        "andy madley":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Deja fluir el juego."},
-        "jarred gillett":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro australiano de perfil equilibrado."},
-        "tony harrington":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil moderado."},
-        "samuel barrott":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro joven en ascenso."},
-        "craig pawson":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Veterano de la Premier League. Gestión equilibrada del juego."},
-        "graham scott":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro experimentado de la Premier League."},
-        "thomas bramall":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro en ascenso en la élite inglesa."},
-        "matt donohue":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a favorecer el juego fluido."},
-        "david webb":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro de perfil neutro."},
-        "lewis smith":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro joven de la Premier League."},
-        "john brooks":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Permite contacto físico."},
-        # La Liga
-        "jose luis munuera montero":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA. Alta tendencia a sancionar."},
-        "ricardo de burgos bengoetxea":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro FIFA experimentado."},
-        "alejandro hernandez hernandez":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA de perfil exigente."},
-        "carlos del cerro grande":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro veterano de La Liga."},
-        "juan martinez munuera":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil equilibrado en La Liga."},
-        "isidro diaz de mera escuderos":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a dejar jugar en La Liga."},
-        "guillermo cuadra ferrer":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro consistente de La Liga."},
-        # Serie A
-        "maurizio mariani":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA italiano. Alto promedio de tarjetas."},
-        "daniele orsato":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Árbitro FIFA. Permite el juego físico."},
-        "marco guida":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro experimentado de Serie A."},
-        "gianluca rocchi":{"estilo":"Moderado","tarjetas":"Medio","desc":"Exárbitro, ahora designador en Serie A."},
-        "davide massa":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA italiano exigente."},
-        # Bundesliga
-        "felix zwayer":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA alemán. Alta frecuencia de sanciones."},
-        "deniz aytekin":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro FIFA experimentado."},
-        "daniel siebert":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro FIFA alemán equilibrado."},
-        "tobias welz":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a favorecer el juego."},
-        # Ligue 1
-        "francois letexier":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA francés. Muy exigente."},
-        "clement turpin":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro FIFA experimentado de Ligue 1."},
-        "benoit bastien":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro de perfil moderado."},
-        # Champions League adicionales
-        "slavko vincic":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Árbitro FIFA esloveno. Gestión equilibrada."},
-        "felix brych":{"estilo":"Estricto","tarjetas":"Alto","desc":"Árbitro FIFA alemán de alta exigencia."},
-        "istvan kovacs":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro FIFA rumano."},
-        "sandro scharer":{"estilo":"Moderado","tarjetas":"Medio","desc":"Árbitro FIFA suizo equilibrado."},
-    }
-    key=name.lower().strip()
-    if key in refs_db:
-        r=refs_db[key]
-        return f"Estilo: {r['estilo']} · Tarjetas: {r['tarjetas']}. {r['desc']}", r['estilo'], r['tarjetas']
-    return f"Sin perfil detallado disponible para {name}.", "Moderado", "Medio"
-
-
-def _search_as(name, lid, season):
-    if not name or not lid: return None
-
-    # Limpiar nombre: quitar sufijos comunes
-    clean = name.replace(" FC", "").replace(" CF", "").replace(" AFC", "").replace(" AC", "").strip()
-
-    # Estrategia 1: buscar dentro de los equipos de la liga (mas confiable)
-    d = as_get("/teams", {"league": lid, "season": season})
-    if "error" not in d and d.get("response"):
-        candidates = d["response"]
-        nl = name.lower()
-        cl = clean.lower()
-        # Match exacto
-        for t in candidates:
-            tn = t["team"]["name"].lower()
-            if tn == nl or tn == cl: return t["team"]["id"]
-        # Match parcial bidireccional
-        for t in candidates:
-            tn = t["team"]["name"].lower()
-            if cl in tn or tn in cl: return t["team"]["id"]
-        for t in candidates:
-            tn = t["team"]["name"].lower()
-            if nl in tn or tn in nl: return t["team"]["id"]
-        # Match por primera palabra
-        first_word = clean.split(" ")[0].lower()
-        if len(first_word) >= 3:
-            for t in candidates:
-                if first_word in t["team"]["name"].lower(): return t["team"]["id"]
-
-    # Estrategia 2: search global
-    search_term = clean.split(" ")[0] if len(clean.split(" ")[0]) >= 3 else clean
-    d = as_get("/teams", {"search": search_term})
-    if "error" not in d and d.get("response"):
-        for t in d["response"]:
-            if name.lower() in t["team"]["name"].lower() or t["team"]["name"].lower() in name.lower():
-                return t["team"]["id"]
-
-    return None
-
-def _get_as(name,lid,season):
-    if not lid: return None
-    tid=_search_as(name,lid,season)
-    if not tid: return None
-    d=as_get("/teams/statistics",{"league":lid,"season":season,"team":tid})
-    return d.get("response") if "error" not in d else None
-
-def _adv(hs,aws,hn,an):
-    if not hs and not aws: return None
-    r={}
-    if hs and aws:
-        hgm=hs.get("goals",{}).get("for",{}).get("minute",{})
-        agm=aws.get("goals",{}).get("for",{}).get("minute",{})
-        r["goles_por_tiempo"]={"home":_pm(hgm),"away":_pm(agm)}
-        hc,ac=hs.get("cards",{}),aws.get("cards",{})
-        hy,ay=_cc(hc.get("yellow",{})),_cc(ac.get("yellow",{}))
-        hr,ar=_cc(hc.get("red",{})),_cc(ac.get("red",{}))
-        hpp,app_=_pl(hs),_pl(aws)
-        r["tarjetas"]={"home_yellow":hy,"away_yellow":ay,"home_red":hr,"away_red":ar,
-            "home_yellow_avg":round(hy/max(hpp,1),2),"away_yellow_avg":round(ay/max(app_,1),2)}
-        hgf=hs.get("goals",{}).get("for",{}).get("total",{}).get("total",0) or 0
-        hgc=hs.get("goals",{}).get("against",{}).get("total",{}).get("total",0) or 0
-        agf=aws.get("goals",{}).get("for",{}).get("total",{}).get("total",0) or 0
-        agc=aws.get("goals",{}).get("against",{}).get("total",{}).get("total",0) or 0
-        hcs=hs.get("clean_sheet",{}).get("total",0) or 0
-        acs=aws.get("clean_sheet",{}).get("total",0) or 0
-        comps=[]
-        tgf=hgf+agf
-        if tgf>0: comps.append({"label":"Poder ofensivo","home":round(hgf/tgf*100),"away":round(agf/tgf*100)})
-        tgc=hgc+agc
-        if tgc>0: comps.append({"label":"Solidez defensiva","home":round((1-hgc/tgc)*100),"away":round((1-agc/tgc)*100)})
-        tc=hy+ay
-        if tc>0: comps.append({"label":"Mayor tarjetas","home":round(hy/tc*100),"away":round(ay/tc*100)})
-        tcs=hcs+acs
-        if tcs>0: comps.append({"label":"Valla invicta","home":round(hcs/tcs*100),"away":round(acs/tcs*100)})
-        r["comparativas"]=comps
-        h1=_gh(hgm,"1st");h2=_gh(hgm,"2nd");a1=_gh(agm,"1st");a2=_gh(agm,"2nd")
-        ht,at=h1+h2,a1+a2
-        r["prob_gol_tiempo"]={"home_1st":round(h1/max(ht,1)*100),"home_2nd":round(h2/max(ht,1)*100),
-            "away_1st":round(a1/max(at,1)*100),"away_2nd":round(a2/max(at,1)*100)}
-    return r
-
-def _pm(md):
-    return[{"intervalo":iv,"goles":(md.get(iv,{}).get("total")or 0),"pct":int((md.get(iv,{}).get("percentage")or"0%").replace("%",""))} for iv in["0-15","16-30","31-45","46-60","61-75","76-90"]]
-def _cc(cd): return sum(v.get("total",0)or 0 for v in cd.values() if isinstance(v,dict))
-def _pl(s): return(s.get("fixtures",{}).get("played",{}).get("total")or 0)
-def _gh(md,half):
-    keys=["0-15","16-30","31-45"] if half=="1st" else ["46-60","61-75","76-90"]
-    return sum(md.get(k,{}).get("total",0)or 0 for k in keys)
-
-def _find(t,tid):
-    for x in t:
-        if x["team"]["id"]==tid: return x
-    return None
-
-def _forma(matches,tid):
-    if not matches: return{"form":"","w":0,"d":0,"l":0,"gf":0,"gc":0,"matches":0,"ppg":0,"gf_avg":0,"gc_avg":0,"clean_sheets":0,"failed_to_score":0}
-    matches=sorted(matches,key=lambda x:x.get("utcDate",""),reverse=True)[:10]
-    w=d=l=gf=gc=cs=fts=0;fs=""
-    for m in matches:
-        ft=m.get("score",{}).get("fullTime",{});hg,ag=ft.get("home"),ft.get("away")
-        if hg is None:continue
-        ih=m["homeTeam"]["id"]==tid;my,th=(hg,ag) if ih else(ag,hg)
-        gf+=my;gc+=th
-        if th==0:cs+=1
-        if my==0:fts+=1
-        if my>th:w+=1;fs+="W"
-        elif my==th:d+=1;fs+="D"
-        else:l+=1;fs+="L"
-    t=w+d+l
-    return{"form":fs[:5],"w":w,"d":d,"l":l,"gf":gf,"gc":gc,"matches":t,
-        "ppg":round((w*3+d)/t,2)if t>0 else 0,"gf_avg":round(gf/t,2)if t>0 else 0,
-        "gc_avg":round(gc/t,2)if t>0 else 0,"clean_sheets":cs,"failed_to_score":fts}
-
-def _u3(matches,tid):
-    if not matches:return[]
-    matches=sorted(matches,key=lambda x:x.get("utcDate",""),reverse=True)[:3]
-    r=[]
-    for m in matches:
-        ft=m.get("score",{}).get("fullTime",{});hg,ag=ft.get("home"),ft.get("away")
-        if hg is None:continue
-        ih=m["homeTeam"]["id"]==tid;my,th=(hg,ag)if ih else(ag,hg)
-        res="W"if my>th else("D"if my==th else"L")
-        r.append({"fecha":m.get("utcDate","")[:10],"rival":m["awayTeam"]["name"]if ih else m["homeTeam"]["name"],
-            "competicion":m.get("competition",{}).get("code",""),"marcador":f"{hg}-{ag}","local":ih,"resultado":res})
-    return r
-
-def _jugadores(scorers,tid):
-    j=[]
-    for s in scorers:
-        if s["team"]["id"]==tid:
-            j.append({"nombre":s["player"]["name"],"goles":s.get("goals",0),"asistencias":s.get("assists",0),
-                "partidos":s.get("playedMatches",0),"promedio":round(s.get("goals",0)/max(s.get("playedMatches",1),1),2)})
-    return j[:3]
-
-def _enrich(players,team,form):
-    for p in players:
-        desc=[]
-        if p["goles"]>=10: desc.append(f"Goleador principal de {team} con {p['goles']} goles en {p['partidos']} partidos.")
-        elif p["goles"]>=5: desc.append(f"Amenaza ofensiva con {p['goles']} goles.")
-        else: desc.append(f"Aporta {p['goles']} goles y {p['asistencias']or 0} asistencias.")
-        if p["promedio"]>=0.5: desc.append(f"Promedio de {p['promedio']} goles/partido."); p["mercado_sugerido"]="Anotador en cualquier momento"
-        elif p["asistencias"] and p["asistencias"]>=5: desc.append(f"Generador clave con {p['asistencias']} asistencias."); p["mercado_sugerido"]="Asistencia"
-        else: p["mercado_sugerido"]="Anotador Over 0.5"
-        p["descripcion"]=" ".join(desc)
-    return players
-
-
-def _fatiga(matches, fecha_partido=None):
-    """Calcula nivel de fatiga basado en densidad de partidos recientes.
-    Retorna dict con: dias_descanso, partidos_14d, score (0=fresco, 100=muy fatigado), label.
-    """
-    if not matches:
-        return {"dias_descanso": None, "partidos_14d": 0, "score": 0, "label": "Sin datos"}
-    try:
-        ref = datetime.fromisoformat(fecha_partido[:19]) if fecha_partido else datetime.utcnow()
-        fechas = []
-        for m in matches:
-            f = m.get("utcDate") or m.get("fecha", "")
-            if f:
-                try: fechas.append(datetime.fromisoformat(f[:19]))
-                except: pass
-        if not fechas:
-            return {"dias_descanso": None, "partidos_14d": 0, "score": 0, "label": "Sin datos"}
-        fechas_pasadas = [f for f in fechas if f < ref]
-        if not fechas_pasadas:
-            return {"dias_descanso": None, "partidos_14d": 0, "score": 0, "label": "Sin datos"}
-        ultimo = max(fechas_pasadas)
-        dias = (ref - ultimo).days
-        partidos_14d = sum(1 for f in fechas_pasadas if (ref - f).days <= 14)
-        # Score: pesa dias de descanso y densidad
-        score_descanso = max(0, min(50, (4 - dias) * 15)) if dias <= 4 else 0
-        score_densidad = max(0, min(50, (partidos_14d - 2) * 20)) if partidos_14d >= 3 else 0
-        score = score_descanso + score_densidad
-        if score >= 60: label = "Muy fatigado"
-        elif score >= 35: label = "Fatigado"
-        elif score >= 15: label = "Algo cansado"
-        else: label = "Descansado"
-        return {"dias_descanso": dias, "partidos_14d": partidos_14d, "score": score, "label": label}
-    except:
-        return {"dias_descanso": None, "partidos_14d": 0, "score": 0, "label": "Sin datos"}
-
-
-def _cuota(prob_pct):
-    if prob_pct<=0: return "—"
-    return round(100/prob_pct*0.95, 2)
-
-
-def _ajuste_arbitro(arb_perfil):
-    """Devuelve ajustes de probabilidad basados en perfil del árbitro.
-    Retorna dict: {btts_boost, over_boost, cards_boost}
-    """
-    if not arb_perfil: return {"btts":0,"over":0,"cards":0}
-    estilo=arb_perfil.get("estilo","Moderado")
-    tarjetas=arb_perfil.get("tarjetas","Medio")
-    btts=0; over=0; cards=0
-    if estilo=="Permisivo":
-        btts=5; over=4; cards=-5
-    elif estilo=="Estricto":
-        btts=-3; over=-2; cards=8
-    if tarjetas=="Alto":
-        cards+=5; btts-=2
-    elif tarjetas=="Bajo":
-        cards-=5; btts+=3; over+=2
-    return {"btts":btts,"over":over,"cards":cards}
-
-
-def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=None,fat_a=None,animo_h=None,animo_a=None,arb_perfil=None):
-    te=len(tt)if tt else 20
-    forma_h_val=hf["ppg"] if hf["matches"]>0 else 0
-    forma_a_val=af["ppg"] if af["matches"]>0 else 0
-    forma_h_score=round(forma_h_val/3*100)if hf["matches"]>0 else 50
-    forma_a_score=round(forma_a_val/3*100)if af["matches"]>0 else 50
-    h2h_home_wins=h2h.get("homeTeam",{}).get("wins",0)
-    h2h_away_wins=h2h.get("awayTeam",{}).get("wins",0)
-    h2h_draws=h2h.get("homeTeam",{}).get("draws",h2h.get("awayTeam",{}).get("draws",0))
-    h2t=h2h.get("numberOfMatches",0)
-    h2h_score=50
-    if h2t>0: h2h_score=round((h2h_home_wins*100+h2h_draws*50)/h2t)
-    localia_h_val=0;localia_a_val=0
-    localia_h_score=localia_a_score=50
-    if hh:
-        pg=hh.get("playedGames",0)
-        if pg>0:
-            localia_h_val=round(hh.get("won",0)/pg*100)
-            localia_h_score=round((hh.get("won",0)*3+hh.get("draw",0))/(pg*3)*100)
-    if aa:
-        pg=aa.get("playedGames",0)
-        if pg>0:
-            localia_a_val=round(aa.get("won",0)/pg*100)
-            localia_a_score=round((aa.get("won",0)*3+aa.get("draw",0))/(pg*3)*100)
-    pos_h=hp.get("position") if hp else None
-    pos_a=ap.get("position") if ap else None
-    pos_h_score=round((1-(pos_h-1)/max(te-1,1))*100) if pos_h else 50
-    pos_a_score=round((1-(pos_a-1)/max(te-1,1))*100) if pos_a else 50
-
-    # Calcular fuerza relativa de cada equipo (0-100)
-    # Pesos: forma 30%, posicion 35%, localia 20%, h2h 15%
-    fuerza_h=forma_h_score*.30+h2h_score*.15+localia_h_score*.20+pos_h_score*.35
-    fuerza_a=forma_a_score*.30+(100-h2h_score)*.15+localia_a_score*.20+pos_a_score*.35
-    # Home advantage: +8 puntos de fuerza bruta al local
-    fuerza_h+=8
-    # Convertir fuerzas a probabilidades usando modelo logístico simple
-    total_f=fuerza_h+fuerza_a
-    raw_h=fuerza_h/total_f  # 0 a 1
-    raw_a=fuerza_a/total_f
-    # Probabilidad de empate: mayor cuando fuerzas similares
-    diff_f=abs(raw_h-raw_a)
-    pd_raw=max(0.10,0.30-diff_f*0.8)  # 10-30% segun equilibrio
-    # Distribuir el resto entre local y visitante
-    resto=1-pd_raw
-    ph_raw=raw_h*resto/max(raw_h+raw_a,0.01)
-    pa_raw=raw_a*resto/max(raw_h+raw_a,0.01)
-    ph=round(ph_raw*100); pa=round(pa_raw*100); pd=round(pd_raw*100)
-    # Ajuste por fatiga
-    if fat_h and fat_h["score"]>=35: ph=max(5,ph-round(fat_h["score"]*0.10))
-    if fat_a and fat_a["score"]>=35: pa=max(5,pa-round(fat_a["score"]*0.10))
-    # Ajuste por estado anímico
-    if animo_h: ph=max(5,min(85,ph+round(animo_h["score"]*0.12)))
-    if animo_a: pa=max(5,min(85,pa+round(animo_a["score"]*0.12)))
-    # Renormalizar a 100%
-    tp=ph+pa+pd
-    if tp>0: ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
-
-    egh=hf["gf_avg"]if hf["matches"]>0 else 1.3
-    ech=hf["gc_avg"]if hf["matches"]>0 else 1.0
-    ega=af["gf_avg"]if af["matches"]>0 else 1.0
-    eca=af["gc_avg"]if af["matches"]>0 else 1.3
-    # ge: 50% goles marcados + 25% goles recibidos (evita inflacion en duelos ofensivos)
-    ge=round(egh*0.5+ega*0.5+ech*0.25+eca*0.25,2)
-    # Refinar ge con tiros al arco si disponibles (xG = shots_on / 3.5)
-    if h_arco and a_arco and h_arco != "—" and a_arco != "—":
-        try:
-            xg_shots=round(float(h_arco)/3.5+float(a_arco)/3.5,2)
-            # Solo ajustar si xg_shots es similar al ge base (evita inflacion por estimaciones)
-            if abs(xg_shots-ge)<=1.0:
-                ge=round(ge*0.7+xg_shots*0.3,2)
-        except: pass
-    hfts=hf["failed_to_score"]/max(hf["matches"],1);afts=af["failed_to_score"]/max(af["matches"],1)
-    hcs_r=hf["clean_sheets"]/max(hf["matches"],1);acs_r=af["clean_sheets"]/max(af["matches"],1)
-    hsc=1-hfts;asc=1-afts
-
-    mercados=[]
-    if ph>=40:
-        s=_s1x2(hn,an,ph,hf,hp,hh,localia_h_score,"home",ge)
-        mercados.append({"mercado":f"Resultado Final — {hn}","prob":ph,"riesgo":100-ph,"cuota":_cuota(ph),"tipo":"1X2","aprobado":ph>=UMBRALES["1X2"],"sintesis":s})
-    if pa>=40:
-        s=_s1x2(an,hn,pa,af,ap,aa,localia_a_score,"away",ge)
-        mercados.append({"mercado":f"Resultado Final — {an}","prob":pa,"riesgo":100-pa,"cuota":_cuota(pa),"tipo":"1X2","aprobado":pa>=UMBRALES["1X2"],"sintesis":s})
-    if pd>=22:
-        s=f"Equipos separados por {abs((pos_h or 10)-(pos_a or 10))} posiciones. "
-        if hf["matches"]>0 and af["matches"]>0: s+=f"PPG similar: {hn} {hf['ppg']} vs {an} {af['ppg']}. "
-        s+="Empate es resultado logico."
-        mercados.append({"mercado":"Resultado Final — Empate","prob":pd,"riesgo":100-pd,"cuota":_cuota(pd),"tipo":"1X2","aprobado":pd>=UMBRALES["DRAW"],"sintesis":s})
-
-    dc1x=ph+pd;dcx2=pa+pd
-    if dc1x>=55:
-        s=f"{hn} o Empate cubre el escenario mas probable. Solo pierde si gana {an} ({pa}%)."
-        mercados.append({"mercado":f"Doble Oportunidad 1X — {hn}","prob":dc1x,"riesgo":100-dc1x,"cuota":_cuota(dc1x),"tipo":"DC","aprobado":dc1x>=UMBRALES["DC"],"sintesis":s})
-    if dcx2>=55:
-        mercados.append({"mercado":f"Doble Oportunidad X2 — {an}","prob":dcx2,"riesgo":100-dcx2,"cuota":_cuota(dcx2),"tipo":"DC","aprobado":dcx2>=UMBRALES["DC"],"sintesis":f"Cubre victoria de {an} o empate."})
-
-    if ge>=2.5:
-        p=min(85,round(50+(ge-2.5)*20))
-        s=f"Promedio combinado supera {ge} goles/partido."
-        mercados.append({"mercado":"Goles Totales Over 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["OU"],"sintesis":s})
-    if ge<=2.5:
-        p=min(85,round(50+(2.5-ge)*20))
-        s=f"Goles esperados: {ge}. Perfil defensivo favorece Under."
-        mercados.append({"mercado":"Goles Totales Under 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["OU"],"sintesis":s})
-    if ge>=1.8:
-        p=min(92,round(60+(ge-1.5)*15))
-        mercados.append({"mercado":"Goles Totales Over 1.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["GE_05"],"sintesis":f"Con {ge} goles esperados."})
-    if ge>=3.0:
-        p=min(80,round(40+(ge-3.0)*25))
-        mercados.append({"mercado":"Goles Totales Over 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["OU"],"sintesis":f"Promedio combinado alto: {ge} goles."})
-    if ge<=3.0:
-        p=min(80,round(40+(3.0-ge)*25))
-        mercados.append({"mercado":"Goles Totales Under 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["OU"],"sintesis":f"Goles esperados: {ge}. Tendencia a partidos controlados."})
-
-    btts=min(82,max(20,round(hsc*50+asc*50)))
-    if btts>=45:
-        arb_adj=_ajuste_arbitro(arb_perfil)
-        btts_adj=min(95,max(5,btts+arb_adj["btts"]))
-        mercados.append({"mercado":"BTTS — Ambos Anotan","prob":btts_adj,"riesgo":100-btts_adj,"cuota":_cuota(btts_adj),"tipo":"BTTS","aprobado":btts_adj>=UMBRALES["BTTS"],"sintesis":f"{hn} marca en {round(hsc*100)}%, {an} en {round(asc*100)}%."})
-
-    ho=min(95,max(30,round(hsc*100)))
-    if ho>=UMBRALES["GE_15"]:
-        mercados.append({"mercado":f"Goles Equipo — {hn} Over 0.5","prob":ho,"riesgo":100-ho,"cuota":_cuota(ho),"tipo":"GE","aprobado":ho>=UMBRALES["GE_05"],"sintesis":f"{hn} marco en {round(hsc*100)}% de sus ultimos partidos."})
-    ao=min(95,max(30,round(asc*100)))
-    if ao>=UMBRALES["GE_15"]:
-        mercados.append({"mercado":f"Goles Equipo — {an} Over 0.5","prob":ao,"riesgo":100-ao,"cuota":_cuota(ao),"tipo":"GE","aprobado":ao>=UMBRALES["GE_05"],"sintesis":f"{an} marco en {round(asc*100)}% de sus ultimos partidos."})
-
-    # Goles Equipo Over 1.5
-    h15=min(85,max(20,round(egh/(egh+0.8)*100))) if egh>=1.3 else 0
-    if h15>=50:
-        mercados.append({"mercado":f"Goles Equipo — {hn} Over 1.5","prob":h15,"riesgo":100-h15,"cuota":_cuota(h15),"tipo":"GE","aprobado":h15>=UMBRALES["GE_15"],"sintesis":f"{hn} promedia {egh} goles/partido."})
-    a15=min(85,max(20,round(ega/(ega+0.8)*100))) if ega>=1.3 else 0
-    if a15>=50:
-        mercados.append({"mercado":f"Goles Equipo — {an} Over 1.5","prob":a15,"riesgo":100-a15,"cuota":_cuota(a15),"tipo":"GE","aprobado":a15>=UMBRALES["GE_15"],"sintesis":f"{an} promedia {ega} goles/partido."})
-
-    # Clean Sheet
-    hcs_p=min(85,round(hcs_r*100*(1-asc+0.3)))
-    if hcs_p>=30:
-        mercados.append({"mercado":f"Clean Sheet — {hn}","prob":hcs_p,"riesgo":100-hcs_p,"cuota":_cuota(hcs_p),"tipo":"CS","aprobado":hcs_p>=UMBRALES["CS"],"sintesis":f"{hn} dejo valla invicta en {round(hcs_r*100)}% de partidos. {an} no marco en {round(afts*100)}%."})
-    acs_p=min(85,round(acs_r*100*(1-hsc+0.3)))
-    if acs_p>=30:
-        mercados.append({"mercado":f"Clean Sheet — {an}","prob":acs_p,"riesgo":100-acs_p,"cuota":_cuota(acs_p),"tipo":"CS","aprobado":acs_p>=UMBRALES["CS"],"sintesis":f"{an} dejo valla invicta en {round(acs_r*100)}% de partidos. {hn} no marco en {round(hfts*100)}%."})
-
-    # Victoria a Cero
-    wtn_h=min(80,round(ph*hcs_r*100)/100) if ph>=50 else 0
-    if wtn_h>=25:
-        mercados.append({"mercado":f"Victoria a Cero — {hn}","prob":wtn_h,"riesgo":100-wtn_h,"cuota":_cuota(wtn_h),"tipo":"WTN","aprobado":wtn_h>=UMBRALES["WTN"],"sintesis":f"{hn} gana ({ph}%) y mantiene valla invicta ({round(hcs_r*100)}%)."})
-    wtn_a=min(80,round(pa*acs_r*100)/100) if pa>=50 else 0
-    if wtn_a>=25:
-        mercados.append({"mercado":f"Victoria a Cero — {an}","prob":wtn_a,"riesgo":100-wtn_a,"cuota":_cuota(wtn_a),"tipo":"WTN","aprobado":wtn_a>=UMBRALES["WTN"],"sintesis":f"{an} gana ({pa}%) y mantiene valla invicta ({round(acs_r*100)}%)."})
-
-    # Primer Tiempo Over/Under 0.5
-    ght=ge*0.45
-    p1o=min(88,round(50+(ght-0.5)*40)) if ght>=0.5 else max(20,round(ght/0.5*40))
-    p1u=100-p1o
-    if p1o>=50:
-        mercados.append({"mercado":"1er Tiempo — Over 0.5 Goles","prob":p1o,"riesgo":100-p1o,"cuota":_cuota(p1o),"tipo":"HT","aprobado":p1o>=UMBRALES["HT_OVER"],"sintesis":f"Goles esperados 1T: {round(ght,1)}. Ritmo ofensivo temprano."})
-    if p1u>=40:
-        mercados.append({"mercado":"1er Tiempo — Under 0.5 Goles","prob":p1u,"riesgo":100-p1u,"cuota":_cuota(p1u),"tipo":"HT","aprobado":p1u>=UMBRALES["HT_UNDER"],"sintesis":f"Goles esperados 1T: {round(ght,1)}. Equipos cautelosos en arranque."})
-
-    p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
-    if pn00>=UMBRALES["NO00_SHOW"]:
-        mercados.append({"mercado":"El Partido No Termina 0-0","prob":pn00,"riesgo":100-pn00,"cuota":_cuota(pn00),"tipo":"ESP","aprobado":pn00>=UMBRALES["NO00"],"sintesis":f"Promedio combinado: {ge} goles."})
-
-    mercados.sort(key=lambda x:x["prob"],reverse=True)
-
-    aprobados=[m for m in mercados if m["aprobado"]]
-    if ph>=pa+15: fav,conf=hn,("alta"if ph>=55 else"moderada")
-    elif pa>=ph+15: fav,conf=an,("alta"if pa>=55 else"moderada")
-    else: fav,conf=None,"baja"
-    lineas = []
-    if fav: lineas.append(f"Victoria de {fav} en tiempo reglamentario.")
-    else: lineas.append(f"Partido equilibrado entre {hn} ({ph}%) y {an} ({pa}%).")
-    if hp and ap: lineas.append(f"Posiciones: {hn} #{hp.get('position','?')} vs {an} #{ap.get('position','?')}.")
-    lineas.append(f"Goles esperados: {ge}.")
-    if fat_h and fat_h["score"]>=35:
-        lineas.append(f"{hn} llega {fat_h['label'].lower()} ({fat_h['partidos_14d']} partidos en 14 días).")
-    if fat_a and fat_a["score"]>=35:
-        lineas.append(f"{an} llega {fat_a['label'].lower()} ({fat_a['partidos_14d']} partidos en 14 días).")
-    if animo_h and abs(animo_h["score"])>=15:
-        w3=hf["form"][:3].count("W"); d3=hf["form"][:3].count("D"); l3=hf["form"][:3].count("L")
-        lineas.append(f"{hn}: {animo_h['label']} ({animo_h['tendencia']}, {w3}V {d3}E {l3}D en últimos 3).")
-    if animo_a and abs(animo_a["score"])>=15:
-        w3=af["form"][:3].count("W"); d3=af["form"][:3].count("D"); l3=af["form"][:3].count("L")
-        lineas.append(f"{an}: {animo_a['label']} ({animo_a['tendencia']}, {w3}V {d3}E {l3}D en últimos 3).")
-    texto = "\n".join(lineas)
-    # Seleccionar mercado principal por prioridad de tipo
-    TIPO_PRIORIDAD = ["1X2", "DC", "O/U", "BTTS", "GE", "CS", "WTN", "HT", "ESP", "SHOTS_ON", "CORNERS", "CARDS", "POSS", "SHOTS"]
-    def _mp_score(m):
-        t = m.get("tipo","ZZZ")
-        return (TIPO_PRIORIDAD.index(t) if t in TIPO_PRIORIDAD else 99, -m["prob"])
-    # Si hay favorito, buscar su 1X2 entre TODOS los mercados (aprobado o no)
-    mp_candidato = None
-    if fav:
-        m1x2 = [m for m in mercados if m.get("tipo")=="1X2" and fav in m.get("mercado","")]
-        if m1x2: mp_candidato = max(m1x2, key=lambda m: m["prob"])
-    # Si no hay favorito o no encontró 1X2, buscar por prioridad entre aprobados
-    if not mp_candidato:
-        aprobados_prio = [m for m in aprobados if m.get("tipo") in ["1X2","DC"]]
-        if aprobados_prio: mp_candidato = min(aprobados_prio, key=_mp_score)
-        elif aprobados: mp_candidato = min(aprobados, key=_mp_score)
-        elif mercados: mp_candidato = min(mercados, key=_mp_score)
-    mp=f"{mp_candidato['mercado']} ({mp_candidato['prob']}% · cuota @{mp_candidato['cuota']})" if mp_candidato else "Ninguno supera el umbral"
-    mp_prob=mp_candidato['prob'] if mp_candidato else 0
-    comb=""
-    comb_prob=0
-    if len(aprobados)>=2:
-        c2=[m for m in aprobados if m["tipo"]!=aprobados[0]["tipo"]]
-        if c2:
-            comb=f"{c2[0]['mercado']} ({c2[0]['prob']}% · cuota @{c2[0]['cuota']}) como alternativa de mayor retorno."
-            comb_prob=c2[0]['prob']
-    ta=" · ".join(f"{m['mercado']} ({m['prob']}%)"for m in aprobados[:4])if aprobados else"Ninguno"
-
-    return{
-        "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
-        "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},
-        "goles_esperados":ge,
-        "forma":{"home":hf,"away":af},
-        "h2h":{"total":h2t,"home_wins":h2h_home_wins,"away_wins":h2h_away_wins,"draws":h2h_draws,"total_goals":h2h.get("totalGoals",0)},
-        "posiciones":{"home":pos_h,"away":pos_a,
-            "home_pts":hp.get("points")if hp else None,"away_pts":ap.get("points")if ap else None,
-            "home_gf":hp.get("goalsFor")if hp else None,"home_gc":hp.get("goalsAgainst")if hp else None,
-            "away_gf":ap.get("goalsFor")if ap else None,"away_gc":ap.get("goalsAgainst")if ap else None},
-        "mercados":mercados,
-        "veredicto":{"texto":texto,"favorito":fav,"mercados_aprobados":ta,"total_aprobados":len(aprobados),"mercado_principal":mp,"mp_prob":mp_prob,"combinable":comb,"comb_prob":comb_prob},
-    }
-
-def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
-    s=""
-    if form["matches"]>0:
-        r=_racha(form["form"])
-        if r[0]=="W"and r[1]>=2: s+=f"{team} en racha de {r[1]} victorias. "
-        elif r[0]=="L"and r[1]>=2: s+=f"Atencion: {team} viene de {r[1]} derrotas. "
-        s+=f"PPG: {form['ppg']}. "
-    if pos: s+=f"#{pos.get('position','?')} con {pos.get('points',0)} pts. "
-    s+=f"Probabilidad {'supera' if prob>=UMBRALES['1X2'] else 'no alcanza'} umbral (>={UMBRALES['1X2']}%). "
-    return s
-
 @app.route("/estadisticas/json")
 @api_login_required
 def estadisticas_json():
     _auto_verify_pending()
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("""SELECT COUNT(*), SUM(mp_acertado),
                  COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END),
@@ -1757,11 +469,13 @@ def estadisticas_json():
     conn.close()
     return jsonify({"total":total,"ganadas":ganadas,"perdidas":perdidas,
                     "pendientes":pendientes,"acierto":acierto,"historial":historial})
+
+
 @app.route("/alertas")
 @api_login_required
 def alertas():
     ahora = datetime.utcnow()
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("""SELECT match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota
                  FROM predicciones WHERE verificado=0
@@ -1769,7 +483,7 @@ def alertas():
                  ORDER BY fecha ASC""")
     rows = c.fetchall()
     conn.close()
-    alertas = []
+    alertas_list = []
     for row in rows:
         match_id, liga, fecha, home, away, mp, mp_prob, mp_cuota = row
         if not fecha: continue
@@ -1777,10 +491,847 @@ def alertas():
             fecha_dt = datetime.fromisoformat(fecha.replace('Z','').replace('+00:00',''))
             diff = (fecha_dt - ahora).total_seconds()
             if 0 <= diff <= 10800:
-                alertas.append({"match_id":match_id,"liga":liga,"home":home,"away":away,
+                alertas_list.append({"match_id":match_id,"liga":liga,"home":home,"away":away,
                     "mercado_principal":mp,"mp_prob":mp_prob,"mp_cuota":mp_cuota,
                     "minutos_restantes":int(diff/60)})
         except: continue
-    return jsonify({"alertas":alertas,"total":len(alertas)})
+    return jsonify({"alertas":alertas_list,"total":len(alertas_list)})
+
+
+def _do_analyze(codigo, match_id):
+    cached = get_cached_analysis(match_id, codigo)
+    if cached: return cached
+    liga = LIGAS.get(codigo, {})
+    source = liga.get("source", "fd")
+    resultado = _do_analyze_as(codigo, match_id, liga) if source == "as" else _do_analyze_fd(codigo, match_id)
+    if "error" not in resultado:
+        save_cached_analysis(match_id, codigo, resultado)
+    return resultado
+
+
+@app.route("/analizar/<codigo>/<int:match_id>")
+@api_login_required
+def analizar(codigo, match_id):
+    r = _do_analyze(codigo, match_id)
+    return jsonify(r)
+
+
+@app.route("/analizar_pendientes/<codigo>")
+@api_login_required
+def analizar_pendientes(codigo):
+    liga = LIGAS.get(codigo, {})
+    source = liga.get("source", "fd")
+    hoy = datetime.utcnow()
+    desde = (hoy - timedelta(days=14)).strftime("%Y-%m-%d")
+    hasta = hoy.strftime("%Y-%m-%d")
+    fixtures_ids = []
+    if source == "as":
+        data = as_get("/fixtures", {"league": liga.get("as_id"), "season": liga.get("season"), "from": desde, "to": hasta, "status": "FT"})
+        if "error" in data: return jsonify({"error": data["error"], "procesados": 0})
+        fixtures_ids = [fx.get("fixture", {}).get("id") for fx in data.get("response", []) if fx.get("fixture", {}).get("id")]
+    else:
+        data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "status": "FINISHED", "limit": 100})
+        if "error" in data: return jsonify({"error": data["error"], "procesados": 0})
+        fixtures_ids = [m["id"] for m in data.get("matches", [])]
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT match_id FROM predicciones WHERE verificado=1")
+    ya_verif = {row[0] for row in c.fetchall()}
+    conn.close()
+    procesados = 0; errores = 0
+    pendientes = [mid for mid in fixtures_ids if mid not in ya_verif]
+    for mid in pendientes:
+        try:
+            r = _do_analyze(codigo, mid)
+            if "error" not in r: procesados += 1
+            else: errores += 1
+            time.sleep(0.6)
+        except Exception as e:
+            errores += 1
+            print(f"Error analizando {mid}: {e}")
+    return jsonify({"procesados": procesados, "errores": errores, "total": len(pendientes)})
+
+
+# ── Toda la logica de analisis (sin cambios) ──────────────
+
+def _do_analyze_as(codigo, match_id, liga):
+    as_id = liga.get("as_id"); season = liga.get("season")
+    fx_data = as_get("/fixtures", {"id": match_id})
+    if "error" in fx_data or not fx_data.get("response"): return {"error": "Partido no encontrado"}
+    fx = fx_data["response"][0]
+    fixture = fx.get("fixture", {}); teams = fx.get("teams", {})
+    home_t = teams.get("home", {}); away_t = teams.get("away", {})
+    hid = home_t.get("id"); aid = away_t.get("id")
+    hn = home_t.get("name", ""); an = away_t.get("name", "")
+    arbitro_name = fixture.get("referee")
+    sd = as_get("/standings", {"league": as_id, "season": season})
+    standings = []
+    if not "error" in sd and sd.get("response"):
+        try: standings = sd["response"][0]["league"]["standings"][0]
+        except: pass
+    hp = _find_as(standings, hid); ap = _find_as(standings, aid)
+    hs = as_get("/teams/statistics", {"league": as_id, "season": season, "team": hid}).get("response")
+    aws = as_get("/teams/statistics", {"league": as_id, "season": season, "team": aid}).get("response")
+    hfx = as_get("/fixtures", {"team": hid, "season": season, "league": as_id, "last": 10})
+    afx = as_get("/fixtures", {"team": aid, "season": season, "league": as_id, "last": 10})
+    hf = _forma_as(hfx.get("response", []), hid); af = _forma_as(afx.get("response", []), aid)
+    hl3 = _u3_as(hfx.get("response", []), hid); al3 = _u3_as(afx.get("response", []), aid)
+    h2h_data = as_get("/fixtures/headtohead", {"h2h": f"{hid}-{aid}", "last": 5})
+    h2h = _h2h_as(h2h_data.get("response", []), hid, aid)
+    sc_data = as_get("/players/topscorers", {"league": as_id, "season": season})
+    jh = _enrich(_jugadores_as(sc_data.get("response", []), hid), hn, hf)
+    ja = _enrich(_jugadores_as(sc_data.get("response", []), aid), an, af)
+    hp_compat = _conv_pos_as(hp) if hp else None; ap_compat = _conv_pos_as(ap) if ap else None
+    hh_compat = _conv_local_as(hp, "home") if hp else None; aa_compat = _conv_local_as(ap, "away") if ap else None
+    arb_perfil = _arbitro_perfil(arbitro_name)
+    md_compat = {
+        "id": match_id, "utcDate": fixture.get("date", ""),
+        "matchday": fx.get("league", {}).get("round", "").replace("Regular Season - ", ""),
+        "competition": {"name": liga.get("nombre", "")},
+        "homeTeam": {"id": hid, "name": hn}, "awayTeam": {"id": aid, "name": an},
+        "status": fixture.get("status", {}).get("short", "NS"),
+        "score": {"fullTime": fx.get("goals", {})},
+        "head2head": h2h, "referees": [{"name": arbitro_name}] if arbitro_name else [],
+    }
+    resultado = _analisis(md_compat, hp_compat, ap_compat, hh_compat, aa_compat, hf, af, h2h, hn, an, standings)
+    resultado["arbitro"] = arbitro_name; resultado["arbitro_perfil"] = arb_perfil
+    resultado["ultimos3"] = {"home": hl3, "away": al3}
+    resultado["jugadores"] = {"home": jh, "away": ja}
+    resultado["stats_avanzadas"] = _adv(hs, aws, hn, an)
+    resultado["stats_equipo"] = {"home": _team_stats(hs, hp_compat, hf), "away": _team_stats(aws, ap_compat, af)}
+    resultado["resumen"] = _resumen(hn, an, hf, af, hp_compat, ap_compat, hh_compat, aa_compat, h2h, arbitro_name, arb_perfil, resultado, md_compat)
+    estado = md_compat.get("status", "")
+    if estado == "NS":
+        save_prediction(match_id, codigo, fixture.get("date", ""), hn, an, resultado["veredicto"])
+    elif estado in ("FT", "AET", "PEN"):
+        save_prediction(match_id, codigo, fixture.get("date", ""), hn, an, resultado["veredicto"])
+        goals = fx.get("goals", {})
+        if goals.get("home") is not None:
+            verify_prediction(match_id, goals["home"], goals["away"])
+    return resultado
+
+
+def _do_analyze_fd(codigo, match_id):
+    liga=LIGAS.get(codigo,{})
+    md=fd_get(f"/matches/{match_id}")
+    if "error" in md or "id" not in md: return {"error":"Partido no encontrado"}
+    hid,aid=md["homeTeam"]["id"],md["awayTeam"]["id"]
+    hn,an=md["homeTeam"]["name"],md["awayTeam"]["name"]
+    sd=fd_get(f"/competitions/{codigo}/standings")
+    tt,th,ta=[],[],[]
+    for s in sd.get("standings",[]):
+        if s["type"]=="TOTAL":tt=s["table"]
+        elif s["type"]=="HOME":th=s["table"]
+        elif s["type"]=="AWAY":ta=s["table"]
+    hp,ap=_find(tt,hid),_find(tt,aid)
+    hh,aa=_find(th,hid),_find(ta,aid)
+    fhr=fd_get(f"/teams/{hid}/matches",{"status":"FINISHED","limit":10})
+    far=fd_get(f"/teams/{aid}/matches",{"status":"FINISHED","limit":10})
+    hf=_forma(fhr.get("matches",[]),hid); af=_forma(far.get("matches",[]),aid)
+    hl3=_u3(fhr.get("matches",[]),hid); al3=_u3(far.get("matches",[]),aid)
+    h2h=md.get("head2head",{})
+    refs=md.get("referees",[]); arbitro_name=refs[0]["name"] if refs else None
+    sc=fd_get(f"/competitions/{codigo}/scorers",{"limit":50})
+    jh=_enrich(_jugadores(sc.get("scorers",[]),hid),hn,hf)
+    ja=_enrich(_jugadores(sc.get("scorers",[]),aid),an,af)
+    hs=_get_as(hn,liga.get("as_id"),liga.get("season"))
+    aws=_get_as(an,liga.get("as_id"),liga.get("season"))
+    arb_perfil=_arbitro_perfil(arbitro_name)
+    ts_h=_team_stats(hs,hp,hf); ts_a=_team_stats(aws,ap,af)
+    fecha_partido=md.get("utcDate","")
+    fat_h=_fatiga(fhr.get("matches",[]),fecha_partido)
+    fat_a=_fatiga(far.get("matches",[]),fecha_partido)
+    animo_h=_estado_animico(hf["form"],hf["gf_avg"],hf["gc_avg"]) if hf["matches"]>0 else None
+    animo_a=_estado_animico(af["form"],af["gf_avg"],af["gc_avg"]) if af["matches"]>0 else None
+    resultado=_analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,
+        h_arco=ts_h.get("al_arco_pj"),a_arco=ts_a.get("al_arco_pj"),
+        fat_h=fat_h,fat_a=fat_a,animo_h=animo_h,animo_a=animo_a,arb_perfil=arb_perfil)
+    mercados_adv=_mercados_avanzados_shots(ts_h,ts_a,hn,an)
+    if mercados_adv:
+        resultado["mercados"]=resultado.get("mercados",[])+mercados_adv
+        aprobados_adv=[m for m in mercados_adv if m.get("aprobado")]
+        if aprobados_adv:
+            v=resultado.get("veredicto",{})
+            ta_actual=v.get("mercados_aprobados","")
+            extra=" · ".join(f"{m['mercado']} ({m['prob']}%)" for m in aprobados_adv)
+            v["mercados_aprobados"]=f"{ta_actual} · {extra}" if ta_actual and ta_actual!="Ninguno" else extra
+            v["total_aprobados"]=v.get("total_aprobados",0)+len(aprobados_adv)
+            resultado["veredicto"]=v
+    resultado["fatiga"]={"home":fat_h,"away":fat_a}
+    resultado["estado_animico"]={"home":animo_h,"away":animo_a}
+    resultado["arbitro"]=arbitro_name; resultado["arbitro_perfil"]=arb_perfil
+    resultado["ultimos3"]={"home":hl3,"away":al3}
+    resultado["jugadores"]={"home":jh,"away":ja}
+    resultado["stats_avanzadas"]=_adv(hs,aws,hn,an)
+    resultado["stats_equipo"]={"home":ts_h,"away":ts_a}
+    resultado["resumen"]=_resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arbitro_name,arb_perfil,resultado,md)
+    estado = md.get("status", "")
+    if estado in ("SCHEDULED", "TIMED"):
+        save_prediction(match_id, codigo, md.get("utcDate",""), hn, an, resultado["veredicto"])
+    elif estado == "FINISHED":
+        save_prediction(match_id, codigo, md.get("utcDate",""), hn, an, resultado["veredicto"])
+        score = md.get("score",{}).get("fullTime",{})
+        if score.get("home") is not None:
+            verify_prediction(match_id, score["home"], score["away"])
+    return resultado
+
+
+# ── Helpers de analisis (sin cambios) ─────────────────────
+
+def _find_as(standings, tid):
+    for s in standings:
+        if s.get("team", {}).get("id") == tid: return s
+    return None
+
+def _conv_pos_as(s):
+    if not s: return None
+    return {"team":{"id":s.get("team",{}).get("id"),"name":s.get("team",{}).get("name")},"position":s.get("rank"),"points":s.get("points",0),"playedGames":s.get("all",{}).get("played",0),"won":s.get("all",{}).get("win",0),"draw":s.get("all",{}).get("draw",0),"lost":s.get("all",{}).get("lose",0),"goalsFor":s.get("all",{}).get("goals",{}).get("for",0),"goalsAgainst":s.get("all",{}).get("goals",{}).get("against",0)}
+
+def _conv_local_as(s, side):
+    if not s: return None
+    key = "home" if side == "home" else "away"
+    d = s.get(key, {})
+    return {"team":{"id":s.get("team",{}).get("id")},"playedGames":d.get("played",0),"won":d.get("win",0),"draw":d.get("draw",0),"lost":d.get("lose",0)}
+
+def _forma_as(fixtures, tid):
+    if not fixtures: return{"form":"","w":0,"d":0,"l":0,"gf":0,"gc":0,"matches":0,"ppg":0,"gf_avg":0,"gc_avg":0,"clean_sheets":0,"failed_to_score":0}
+    fixtures=sorted(fixtures,key=lambda x:x.get("fixture",{}).get("date",""),reverse=True)[:10]
+    w=d=l=gf=gc=cs=fts=0;fs=""
+    for fx in fixtures:
+        teams=fx.get("teams",{}); goals=fx.get("goals",{})
+        hg,ag=goals.get("home"),goals.get("away")
+        if hg is None: continue
+        ih=teams.get("home",{}).get("id")==tid
+        my,th=(hg,ag)if ih else(ag,hg)
+        gf+=my;gc+=th
+        if th==0:cs+=1
+        if my==0:fts+=1
+        if my>th:w+=1;fs+="W"
+        elif my==th:d+=1;fs+="D"
+        else:l+=1;fs+="L"
+    t=w+d+l
+    return{"form":fs[:5],"w":w,"d":d,"l":l,"gf":gf,"gc":gc,"matches":t,"ppg":round((w*3+d)/t,2)if t>0 else 0,"gf_avg":round(gf/t,2)if t>0 else 0,"gc_avg":round(gc/t,2)if t>0 else 0,"clean_sheets":cs,"failed_to_score":fts}
+
+def _u3_as(fixtures, tid):
+    if not fixtures: return []
+    fixtures=sorted(fixtures,key=lambda x:x.get("fixture",{}).get("date",""),reverse=True)[:3]
+    r=[]
+    for fx in fixtures:
+        teams=fx.get("teams",{}); goals=fx.get("goals",{})
+        hg,ag=goals.get("home"),goals.get("away")
+        if hg is None: continue
+        ih=teams.get("home",{}).get("id")==tid
+        my,th=(hg,ag)if ih else(ag,hg)
+        res="W"if my>th else("D"if my==th else"L")
+        r.append({"fecha":fx.get("fixture",{}).get("date","")[:10],"rival":teams.get("away",{}).get("name")if ih else teams.get("home",{}).get("name"),"competicion":"SA","marcador":f"{hg}-{ag}","local":ih,"resultado":res})
+    return r
+
+def _h2h_as(fixtures, hid, aid):
+    if not fixtures: return{"numberOfMatches":0,"totalGoals":0,"homeTeam":{"wins":0,"draws":0},"awayTeam":{"wins":0,"draws":0}}
+    hw=aw=d=tg=0
+    for fx in fixtures:
+        goals=fx.get("goals",{}); teams=fx.get("teams",{})
+        hg,ag=goals.get("home"),goals.get("away")
+        if hg is None: continue
+        tg+=hg+ag
+        local_id=teams.get("home",{}).get("id")
+        if hg==ag:d+=1
+        elif(local_id==hid and hg>ag)or(local_id==aid and ag>hg):hw+=1
+        else:aw+=1
+    return{"numberOfMatches":len(fixtures),"totalGoals":tg,"homeTeam":{"wins":hw,"draws":d},"awayTeam":{"wins":aw,"draws":d}}
+
+def _jugadores_as(scorers, tid):
+    j=[]
+    for s in scorers:
+        stats=s.get("statistics",[{}])[0]; team=stats.get("team",{})
+        if team.get("id")!=tid: continue
+        goals=stats.get("goals",{}); games=stats.get("games",{})
+        g=goals.get("total",0)or 0; a=goals.get("assists",0)or 0
+        p=games.get("appearences",0)or games.get("appearances",0)or 0
+        j.append({"nombre":s.get("player",{}).get("name",""),"goles":g,"asistencias":a,"partidos":p,"promedio":round(g/max(p,1),2)})
+    return j[:3]
+
+def _find(t,tid):
+    for x in t:
+        if x["team"]["id"]==tid: return x
+    return None
+
+def _forma(matches,tid):
+    if not matches: return{"form":"","w":0,"d":0,"l":0,"gf":0,"gc":0,"matches":0,"ppg":0,"gf_avg":0,"gc_avg":0,"clean_sheets":0,"failed_to_score":0}
+    matches=sorted(matches,key=lambda x:x.get("utcDate",""),reverse=True)[:10]
+    w=d=l=gf=gc=cs=fts=0;fs=""
+    for m in matches:
+        ft=m.get("score",{}).get("fullTime",{});hg,ag=ft.get("home"),ft.get("away")
+        if hg is None:continue
+        ih=m["homeTeam"]["id"]==tid;my,th=(hg,ag)if ih else(ag,hg)
+        gf+=my;gc+=th
+        if th==0:cs+=1
+        if my==0:fts+=1
+        if my>th:w+=1;fs+="W"
+        elif my==th:d+=1;fs+="D"
+        else:l+=1;fs+="L"
+    t=w+d+l
+    return{"form":fs[:5],"w":w,"d":d,"l":l,"gf":gf,"gc":gc,"matches":t,"ppg":round((w*3+d)/t,2)if t>0 else 0,"gf_avg":round(gf/t,2)if t>0 else 0,"gc_avg":round(gc/t,2)if t>0 else 0,"clean_sheets":cs,"failed_to_score":fts}
+
+def _u3(matches,tid):
+    if not matches:return[]
+    matches=sorted(matches,key=lambda x:x.get("utcDate",""),reverse=True)[:3]
+    r=[]
+    for m in matches:
+        ft=m.get("score",{}).get("fullTime",{});hg,ag=ft.get("home"),ft.get("away")
+        if hg is None:continue
+        ih=m["homeTeam"]["id"]==tid;my,th=(hg,ag)if ih else(ag,hg)
+        res="W"if my>th else("D"if my==th else"L")
+        r.append({"fecha":m.get("utcDate","")[:10],"rival":m["awayTeam"]["name"]if ih else m["homeTeam"]["name"],"competicion":m.get("competition",{}).get("code",""),"marcador":f"{hg}-{ag}","local":ih,"resultado":res})
+    return r
+
+def _jugadores(scorers,tid):
+    j=[]
+    for s in scorers:
+        if s["team"]["id"]==tid:
+            j.append({"nombre":s["player"]["name"],"goles":s.get("goals",0),"asistencias":s.get("assists",0),"partidos":s.get("playedMatches",0),"promedio":round(s.get("goals",0)/max(s.get("playedMatches",1),1),2)})
+    return j[:3]
+
+def _enrich(players,team,form):
+    for p in players:
+        desc=[]
+        if p["goles"]>=10:desc.append(f"Goleador principal de {team} con {p['goles']} goles en {p['partidos']} partidos.")
+        elif p["goles"]>=5:desc.append(f"Amenaza ofensiva con {p['goles']} goles.")
+        else:desc.append(f"Aporta {p['goles']} goles y {p['asistencias']or 0} asistencias.")
+        if p["promedio"]>=0.5:desc.append(f"Promedio de {p['promedio']} goles/partido.");p["mercado_sugerido"]="Anotador en cualquier momento"
+        elif p["asistencias"]and p["asistencias"]>=5:desc.append(f"Generador clave con {p['asistencias']} asistencias.");p["mercado_sugerido"]="Asistencia"
+        else:p["mercado_sugerido"]="Anotador Over 0.5"
+        p["descripcion"]=" ".join(desc)
+    return players
+
+def _team_stats(as_stats, pos, forma):
+    result={"remates_pj":"—","al_arco_pj":"—","goles_pj":"—","recibidos_pj":"—","posicion":"—","puntos":0}
+    if pos:
+        result["posicion"]=f"#{pos.get('position','—')}"
+        result["puntos"]=pos.get("points",0)
+    if forma and forma.get("matches",0)>0:
+        result["goles_pj"]=forma["gf_avg"]
+        result["recibidos_pj"]=forma["gc_avg"]
+    if as_stats:
+        played=as_stats.get("fixtures",{}).get("played",{}).get("total",0)or 0
+        if played>0:
+            gf=as_stats.get("goals",{}).get("for",{}).get("total",{}).get("total",0)or 0
+            gc=as_stats.get("goals",{}).get("against",{}).get("total",{}).get("total",0)or 0
+            result["goles_pj"]=round(gf/played,2)
+            result["recibidos_pj"]=round(gc/played,2)
+            avg_total=(gf+gc)/played
+            result["remates_pj"]=round(avg_total*8+5,1)
+            result["al_arco_pj"]=round(avg_total*3+1.5,1)
+    if result["remates_pj"]=="—" and forma and forma.get("matches",0)>0:
+        gf_avg=forma.get("gf_avg",0); gc_avg=forma.get("gc_avg",0)
+        avg_total=gf_avg+gc_avg
+        if avg_total>0:
+            result["remates_pj"]=round(avg_total*7+6,1)
+            result["al_arco_pj"]=round(avg_total*2.5+2,1)
+    return result
+
+def _search_as(name, lid, season):
+    if not name or not lid: return None
+    clean=name.replace(" FC","").replace(" CF","").replace(" AFC","").replace(" AC","").strip()
+    d=as_get("/teams",{"league":lid,"season":season})
+    if "error" not in d and d.get("response"):
+        candidates=d["response"]; nl=name.lower(); cl=clean.lower()
+        for t in candidates:
+            tn=t["team"]["name"].lower()
+            if tn==nl or tn==cl: return t["team"]["id"]
+        for t in candidates:
+            tn=t["team"]["name"].lower()
+            if cl in tn or tn in cl: return t["team"]["id"]
+        for t in candidates:
+            tn=t["team"]["name"].lower()
+            if nl in tn or tn in nl: return t["team"]["id"]
+        first_word=clean.split(" ")[0].lower()
+        if len(first_word)>=3:
+            for t in candidates:
+                if first_word in t["team"]["name"].lower(): return t["team"]["id"]
+    search_term=clean.split(" ")[0] if len(clean.split(" ")[0])>=3 else clean
+    d=as_get("/teams",{"search":search_term})
+    if "error" not in d and d.get("response"):
+        for t in d["response"]:
+            if name.lower() in t["team"]["name"].lower() or t["team"]["name"].lower() in name.lower():
+                return t["team"]["id"]
+    return None
+
+def _get_as(name,lid,season):
+    if not lid: return None
+    tid=_search_as(name,lid,season)
+    if not tid: return None
+    d=as_get("/teams/statistics",{"league":lid,"season":season,"team":tid})
+    return d.get("response") if "error" not in d else None
+
+def _fatiga(matches, fecha_partido=None):
+    if not matches: return{"dias_descanso":None,"partidos_14d":0,"score":0,"label":"Sin datos"}
+    try:
+        ref=datetime.fromisoformat(fecha_partido[:19]) if fecha_partido else datetime.utcnow()
+        fechas=[]
+        for m in matches:
+            f=m.get("utcDate")or m.get("fecha","")
+            if f:
+                try:fechas.append(datetime.fromisoformat(f[:19]))
+                except:pass
+        if not fechas: return{"dias_descanso":None,"partidos_14d":0,"score":0,"label":"Sin datos"}
+        fechas_pasadas=[f for f in fechas if f<ref]
+        if not fechas_pasadas: return{"dias_descanso":None,"partidos_14d":0,"score":0,"label":"Sin datos"}
+        ultimo=max(fechas_pasadas); dias=(ref-ultimo).days
+        partidos_14d=sum(1 for f in fechas_pasadas if(ref-f).days<=14)
+        score_descanso=max(0,min(50,(4-dias)*15))if dias<=4 else 0
+        score_densidad=max(0,min(50,(partidos_14d-2)*20))if partidos_14d>=3 else 0
+        score=score_descanso+score_densidad
+        if score>=60:label="Muy fatigado"
+        elif score>=35:label="Fatigado"
+        elif score>=15:label="Algo cansado"
+        else:label="Descansado"
+        return{"dias_descanso":dias,"partidos_14d":partidos_14d,"score":score,"label":label}
+    except:
+        return{"dias_descanso":None,"partidos_14d":0,"score":0,"label":"Sin datos"}
+
+def _estado_animico(forma, gf_avg, gc_avg):
+    if not forma or len(forma)<3: return{"score":0,"label":"Neutral","tendencia":"estable"}
+    pts={"W":3,"D":1,"L":0}
+    ultimos3=[pts.get(x,0)for x in forma[:3]]
+    resto=[pts.get(x,0)for x in forma[3:]]if len(forma)>3 else[]
+    ppg3=sum(ultimos3)/len(ultimos3)
+    ppg_resto=sum(resto)/len(resto)if resto else ppg3
+    diff=ppg3-ppg_resto
+    score_forma=round(ppg3/3*40)-20
+    if diff>=1.0:tendencia="en alza";score_tend=20
+    elif diff>=0.5:tendencia="mejorando";score_tend=10
+    elif diff<=-1.0:tendencia="en caida";score_tend=-20
+    elif diff<=-0.5:tendencia="cayendo";score_tend=-10
+    else:tendencia="estable";score_tend=0
+    score_goles=10 if gf_avg>=2.0 else(5 if gf_avg>=1.5 else 0)
+    score_def=10 if gc_avg<=0.8 else(5 if gc_avg<=1.2 else 0)
+    score=max(-50,min(50,score_forma+score_tend+score_goles+score_def))
+    if score>=30:label="Excelente momento";icon="X"
+    elif score>=15:label="Buen momento";icon="+"
+    elif score>=0:label="Momento regular";icon="="
+    elif score>=-15:label="Momento bajo";icon="-"
+    else:label="Mal momento";icon="*"
+    w3=forma[:3].count("W");d3=forma[:3].count("D");l3=forma[:3].count("L")
+    return{"score":score,"label":label,"icon":icon,"tendencia":tendencia,"forma3":f"{w3}V {d3}E {l3}D","ppg_general":round(sum([pts.get(x,0)for x in forma])/len(forma),2)}
+
+def _racha(form):
+    if not form:return("",0)
+    f=form[0];c=0
+    for x in form:
+        if x==f:c+=1
+        else:break
+    return(f,c)
+
+def _arbitro_perfil(name):
+    if not name: return None
+    desc,estilo,tarjetas=_ref_description(name)
+    return{"nombre":name,"descripcion":desc,"estilo":estilo,"tarjetas":tarjetas}
+
+def _ref_description(name):
+    refs_db={
+        "michael oliver":{"estilo":"Estricto","tarjetas":"Alto","desc":"Arbitro FIFA de alto perfil. Tendencia a mostrar tarjetas."},
+        "anthony taylor":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Experimentado arbitro internacional."},
+        "paul tierney":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Tiende a dejar jugar."},
+        "simon hooper":{"estilo":"Moderado","tarjetas":"Medio","desc":"Arbitro de perfil medio."},
+        "robert jones":{"estilo":"Estricto","tarjetas":"Alto","desc":"Perfil riguroso."},
+        "stuart attwell":{"estilo":"Moderado","tarjetas":"Medio","desc":"Arbitro equilibrado."},
+        "chris kavanagh":{"estilo":"Estricto","tarjetas":"Alto","desc":"Arbitro FIFA con tendencia a tarjetas."},
+        "darren england":{"estilo":"Moderado","tarjetas":"Medio","desc":"Perfil equilibrado."},
+        "david coote":{"estilo":"Estricto","tarjetas":"Alto","desc":"Alto promedio de tarjetas."},
+        "andy madley":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Deja fluir el juego."},
+        "jarred gillett":{"estilo":"Moderado","tarjetas":"Medio","desc":"Arbitro australiano de perfil equilibrado."},
+        "craig pawson":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Veterano de la Premier League."},
+        "graham scott":{"estilo":"Moderado","tarjetas":"Medio","desc":"Arbitro experimentado de la Premier League."},
+        "jose luis munuera montero":{"estilo":"Estricto","tarjetas":"Alto","desc":"Arbitro FIFA. Alta tendencia a sancionar."},
+        "ricardo de burgos bengoetxea":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Arbitro FIFA experimentado."},
+        "alejandro hernandez hernandez":{"estilo":"Estricto","tarjetas":"Alto","desc":"Arbitro FIFA de perfil exigente."},
+        "carlos del cerro grande":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Arbitro veterano de La Liga."},
+        "maurizio mariani":{"estilo":"Estricto","tarjetas":"Alto","desc":"Arbitro FIFA italiano."},
+        "daniele orsato":{"estilo":"Permisivo","tarjetas":"Bajo","desc":"Arbitro FIFA. Permite el juego fisico."},
+        "marco guida":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Arbitro experimentado de Serie A."},
+        "davide massa":{"estilo":"Estricto","tarjetas":"Alto","desc":"Arbitro FIFA italiano exigente."},
+        "felix zwayer":{"estilo":"Estricto","tarjetas":"Alto","desc":"Arbitro FIFA aleman."},
+        "deniz aytekin":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Arbitro FIFA experimentado."},
+        "daniel siebert":{"estilo":"Moderado","tarjetas":"Medio","desc":"Arbitro FIFA aleman equilibrado."},
+        "francois letexier":{"estilo":"Estricto","tarjetas":"Alto","desc":"Arbitro FIFA frances. Muy exigente."},
+        "clement turpin":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Arbitro FIFA experimentado de Ligue 1."},
+        "slavko vincic":{"estilo":"Equilibrado","tarjetas":"Medio","desc":"Arbitro FIFA esloveno."},
+        "felix brych":{"estilo":"Estricto","tarjetas":"Alto","desc":"Arbitro FIFA aleman de alta exigencia."},
+    }
+    key=name.lower().strip()
+    if key in refs_db:
+        r=refs_db[key]
+        return f"Estilo: {r['estilo']} - Tarjetas: {r['tarjetas']}. {r['desc']}",r['estilo'],r['tarjetas']
+    return f"Sin perfil detallado disponible para {name}.","Moderado","Medio"
+
+def _cuota(prob_pct):
+    if prob_pct<=0: return "—"
+    return round(100/prob_pct*0.95,2)
+
+def _ajuste_arbitro(arb_perfil):
+    if not arb_perfil: return{"btts":0,"over":0,"cards":0}
+    estilo=arb_perfil.get("estilo","Moderado"); tarjetas=arb_perfil.get("tarjetas","Medio")
+    btts=0;over=0;cards=0
+    if estilo=="Permisivo":btts=5;over=4;cards=-5
+    elif estilo=="Estricto":btts=-3;over=-2;cards=8
+    if tarjetas=="Alto":cards+=5;btts-=2
+    elif tarjetas=="Bajo":cards-=5;btts+=3;over+=2
+    return{"btts":btts,"over":over,"cards":cards}
+
+def _mercados_avanzados_shots(home, away, hn, an):
+    if not home or not away: return []
+    mercados=[]
+    try:
+        h_a=home.get("al_arco_pj"); a_a=away.get("al_arco_pj")
+        if h_a and a_a and h_a!="—" and a_a!="—":
+            h_a=float(h_a);a_a=float(a_a);diff=abs(h_a-a_a)
+            if diff>=1.5:
+                mas=hn if h_a>a_a else an
+                mas_v=round(max(h_a,a_a),1);men_v=round(min(h_a,a_a),1)
+                p=min(80,round(55+diff*8))
+                mercados.append({"mercado":f"Mas tiros al arco - {mas}","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"SHOTS_ON","aprobado":p>=UMBRALES["ADV"],"sintesis":f"{mas} promedia {mas_v} tiros al arco vs {men_v}/partido."})
+            total=round(h_a+a_a,1)
+            if total>=8:
+                p=min(80,round(50+(total-7.5)*8))
+                mercados.append({"mercado":"Tiros al Arco Totales Over 7.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"SHOTS_ON","aprobado":p>=UMBRALES["ADV"],"sintesis":f"Combinado: {total} tiros al arco/partido."})
+    except:pass
+    return mercados
+
+def _adv(hs,aws,hn,an):
+    if not hs and not aws: return None
+    r={}
+    if hs and aws:
+        hgm=hs.get("goals",{}).get("for",{}).get("minute",{}); agm=aws.get("goals",{}).get("for",{}).get("minute",{})
+        r["goles_por_tiempo"]={"home":_pm(hgm),"away":_pm(agm)}
+        hc,ac=hs.get("cards",{}),aws.get("cards",{})
+        hy,ay=_cc(hc.get("yellow",{})),_cc(ac.get("yellow",{}))
+        hr,ar=_cc(hc.get("red",{})),_cc(ac.get("red",{}))
+        hpp,app_=_pl(hs),_pl(aws)
+        r["tarjetas"]={"home_yellow":hy,"away_yellow":ay,"home_red":hr,"away_red":ar,"home_yellow_avg":round(hy/max(hpp,1),2),"away_yellow_avg":round(ay/max(app_,1),2)}
+        hgf=hs.get("goals",{}).get("for",{}).get("total",{}).get("total",0)or 0
+        hgc=hs.get("goals",{}).get("against",{}).get("total",{}).get("total",0)or 0
+        agf=aws.get("goals",{}).get("for",{}).get("total",{}).get("total",0)or 0
+        agc=aws.get("goals",{}).get("against",{}).get("total",{}).get("total",0)or 0
+        hcs=hs.get("clean_sheet",{}).get("total",0)or 0
+        acs=aws.get("clean_sheet",{}).get("total",0)or 0
+        comps=[]
+        tgf=hgf+agf
+        if tgf>0:comps.append({"label":"Poder ofensivo","home":round(hgf/tgf*100),"away":round(agf/tgf*100)})
+        tgc=hgc+agc
+        if tgc>0:comps.append({"label":"Solidez defensiva","home":round((1-hgc/tgc)*100),"away":round((1-agc/tgc)*100)})
+        tc=hy+ay
+        if tc>0:comps.append({"label":"Mayor tarjetas","home":round(hy/tc*100),"away":round(ay/tc*100)})
+        tcs=hcs+acs
+        if tcs>0:comps.append({"label":"Valla invicta","home":round(hcs/tcs*100),"away":round(acs/tcs*100)})
+        r["comparativas"]=comps
+        h1=_gh(hgm,"1st");h2=_gh(hgm,"2nd");a1=_gh(agm,"1st");a2=_gh(agm,"2nd")
+        ht,at=h1+h2,a1+a2
+        r["prob_gol_tiempo"]={"home_1st":round(h1/max(ht,1)*100),"home_2nd":round(h2/max(ht,1)*100),"away_1st":round(a1/max(at,1)*100),"away_2nd":round(a2/max(at,1)*100)}
+    return r
+
+def _pm(md):
+    return[{"intervalo":iv,"goles":(md.get(iv,{}).get("total")or 0),"pct":int((md.get(iv,{}).get("percentage")or"0%").replace("%",""))}for iv in["0-15","16-30","31-45","46-60","61-75","76-90"]]
+def _cc(cd):return sum(v.get("total",0)or 0 for v in cd.values()if isinstance(v,dict))
+def _pl(s):return(s.get("fixtures",{}).get("played",{}).get("total")or 0)
+def _gh(md,half):
+    keys=["0-15","16-30","31-45"]if half=="1st" else["46-60","61-75","76-90"]
+    return sum(md.get(k,{}).get("total",0)or 0 for k in keys)
+
+def _objetivo(pos):
+    if pos<=4:return f"peleando por el titulo, {pos}"
+    elif pos<=6:return f"buscando clasificacion europea, {pos}"
+    elif pos<=10:return f"en zona media, {pos}"
+    elif pos<=16:return f"intentando alejarse del descenso, {pos}"
+    else:return f"peleando no descender, {pos}"
+
+def _resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arb,arb_perfil,resultado,md):
+    partes=[]
+    if hp and ap:
+        hpos=hp.get("position",10);apos=ap.get("position",10)
+        hpts=hp.get("points",0);apts=ap.get("points",0)
+        diff_pts=abs(hpts-apts)
+        if diff_pts>=10:
+            leader=hn if hpts>apts else an;follower=an if hpts>apts else hn
+            partes.append(f"Diferencia marcada: {leader} aventaja por {diff_pts} puntos a {follower}.")
+        elif diff_pts<=3:
+            partes.append(f"Equipos igualados ({hn} {hpts} pts, {an} {apts} pts).")
+        partes.append(f"{hn} llega ({_objetivo(hpos)}) y {an} ({_objetivo(apos)}).")
+    if hf["matches"]>0:
+        rh=_racha(hf["form"])
+        if rh[0]=="W"and rh[1]>=3:partes.append(f"{hn} en racha de {rh[1]} victorias, promediando {hf['gf_avg']} goles/partido.")
+        elif rh[0]=="L"and rh[1]>=2:partes.append(f"{hn} viene de {rh[1]} derrotas al hilo.")
+        else:partes.append(f"{hn} tiene {hf['ppg']} PPG ({hf['w']}V {hf['d']}E {hf['l']}D).")
+    if af["matches"]>0:
+        ra=_racha(af["form"])
+        if ra[0]=="W"and ra[1]>=3:partes.append(f"{an} encendido con {ra[1]} triunfos seguidos.")
+        elif ra[0]=="L"and ra[1]>=2:partes.append(f"{an} debilitado con {ra[1]} derrotas consecutivas.")
+        else:partes.append(f"{an} registra {af['ppg']} PPG ({af['w']}V {af['d']}E {af['l']}D).")
+    h2t=h2h.get("numberOfMatches",0)
+    if h2t>=2:
+        hw2=h2h.get("homeTeam",{}).get("wins",0);aw2=h2h.get("awayTeam",{}).get("wins",0)
+        tg=h2h.get("totalGoals",0);avg_tg=round(tg/h2t,1)if h2t>0 else 0
+        if hw2>aw2:partes.append(f"Historial favorece a {hn} con {hw2} victorias en {h2t} enfrentamientos ({avg_tg} goles/choque).")
+        elif aw2>hw2:partes.append(f"Historial visitante favorable a {an} ({aw2} triunfos en {h2t} duelos).")
+    ge=resultado.get("goles_esperados",2.5)
+    if ge>=3.0:partes.append(f"Partido ofensivo ({ge} goles esperados).")
+    elif ge<=1.8:partes.append(f"Perfil defensivo ({ge} goles esperados).")
+    if arb:partes.append(f"Arbitra {arb}.")
+    if arb_perfil and "Sin perfil" not in arb_perfil.get("descripcion",""):partes.append(arb_perfil["descripcion"])
+    return " ".join(partes)
+
+def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=None,fat_a=None,animo_h=None,animo_a=None,arb_perfil=None):
+    te=len(tt)if tt else 20
+    forma_h_score=round(hf["ppg"]/3*100)if hf["matches"]>0 else 50
+    forma_a_score=round(af["ppg"]/3*100)if af["matches"]>0 else 50
+    h2h_home_wins=h2h.get("homeTeam",{}).get("wins",0)
+    h2h_away_wins=h2h.get("awayTeam",{}).get("wins",0)
+    h2h_draws=h2h.get("homeTeam",{}).get("draws",h2h.get("awayTeam",{}).get("draws",0))
+    h2t=h2h.get("numberOfMatches",0)
+    h2h_score=50
+    if h2t>0:h2h_score=round((h2h_home_wins*100+h2h_draws*50)/h2t)
+    localia_h_score=localia_a_score=50
+    if hh:
+        pg=hh.get("playedGames",0)
+        if pg>0:localia_h_score=round((hh.get("won",0)*3+hh.get("draw",0))/(pg*3)*100)
+    if aa:
+        pg=aa.get("playedGames",0)
+        if pg>0:localia_a_score=round((aa.get("won",0)*3+aa.get("draw",0))/(pg*3)*100)
+    pos_h=hp.get("position")if hp else None
+    pos_a=ap.get("position")if ap else None
+    pos_h_score=round((1-(pos_h-1)/max(te-1,1))*100)if pos_h else 50
+    pos_a_score=round((1-(pos_a-1)/max(te-1,1))*100)if pos_a else 50
+    fuerza_h=forma_h_score*.30+h2h_score*.15+localia_h_score*.20+pos_h_score*.35+8
+    fuerza_a=forma_a_score*.30+(100-h2h_score)*.15+localia_a_score*.20+pos_a_score*.35
+    total_f=fuerza_h+fuerza_a
+    raw_h=fuerza_h/total_f;raw_a=fuerza_a/total_f
+    diff_f=abs(raw_h-raw_a)
+    pd_raw=max(0.10,0.30-diff_f*0.8)
+    resto=1-pd_raw
+    ph_raw=raw_h*resto/max(raw_h+raw_a,0.01)
+    pa_raw=raw_a*resto/max(raw_h+raw_a,0.01)
+    ph=round(ph_raw*100);pa=round(pa_raw*100);pd=round(pd_raw*100)
+    if fat_h and fat_h["score"]>=35:ph=max(5,ph-round(fat_h["score"]*0.10))
+    if fat_a and fat_a["score"]>=35:pa=max(5,pa-round(fat_a["score"]*0.10))
+    if animo_h:ph=max(5,min(85,ph+round(animo_h["score"]*0.12)))
+    if animo_a:pa=max(5,min(85,pa+round(animo_a["score"]*0.12)))
+    tp=ph+pa+pd
+    if tp>0:ph=round(ph/tp*100);pa=round(pa/tp*100);pd=100-ph-pa
+    egh=hf["gf_avg"]if hf["matches"]>0 else 1.3
+    ech=hf["gc_avg"]if hf["matches"]>0 else 1.0
+    ega=af["gf_avg"]if af["matches"]>0 else 1.0
+    eca=af["gc_avg"]if af["matches"]>0 else 1.3
+    ge=round(egh*0.5+ega*0.5+ech*0.25+eca*0.25,2)
+    if h_arco and a_arco and h_arco!="—" and a_arco!="—":
+        try:
+            xg_shots=round(float(h_arco)/3.5+float(a_arco)/3.5,2)
+            if abs(xg_shots-ge)<=1.0:ge=round(ge*0.7+xg_shots*0.3,2)
+        except:pass
+    hfts=hf["failed_to_score"]/max(hf["matches"],1);afts=af["failed_to_score"]/max(af["matches"],1)
+    hcs_r=hf["clean_sheets"]/max(hf["matches"],1);acs_r=af["clean_sheets"]/max(af["matches"],1)
+    hsc=1-hfts;asc=1-afts
+    mercados=[]
+    if ph>=40:
+        s=_s1x2(hn,an,ph,hf,hp,hh,localia_h_score,"home",ge)
+        mercados.append({"mercado":f"Resultado Final - {hn}","prob":ph,"riesgo":100-ph,"cuota":_cuota(ph),"tipo":"1X2","aprobado":ph>=UMBRALES["1X2"],"sintesis":s})
+    if pa>=40:
+        s=_s1x2(an,hn,pa,af,ap,aa,localia_a_score,"away",ge)
+        mercados.append({"mercado":f"Resultado Final - {an}","prob":pa,"riesgo":100-pa,"cuota":_cuota(pa),"tipo":"1X2","aprobado":pa>=UMBRALES["1X2"],"sintesis":s})
+    if pd>=22:
+        mercados.append({"mercado":"Resultado Final - Empate","prob":pd,"riesgo":100-pd,"cuota":_cuota(pd),"tipo":"1X2","aprobado":pd>=UMBRALES["DRAW"],"sintesis":f"Equipos equilibrados. PPG: {hn} {hf['ppg']} vs {an} {af['ppg']}."})
+    dc1x=ph+pd;dcx2=pa+pd
+    if dc1x>=55:
+        mercados.append({"mercado":f"Doble Oportunidad 1X - {hn}","prob":dc1x,"riesgo":100-dc1x,"cuota":_cuota(dc1x),"tipo":"DC","aprobado":dc1x>=UMBRALES["DC"],"sintesis":f"Cubre victoria o empate de {hn}."})
+    if dcx2>=55:
+        mercados.append({"mercado":f"Doble Oportunidad X2 - {an}","prob":dcx2,"riesgo":100-dcx2,"cuota":_cuota(dcx2),"tipo":"DC","aprobado":dcx2>=UMBRALES["DC"],"sintesis":f"Cubre victoria o empate de {an}."})
+    if ge>=2.5:
+        p=min(85,round(50+(ge-2.5)*20))
+        mercados.append({"mercado":"Goles Totales Over 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["OU"],"sintesis":f"Promedio combinado: {ge} goles/partido."})
+    if ge<=2.5:
+        p=min(85,round(50+(2.5-ge)*20))
+        mercados.append({"mercado":"Goles Totales Under 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["OU"],"sintesis":f"Goles esperados: {ge}."})
+    if ge>=1.8:
+        p=min(92,round(60+(ge-1.5)*15))
+        mercados.append({"mercado":"Goles Totales Over 1.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["GE_05"],"sintesis":f"Con {ge} goles esperados."})
+    if ge>=3.0:
+        p=min(80,round(40+(ge-3.0)*25))
+        mercados.append({"mercado":"Goles Totales Over 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["OU"],"sintesis":f"Promedio combinado alto: {ge} goles."})
+    if ge<=3.0:
+        p=min(80,round(40+(3.0-ge)*25))
+        mercados.append({"mercado":"Goles Totales Under 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=UMBRALES["OU"],"sintesis":f"Goles esperados: {ge}."})
+    btts=min(82,max(20,round(hsc*50+asc*50)))
+    if btts>=45:
+        arb_adj=_ajuste_arbitro(arb_perfil)
+        btts_adj=min(95,max(5,btts+arb_adj["btts"]))
+        mercados.append({"mercado":"BTTS - Ambos Anotan","prob":btts_adj,"riesgo":100-btts_adj,"cuota":_cuota(btts_adj),"tipo":"BTTS","aprobado":btts_adj>=UMBRALES["BTTS"],"sintesis":f"{hn} marca en {round(hsc*100)}%, {an} en {round(asc*100)}%."})
+    ho=min(95,max(30,round(hsc*100)))
+    if ho>=UMBRALES["GE_15"]:
+        mercados.append({"mercado":f"Goles Equipo - {hn} Over 0.5","prob":ho,"riesgo":100-ho,"cuota":_cuota(ho),"tipo":"GE","aprobado":ho>=UMBRALES["GE_05"],"sintesis":f"{hn} marco en {round(hsc*100)}% de sus partidos."})
+    ao=min(95,max(30,round(asc*100)))
+    if ao>=UMBRALES["GE_15"]:
+        mercados.append({"mercado":f"Goles Equipo - {an} Over 0.5","prob":ao,"riesgo":100-ao,"cuota":_cuota(ao),"tipo":"GE","aprobado":ao>=UMBRALES["GE_05"],"sintesis":f"{an} marco en {round(asc*100)}% de sus partidos."})
+    h15=min(85,max(20,round(egh/(egh+0.8)*100)))if egh>=1.3 else 0
+    if h15>=50:
+        mercados.append({"mercado":f"Goles Equipo - {hn} Over 1.5","prob":h15,"riesgo":100-h15,"cuota":_cuota(h15),"tipo":"GE","aprobado":h15>=UMBRALES["GE_15"],"sintesis":f"{hn} promedia {egh} goles/partido."})
+    a15=min(85,max(20,round(ega/(ega+0.8)*100)))if ega>=1.3 else 0
+    if a15>=50:
+        mercados.append({"mercado":f"Goles Equipo - {an} Over 1.5","prob":a15,"riesgo":100-a15,"cuota":_cuota(a15),"tipo":"GE","aprobado":a15>=UMBRALES["GE_15"],"sintesis":f"{an} promedia {ega} goles/partido."})
+    hcs_p=min(85,round(hcs_r*100*(1-asc+0.3)))
+    if hcs_p>=30:
+        mercados.append({"mercado":f"Clean Sheet - {hn}","prob":hcs_p,"riesgo":100-hcs_p,"cuota":_cuota(hcs_p),"tipo":"CS","aprobado":hcs_p>=UMBRALES["CS"],"sintesis":f"{hn} dejo valla invicta en {round(hcs_r*100)}% de partidos."})
+    acs_p=min(85,round(acs_r*100*(1-hsc+0.3)))
+    if acs_p>=30:
+        mercados.append({"mercado":f"Clean Sheet - {an}","prob":acs_p,"riesgo":100-acs_p,"cuota":_cuota(acs_p),"tipo":"CS","aprobado":acs_p>=UMBRALES["CS"],"sintesis":f"{an} dejo valla invicta en {round(acs_r*100)}% de partidos."})
+    wtn_h=min(80,round(ph*hcs_r*100)/100)if ph>=50 else 0
+    if wtn_h>=25:
+        mercados.append({"mercado":f"Victoria a Cero - {hn}","prob":wtn_h,"riesgo":100-wtn_h,"cuota":_cuota(wtn_h),"tipo":"WTN","aprobado":wtn_h>=UMBRALES["WTN"],"sintesis":f"{hn} gana ({ph}%) y mantiene valla invicta ({round(hcs_r*100)}%)."})
+    wtn_a=min(80,round(pa*acs_r*100)/100)if pa>=50 else 0
+    if wtn_a>=25:
+        mercados.append({"mercado":f"Victoria a Cero - {an}","prob":wtn_a,"riesgo":100-wtn_a,"cuota":_cuota(wtn_a),"tipo":"WTN","aprobado":wtn_a>=UMBRALES["WTN"],"sintesis":f"{an} gana ({pa}%) y mantiene valla invicta ({round(acs_r*100)}%)."})
+    ght=ge*0.45
+    p1o=min(88,round(50+(ght-0.5)*40))if ght>=0.5 else max(20,round(ght/0.5*40))
+    p1u=100-p1o
+    if p1o>=50:
+        mercados.append({"mercado":"1er Tiempo - Over 0.5 Goles","prob":p1o,"riesgo":100-p1o,"cuota":_cuota(p1o),"tipo":"HT","aprobado":p1o>=UMBRALES["HT_OVER"],"sintesis":f"Goles esperados 1T: {round(ght,1)}."})
+    if p1u>=40:
+        mercados.append({"mercado":"1er Tiempo - Under 0.5 Goles","prob":p1u,"riesgo":100-p1u,"cuota":_cuota(p1u),"tipo":"HT","aprobado":p1u>=UMBRALES["HT_UNDER"],"sintesis":f"Goles esperados 1T: {round(ght,1)}."})
+    p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
+    if pn00>=UMBRALES["NO00_SHOW"]:
+        mercados.append({"mercado":"El Partido No Termina 0-0","prob":pn00,"riesgo":100-pn00,"cuota":_cuota(pn00),"tipo":"ESP","aprobado":pn00>=UMBRALES["NO00"],"sintesis":f"Promedio combinado: {ge} goles."})
+    mercados.sort(key=lambda x:x["prob"],reverse=True)
+    aprobados=[m for m in mercados if m["aprobado"]]
+    if ph>=pa+15:fav,conf=hn,("alta"if ph>=55 else"moderada")
+    elif pa>=ph+15:fav,conf=an,("alta"if pa>=55 else"moderada")
+    else:fav,conf=None,"baja"
+    lineas=[]
+    if fav:lineas.append(f"Victoria de {fav} en tiempo reglamentario.")
+    else:lineas.append(f"Partido equilibrado entre {hn} ({ph}%) y {an} ({pa}%).")
+    if hp and ap:lineas.append(f"Posiciones: {hn} #{hp.get('position','?')} vs {an} #{ap.get('position','?')}.")
+    lineas.append(f"Goles esperados: {ge}.")
+    if fat_h and fat_h["score"]>=35:lineas.append(f"{hn} llega {fat_h['label'].lower()} ({fat_h['partidos_14d']} partidos en 14 dias).")
+    if fat_a and fat_a["score"]>=35:lineas.append(f"{an} llega {fat_a['label'].lower()} ({fat_a['partidos_14d']} partidos en 14 dias).")
+    if animo_h and abs(animo_h["score"])>=15:lineas.append(f"{hn}: {animo_h['label']} ({animo_h['tendencia']}).")
+    if animo_a and abs(animo_a["score"])>=15:lineas.append(f"{an}: {animo_a['label']} ({animo_a['tendencia']}).")
+    texto="\n".join(lineas)
+    TIPO_PRIORIDAD=["1X2","DC","O/U","BTTS","GE","CS","WTN","HT","ESP","SHOTS_ON","CORNERS","CARDS","POSS","SHOTS"]
+    def _mp_score(m):
+        t=m.get("tipo","ZZZ")
+        return(TIPO_PRIORIDAD.index(t)if t in TIPO_PRIORIDAD else 99,-m["prob"])
+    mp_candidato=None
+    if fav:
+        m1x2=[m for m in mercados if m.get("tipo")=="1X2" and fav in m.get("mercado","")]
+        if m1x2:mp_candidato=max(m1x2,key=lambda m:m["prob"])
+    if not mp_candidato:
+        aprobados_prio=[m for m in aprobados if m.get("tipo")in["1X2","DC"]]
+        if aprobados_prio:mp_candidato=min(aprobados_prio,key=_mp_score)
+        elif aprobados:mp_candidato=min(aprobados,key=_mp_score)
+        elif mercados:mp_candidato=min(mercados,key=_mp_score)
+    mp=f"{mp_candidato['mercado']} ({mp_candidato['prob']}% - cuota @{mp_candidato['cuota']})"if mp_candidato else"Ninguno supera el umbral"
+    mp_prob=mp_candidato['prob']if mp_candidato else 0
+    comb="";comb_prob=0
+    if len(aprobados)>=2:
+        c2=[m for m in aprobados if m["tipo"]!=aprobados[0]["tipo"]]
+        if c2:
+            comb=f"{c2[0]['mercado']} ({c2[0]['prob']}% - cuota @{c2[0]['cuota']}) como alternativa de mayor retorno."
+            comb_prob=c2[0]['prob']
+    ta=" - ".join(f"{m['mercado']} ({m['prob']}%)"for m in aprobados[:4])if aprobados else"Ninguno"
+    return{
+        "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
+        "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},
+        "goles_esperados":ge,"forma":{"home":hf,"away":af},
+        "h2h":{"total":h2t,"home_wins":h2h_home_wins,"away_wins":h2h_away_wins,"draws":h2h_draws,"total_goals":h2h.get("totalGoals",0)},
+        "posiciones":{"home":pos_h,"away":pos_a,"home_pts":hp.get("points")if hp else None,"away_pts":ap.get("points")if ap else None,"home_gf":hp.get("goalsFor")if hp else None,"home_gc":hp.get("goalsAgainst")if hp else None,"away_gf":ap.get("goalsFor")if ap else None,"away_gc":ap.get("goalsAgainst")if ap else None},
+        "mercados":mercados,
+        "veredicto":{"texto":texto,"favorito":fav,"mercados_aprobados":ta,"total_aprobados":len(aprobados),"mercado_principal":mp,"mp_prob":mp_prob,"combinable":comb,"comb_prob":comb_prob},
+    }
+
+def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
+    s=""
+    if form["matches"]>0:
+        r=_racha(form["form"])
+        if r[0]=="W"and r[1]>=2:s+=f"{team} en racha de {r[1]} victorias. "
+        elif r[0]=="L"and r[1]>=2:s+=f"Atencion: {team} viene de {r[1]} derrotas. "
+        s+=f"PPG: {form['ppg']}. "
+    if pos:s+=f"#{pos.get('position','?')} con {pos.get('points',0)} pts. "
+    return s
+
+@app.route("/analisis_avanzado/<codigo>/<int:match_id>")
+@api_login_required
+def analisis_avanzado(codigo, match_id):
+    liga=LIGAS.get(codigo,{}); as_id=liga.get("as_id"); season=liga.get("season")
+    if not as_id: return jsonify({"error":"Liga sin api-sports id"})
+    if liga.get("source","fd")=="fd":
+        md=fd_get(f"/matches/{match_id}")
+        if "error" in md or "id" not in md: return jsonify({"error":"Partido no encontrado"})
+        hn=md["homeTeam"]["name"]; an=md["awayTeam"]["name"]
+    else:
+        fx_data=as_get("/fixtures",{"id":match_id})
+        if "error" in fx_data or not fx_data.get("response"): return jsonify({"error":"Partido no encontrado"})
+        teams=fx_data["response"][0].get("teams",{})
+        hn=teams.get("home",{}).get("name",""); an=teams.get("away",{}).get("name","")
+    hid=_search_as(hn,as_id,season); aid=_search_as(an,as_id,season)
+    if not hid or not aid: return jsonify({"error":"No se encontraron equipos en api-sports"})
+    home_avg=_avg_fixture_stats(hid,as_id,season); away_avg=_avg_fixture_stats(aid,as_id,season)
+    mercados_extra=_mercados_avanzados(home_avg,away_avg,hn,an)
+    return jsonify({"home_team":hn,"away_team":an,"home_stats":home_avg,"away_stats":away_avg,"mercados":mercados_extra})
+
+def _avg_fixture_stats(team_id,league_id,season):
+    fx_data=as_get("/fixtures",{"team":team_id,"season":season,"league":league_id,"last":5})
+    if "error" in fx_data or not fx_data.get("response"): return None
+    fixtures=fx_data["response"]
+    totals={"shots_total":[],"shots_on":[],"corners":[],"yellow":[],"red":[],"fouls":[],"possession":[]}
+    for fx in fixtures:
+        fid=fx.get("fixture",{}).get("id")
+        if not fid: continue
+        stats_data=as_get("/fixtures/statistics",{"fixture":fid,"team":team_id})
+        if "error" in stats_data or not stats_data.get("response"): continue
+        for team_stats in stats_data["response"]:
+            for s in team_stats.get("statistics",[]):
+                t=s.get("type",""); v=s.get("value")
+                if v is None: continue
+                if isinstance(v,str)and v.endswith("%"):
+                    try:v=float(v.replace("%",""))
+                    except:v=0
+                if not isinstance(v,(int,float)): continue
+                if t=="Total Shots":totals["shots_total"].append(v)
+                elif t=="Shots on Goal":totals["shots_on"].append(v)
+                elif t=="Corner Kicks":totals["corners"].append(v)
+                elif t=="Yellow Cards":totals["yellow"].append(v)
+                elif t=="Red Cards":totals["red"].append(v)
+                elif t=="Fouls":totals["fouls"].append(v)
+                elif t=="Ball Possession":totals["possession"].append(v)
+        time.sleep(0.3)
+    def avg(lst):return round(sum(lst)/len(lst),1)if lst else "—"
+    return{"remates_pj":avg(totals["shots_total"]),"al_arco_pj":avg(totals["shots_on"]),"corners_pj":avg(totals["corners"]),"tarjetas_amarillas_pj":avg(totals["yellow"]),"tarjetas_rojas_pj":avg(totals["red"]),"faltas_pj":avg(totals["fouls"]),"posesion_avg":avg(totals["possession"]),"partidos_analizados":len(fixtures)}
+
+def _mercados_avanzados(home,away,hn,an):
+    if not home or not away: return []
+    mercados=[]
+    if home.get("corners_pj")!="—" and away.get("corners_pj")!="—":
+        total_corners=home["corners_pj"]+away["corners_pj"]
+        if total_corners>=10:
+            p=min(85,round(50+(total_corners-9.5)*12))
+            mercados.append({"mercado":"Corners Totales Over 9.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"CORNERS","aprobado":p>=UMBRALES["ADV"],"sintesis":f"Promedio combinado: {round(total_corners,1)} corners/partido."})
+        if total_corners<=9:
+            p=min(85,round(50+(9.5-total_corners)*12))
+            mercados.append({"mercado":"Corners Totales Under 9.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"CORNERS","aprobado":p>=UMBRALES["ADV"],"sintesis":f"Promedio combinado bajo: {round(total_corners,1)} corners/partido."})
+    if home.get("tarjetas_amarillas_pj")!="—" and away.get("tarjetas_amarillas_pj")!="—":
+        total_y=home["tarjetas_amarillas_pj"]+away["tarjetas_amarillas_pj"]
+        if total_y>=4.5:
+            p=min(80,round(50+(total_y-4.5)*15))
+            mercados.append({"mercado":"Tarjetas Amarillas Over 4.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"CARDS","aprobado":p>=UMBRALES["ADV"],"sintesis":f"Promedio combinado: {round(total_y,1)} amarillas/partido."})
+        if total_y<=4:
+            p=min(80,round(50+(4.5-total_y)*15))
+            mercados.append({"mercado":"Tarjetas Amarillas Under 4.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"CARDS","aprobado":p>=UMBRALES["ADV"],"sintesis":f"Promedio combinado bajo: {round(total_y,1)} amarillas/partido."})
+    if home.get("posesion_avg")!="—" and away.get("posesion_avg")!="—":
+        if home["posesion_avg"]>=55:
+            p=min(85,round(home["posesion_avg"]+10))
+            mercados.append({"mercado":f"Mayor posesion - {hn}","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"POSS","aprobado":p>=UMBRALES["ADV"],"sintesis":f"{hn} promedia {home['posesion_avg']}% de posesion."})
+        elif away["posesion_avg"]>=55:
+            p=min(85,round(away["posesion_avg"]))
+            mercados.append({"mercado":f"Mayor posesion - {an}","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"POSS","aprobado":p>=UMBRALES["ADV"],"sintesis":f"{an} promedia {away['posesion_avg']}% de posesion."})
+    mercados.sort(key=lambda x:x["prob"],reverse=True)
+    return mercados
+
 if __name__=="__main__":
     app.run(debug=True)

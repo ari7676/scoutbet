@@ -1199,6 +1199,20 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
     p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
     if pn00>=UMBRALES["NO00_SHOW"]:
         mercados.append({"mercado":"El Partido No Termina 0-0","prob":pn00,"riesgo":100-pn00,"cuota":_cuota(pn00),"tipo":"ESP","aprobado":pn00>=UMBRALES["NO00"],"sintesis":f"Promedio combinado: {ge} goles."})
+    # Mercado de tarjetas basado en árbitro
+    if arb_perfil:
+    tarjetas = arb_perfil.get("tarjetas", "Medio")
+    estilo = arb_perfil.get("estilo", "Moderado")
+    if tarjetas == "Alto":
+        p = 72
+        mercados.append({"mercado": f"Tarjetas Amarillas Over 3.5", "prob": p, "riesgo": 100-p,
+            "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
+            "sintesis": f"Árbitro {arb_perfil.get('nombre','')} — perfil estricto, alto promedio de tarjetas."})
+    elif tarjetas == "Bajo":
+        p = 68
+        mercados.append({"mercado": f"Tarjetas Amarillas Under 3.5", "prob": p, "riesgo": 100-p,
+            "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
+            "sintesis": f"Árbitro {arb_perfil.get('nombre','')} — perfil permisivo, bajo promedio de tarjetas."})
     mercados.sort(key=lambda x:x["prob"],reverse=True)
     aprobados=[m for m in mercados if m["aprobado"]]
     if ph>=pa+15:fav,conf=hn,("alta"if ph>=55 else"moderada")
@@ -1236,7 +1250,22 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt,h_arco=None,a_arco=None,fat_h=No
             comb=f"{c2[0]['mercado']} ({c2[0]['prob']}% - cuota @{c2[0]['cuota']}) como alternativa de mayor retorno."
             comb_prob=c2[0]['prob']
     ta=" - ".join(f"{m['mercado']} ({m['prob']}%)"for m in aprobados[:4])if aprobados else"Ninguno"
-    return{
+    # Mercado de tarjetas basado en árbitro
+    if arb_perfil:
+        tarjetas = arb_perfil.get("tarjetas", "Medio")
+        if tarjetas == "Alto":
+            p = 72
+            mercados.append({"mercado": "Tarjetas Amarillas Over 3.5", "prob": p, "riesgo": 100-p,
+                "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
+                "sintesis": f"Arbitro {arb_perfil.get('nombre','')} — perfil estricto."})
+        elif tarjetas == "Bajo":
+            p = 68
+            mercados.append({"mercado": "Tarjetas Amarillas Under 3.5", "prob": p, "riesgo": 100-p,
+                "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
+                "sintesis": f"Arbitro {arb_perfil.get('nombre','')} — perfil permisivo."})
+
+        mercados.sort(key=lambda x:x["prob"],reverse=True)
+        return{
         "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
         "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},
         "goles_esperados":ge,"forma":{"home":hf,"away":af},
@@ -1335,4 +1364,4 @@ def _mercados_avanzados(home,away,hn,an):
     return mercados
 
 if __name__=="__main__":
-    app.run(debug=True)
+    app.run(debug=True)q

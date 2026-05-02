@@ -235,7 +235,6 @@ nav button.active,nav button:hover{background:var(--neon-dim);color:var(--neon)}
       <input id="search-input" placeholder="Buscar liga, equipo…" style="background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:12px;width:100%;caret-color:var(--neon)" oninput="buscarPartidos(this.value)" onkeydown="if(event.key==='Escape'){this.value='';buscarPartidos('')}">
       <kbd id="search-kbd" style="flex-shrink:0">&#8984;K</kbd>
     </div>
-    <div id="search-results" style="display:none;position:absolute;top:52px;left:50%;transform:translateX(-50%);width:420px;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden;max-height:400px;overflow-y:auto"></div>
     <div class="topbar-bal" id="desktop-bell-btn" onclick="toggleAlertas()" style="cursor:pointer;position:relative">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--neon)" stroke-width="1.8"><path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16l-2-2zM10 20a2 2 0 0 0 4 0"/></svg>
       <span class="amt">Alertas</span>
@@ -687,15 +686,23 @@ document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='k'){
 document.addEventListener('click',e=>{const p=document.getElementById('search-results'),i=document.getElementById('search-input');if(!p.contains(e.target)&&e.target!==i)p.style.display='none';});
 
 function buscarPartidos(q){
-  const panel=document.getElementById('search-results'),kbd=document.getElementById('search-kbd');
-  if(!q||q.trim().length<2){panel.style.display='none';kbd.style.display='inline';renderMatches(allMatches);return;}
+  const kbd=document.getElementById('search-kbd');
+  const panel=document.getElementById('search-results');
+  panel.style.display='none';
+  if(!q||q.trim().length<2){
+    kbd.style.display='inline';
+    renderMatches(allMatches);
+    return;
+  }
   kbd.style.display='none';
-  const ql=q.toLowerCase(),results=allMatches.filter(m=>(m.home||m.homeTeam||'').toLowerCase().includes(ql)||(m.away||m.awayTeam||'').toLowerCase().includes(ql)||(m.competicion||m.competition||'').toLowerCase().includes(ql));
-  if(q.trim().length>=3){
-    panel.style.display='block';
-    panel.innerHTML=results.length===0?`<div class="empty" style="padding:16px">Sin resultados para "${q}"</div>`:`<div style="padding:8px 14px;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em;border-bottom:1px solid var(--line)">${results.length} RESULTADO${results.length!==1?'S':''}</div>${results.slice(0,8).map(m=>{const dt=fmtDate(m.fecha||m.utcDate),home=m.home||m.homeTeam||'',away=m.away||m.awayTeam||'',comp=m.competicion||m.competition||currentLiga,mid=m.id||m.match_id;return`<div onclick="analizarPartido(${mid},'${home.replace(/'/g,'_')}','${away.replace(/'/g,'_')}');document.getElementById('search-input').value='';document.getElementById('search-results').style.display='none'" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .1s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'"><div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:3px">${comp.toUpperCase()} · ${dt.label||''} ${dt.time||''}</div><div style="font-family:var(--display);font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${home.toUpperCase()} <span style="color:var(--dim)">vs</span> ${away.toUpperCase()}</div></div>`;}).join('')}${results.length>8?`<div style="padding:8px 14px;font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center">+${results.length-8} más</div>`:''}`;
-  }else{panel.style.display='none';}
-  if(document.getElementById('view-dashboard').classList.contains('active'))renderMatches(results);
+  const ql=q.toLowerCase();
+  const results=allMatches.filter(m=>
+    (m.home||m.homeTeam||'').toLowerCase().includes(ql)||
+    (m.away||m.awayTeam||'').toLowerCase().includes(ql)||
+    (m.competicion||m.competition||'').toLowerCase().includes(ql)
+  );
+  if(document.getElementById('view-dashboard').classList.contains('active'))
+    renderMatches(results);
 }
 
 let alertasOpen=false;

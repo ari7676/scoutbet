@@ -558,7 +558,6 @@ function toggleFiltrosMenu(e){
   m.style.display=m.style.display==='block'?'none':'block';
 }
 
-document.addEventListener('click',()=>{const m=document.getElementById('filtros-menu');if(m)m.style.display='none';});
 
 function aplicarOrden(tipo){
   document.getElementById('filtros-menu').style.display='none';
@@ -687,8 +686,6 @@ document.addEventListener('click',e=>{const p=document.getElementById('search-re
 
 function buscarPartidos(q){
   const kbd=document.getElementById('search-kbd');
-  const panel=document.getElementById('search-results');
-  panel.style.display='none';
   if(!q||q.trim().length<2){
     kbd.style.display='inline';
     renderMatches(allMatches);

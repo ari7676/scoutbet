@@ -676,7 +676,7 @@ async function loadLive(){
 
 async function loadStats(){
   try{
-    const res=await fetch('/estadisticas');if(!res.ok)throw new Error(res.status);
+    const res=await fetch('/estadisticas/json');if(!res.ok)throw new Error(res.status);
     const data=await res.json(),total=(data.ganadas||0)+(data.perdidas||0)+(data.pendientes||0);
     document.getElementById('s-total').textContent=total||data.total||'—';
     document.getElementById('s-acierto').textContent=data.acierto?data.acierto+'%':'—';

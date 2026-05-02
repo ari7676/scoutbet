@@ -414,6 +414,7 @@ def _auto_verify_pending():
 @app.route("/estadisticas")
 @api_login_required
 def estadisticas():
+    _auto_verify_pending()
     conn = get_db()
     c = conn.cursor()
     c.execute("""SELECT COUNT(*), SUM(mp_acertado), SUM(comb_acertado),

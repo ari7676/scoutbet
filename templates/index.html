@@ -701,8 +701,7 @@ function buscarPartidos(q){
     (m.away||m.awayTeam||'').toLowerCase().includes(ql)||
     (m.competicion||m.competition||'').toLowerCase().includes(ql)
   );
-  if(document.getElementById('view-dashboard').classList.contains('active'))
-    renderMatches(results);
+  renderMatches(results);
 }
 
 let alertasOpen=false;

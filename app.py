@@ -48,9 +48,20 @@ CACHE_TTL_AS = 43200
 CACHE_TTL_FX_STATS = 604800
 
 UMBRALES = {
-    "1X2": 63, "DRAW": 35, "DC": 65, "OU": 70, "BTTS": 70,
-    "GE_05": 85, "GE_15": 70, "CS": 70, "WTN": 70,
-    "HT_OVER": 75, "HT_UNDER": 70, "NO00_SHOW": 70, "NO00": 82, "ADV": 65,
+    "1X2":       65,
+    "DRAW":      38,
+    "DC":        65,
+    "OU":        70,
+    "BTTS":      75,
+    "GE_05":     85,
+    "GE_15":     72,
+    "CS":        72,
+    "WTN":       72,
+    "HT_OVER":   75,
+    "HT_UNDER":  72,
+    "NO00_SHOW": 999,
+    "NO00":      999,
+    "ADV":       65,
 }
 
 

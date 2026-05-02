@@ -1264,8 +1264,8 @@ if arb_perfil:
                 "cuota": _cuota(p), "tipo": "CARDS", "aprobado": p >= UMBRALES["ADV"],
                 "sintesis": f"Arbitro {arb_perfil.get('nombre','')} — perfil permisivo."})
 
-    mercados.sort(key=lambda x:x["prob"],reverse=True)
-    return{
+        mercados.sort(key=lambda x:x["prob"],reverse=True)
+        return{
         "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
         "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},
         "goles_esperados":ge,"forma":{"home":hf,"away":af},

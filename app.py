@@ -1456,6 +1456,67 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
         "veredicto":{"texto":texto,"favorito":fav,"mercados_aprobados":ta,"total_aprobados":len(aprobados),"mercado_principal":mp,"mp_prob":mp_prob,"combinable":comb,"comb_prob":comb_prob},
     }
 
+def _generar_combinadas(aprobados):
+    """Genera las mejores 2-3 combinadas del partido."""
+    if len(aprobados) < 2:
+        return []
+    combinadas = []
+    for i in range(len(aprobados)):
+        for j in range(i+1, len(aprobados)):
+            a, b = aprobados[i], aprobados[j]
+            ga = _CORR_GROUPS.get(a["tipo"], a["tipo"])
+            gb = _CORR_GROUPS.get(b["tipo"], b["tipo"])
+            if ga == gb:
+                continue
+            if frozenset([a["tipo"], b["tipo"]]) in _INCOMPATIBLE:
+                continue
+            ca = a["cuota"] if isinstance(a["cuota"], (int, float)) else 0
+            cb = b["cuota"] if isinstance(b["cuota"], (int, float)) else 0
+            prob_comb = round(a["prob"] * b["prob"] / 100, 1)
+            cuota_comb = round(ca * cb, 2) if ca and cb else 0
+            combinadas.append({"tipo":"doble","legs":[
+                {"mercado":a["mercado"],"prob":a["prob"],"cuota":ca,"tipo":a["tipo"]},
+                {"mercado":b["mercado"],"prob":b["prob"],"cuota":cb,"tipo":b["tipo"]},
+            ],"prob_combinada":prob_comb,"cuota_combinada":cuota_comb,
+              "score":prob_comb*(cuota_comb if cuota_comb>0 else 1)})
+    if len(aprobados) >= 3:
+        for i in range(len(aprobados)):
+            for j in range(i+1, len(aprobados)):
+                for k in range(j+1, len(aprobados)):
+                    a, b, c = aprobados[i], aprobados[j], aprobados[k]
+                    ga = _CORR_GROUPS.get(a["tipo"], a["tipo"])
+                    gb = _CORR_GROUPS.get(b["tipo"], b["tipo"])
+                    gc_ = _CORR_GROUPS.get(c["tipo"], c["tipo"])
+                    if len(set([ga, gb, gc_])) < 2:
+                        continue
+                    tipos = set([a["tipo"], b["tipo"], c["tipo"]])
+                    skip = any(inc.issubset(tipos) for inc in _INCOMPATIBLE)
+                    if skip:
+                        continue
+                    ca = a["cuota"] if isinstance(a["cuota"], (int, float)) else 0
+                    cb = b["cuota"] if isinstance(b["cuota"], (int, float)) else 0
+                    cc = c["cuota"] if isinstance(c["cuota"], (int, float)) else 0
+                    prob_comb = round(a["prob"] * b["prob"] * c["prob"] / 10000, 1)
+                    cuota_comb = round(ca * cb * cc, 2) if ca and cb and cc else 0
+                    combinadas.append({"tipo":"triple","legs":[
+                        {"mercado":a["mercado"],"prob":a["prob"],"cuota":ca,"tipo":a["tipo"]},
+                        {"mercado":b["mercado"],"prob":b["prob"],"cuota":cb,"tipo":b["tipo"]},
+                        {"mercado":c["mercado"],"prob":c["prob"],"cuota":cc,"tipo":c["tipo"]},
+                    ],"prob_combinada":prob_comb,"cuota_combinada":cuota_comb,
+                      "score":prob_comb*(cuota_comb if cuota_comb>0 else 1)})
+    combinadas.sort(key=lambda x: x["score"], reverse=True)
+    return combinadas[:3]
+
+def _calcular_score(aprobados, ph, pa, conf):
+    """Score 0-100 para ranking de partidos en la jornada."""
+    if not aprobados:
+        return 0
+    n_aprob = len(aprobados)
+    max_prob = aprobados[0]["prob"] if aprobados else 0
+    diff = abs(ph - pa)
+    score = min(100, round(n_aprob * 8 + max_prob * 0.3 + diff * 0.4 + (10 if conf == "alta" else 0)))
+    return score
+
 def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
 
 

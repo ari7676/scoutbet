@@ -113,6 +113,19 @@ nav button.active,nav button:hover{background:var(--neon-dim);color:var(--neon)}
 .spinner{width:24px;height:24px;border:2px solid var(--line);border-top-color:var(--neon);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px}
 .narracion{font-size:12px;color:var(--dim);line-height:1.6;padding:12px 14px;border-top:1px solid var(--line)}
 .veredicto-hero{padding:14px;background:linear-gradient(180deg,var(--neon-dim),transparent);border:1px solid var(--neon);border-radius:10px}
+.combinada-card{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid var(--neon)}
+.combinada-card .cc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.combinada-card .cc-tipo{font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.1em;font-weight:700}
+.combinada-card .cc-stats{display:flex;gap:12px;font-family:var(--mono);font-size:12px}
+.combinada-card .cc-prob{color:var(--neon);font-weight:700}
+.combinada-card .cc-cuota{color:var(--warn);font-weight:700}
+.combinada-card .cc-leg{padding:6px 0;border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;align-items:center}
+.combinada-card .cc-leg:last-child{border-bottom:none}
+.combinada-card .cc-leg-name{color:var(--text);font-weight:500}
+.combinada-card .cc-leg-prob{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.match-score-badge{font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.05em}
+.match-score-badge.hot{background:rgba(0,226,138,.15);color:var(--neon);border:1px solid rgba(0,226,138,.3)}
+.match-score-badge.warm{background:rgba(255,210,63,.1);color:var(--warn);border:1px solid rgba(255,210,63,.2)}
 .v-label{font-family:var(--mono);font-size:9px;color:var(--neon);letter-spacing:.15em;margin-bottom:4px}
 .v-mercado{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:.05em}
 .v-prob{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--neon);line-height:1}
@@ -376,6 +389,7 @@ nav button.active,nav button:hover{background:var(--neon-dim);color:var(--neon)}
 
 <script>
 let currentLiga='PL',allMatches=[],currentFilter='todos',analyzing=false,currentMatch={home:'',away:'',id:null};
+let matchScores={};  // cache de scores por match_id
 
 function setView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -527,6 +541,7 @@ function renderMatches(matches){
         <div class="match-team">${crestHTML(away,'#8a1a1a','#441a0d',22)}<span class="match-team-name">${away.toUpperCase()}</span></div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        ${matchScores[mid]>=60?`<span class="match-score-badge hot">&#9889; ${matchScores[mid]}</span>`:matchScores[mid]>=40?`<span class="match-score-badge warm">${matchScores[mid]}</span>`:''}
         ${m.tiene_prediccion?`<span style="font-family:var(--mono);font-size:9px;color:var(--neon);background:var(--neon-dim);border:1px solid rgba(0,226,138,.3);padding:2px 6px;border-radius:3px">&#10003; PRED</span>`:''}
         ${m.resultado?`<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--dim)">${m.resultado}</span>`:''}
         </div>
@@ -575,7 +590,9 @@ async function analizarPartido(matchId,home,away){
   try{
     const res=await fetch(`/analizar/${currentLiga}/${matchId}`);if(!res.ok)throw new Error(res.status);
     const data=await res.json();
+    if(data.match_score) matchScores[matchId]=data.match_score;
     renderAnalysis(data,home,away);
+    renderMatches(allMatches.filter(m=>{if(currentFilter==='todos')return true;if(currentFilter==='hoy'){const hoy=new Date().toDateString();return new Date(m.fecha||m.utcDate).toDateString()===hoy;}return true;}));
     if(mobile){setTimeout(()=>{document.getElementById('mob-panel-content').innerHTML=document.getElementById('panel-content').innerHTML;document.getElementById('mob-panel-badge').textContent=document.getElementById('panel-badge').textContent;},50);}
   }catch(e){
     const err=`<div class="empty" style="color:var(--live)">Error: ${e.message}</div>`;
@@ -605,6 +622,11 @@ function renderAnalysis(d,home,away){
     ${Object.keys(mercados).length>0?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">MERCADOS</span><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">${Object.keys(mercados).length} evaluados</span></div><div class="analysis-card-body" style="padding:0 14px">${marketRows}</div></div>`:''}
     ${narracion?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">NARRATIVA</span></div><div class="narracion">${narracion}</div></div>`:''}
     <button class="bet-btn" ${aprobados===0?'disabled':''} onclick="openModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">${aprobados>0?'VER ANÁLISIS COMPLETO':'SIN APUESTAS RECOMENDADAS'}</button>`;
+  // Agregar combinadas sugeridas al panel si hay
+  if(d.combinadas&&d.combinadas.length>0){
+    const combHtml=d.combinadas.slice(0,2).map((c,i)=>`<div class="combinada-card"><div class="cc-header"><span class="cc-tipo">${c.tipo.toUpperCase()}</span><div class="cc-stats"><span class="cc-prob">${c.prob_combinada}%</span><span class="cc-cuota">@${c.cuota_combinada}</span></div></div>${c.legs.map(l=>`<div class="cc-leg"><span class="cc-leg-name" style="font-size:11px">${l.mercado}</span><span class="cc-leg-prob">${l.prob}%</span></div>`).join('')}</div>`).join('');
+    document.getElementById('panel-content').innerHTML+=`<div style="margin-top:8px"><div style="font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.1em;margin-bottom:6px;font-weight:700">&#9889; COMBINADAS</div>${combHtml}</div>`;
+  }
 }
 
 function resetPanel(){
@@ -630,7 +652,7 @@ function openModal(data){
       <div>
         ${aprobados.length>0?`<div class="markets-section"><div class="markets-section-title"><span class="ms-name" style="color:var(--neon)">&#10003; MERCADOS APROBADOS</span><span class="ms-info">${aprobados.length} mercados</span></div><div class="markets-grid">${aprobados.map(rmb).join('')}</div></div>`:''}
         ${noAprobados.length>0?`<div class="markets-section" style="margin-top:16px"><div class="markets-section-title"><span class="ms-name" style="color:var(--dim)">DESCARTADOS</span><span class="ms-info">${noAprobados.length} mercados</span></div><div class="markets-grid">${noAprobados.map(rmb).join('')}</div></div>`:''}
-      </div>
+        ${d.combinadas&&d.combinadas.length>0?`<div class="markets-section" style="margin-top:16px"><div class="markets-section-title"><span class="ms-name" style="color:var(--neon)">&#9889; COMBINADAS SUGERIDAS</span><span class="ms-info">${d.combinadas.length} combos</span></div>${d.combinadas.map((c,i)=>`<div class="combinada-card"><div class="cc-header"><span class="cc-tipo">${c.tipo.toUpperCase()} #${i+1}</span><div class="cc-stats"><span class="cc-prob">${c.prob_combinada}%</span><span class="cc-cuota">@${c.cuota_combinada}</span></div></div>${c.legs.map(l=>`<div class="cc-leg"><span class="cc-leg-name">${l.mercado}</span><span class="cc-leg-prob">${l.prob}% · @${l.cuota}</span></div>`).join('')}</div>`).join('')}</div>`:''}      </div>
       <div style="display:flex;flex-direction:column;gap:12px">
         ${v.texto||v.mercado_principal?`<div class="insight-box" style="border-color:var(--neon);background:linear-gradient(180deg,var(--neon-dim),transparent)"><div class="insight-title">&#9889; MERCADO PRINCIPAL</div><div style="font-size:14px;font-weight:700;margin-bottom:6px">${(v.texto||v.mercado_principal||'').replace(/\n/g,'<br>')}</div><div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--neon);line-height:1">${v.mp_prob||0}%</div>${v.mp_cuota?`<div style="font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:4px">@${v.mp_cuota}</div>`:''}</div>`:''}
         ${d.narracion||d.narrativa?`<div class="insight-box"><div class="insight-title">RESUMEN</div><div style="font-size:12px;color:var(--dim);line-height:1.7">${d.narracion||d.narrativa}</div></div>`:''}

@@ -1276,6 +1276,16 @@ def _cuota(prob_pct):
     return round(100/prob_pct*0.95, 2)
 
 UMBRAL = 82  # Umbral global de aprobacion
+
+# Grupos de correlación para combinadas
+_CORR_GROUPS = {
+    "1X2":"RES","DC":"RES","WTN":"RES",
+    "O/U":"GOLES","BTTS":"GOLES","GE":"GOLES","ESP":"GOLES",
+    "CS":"DEF","HT":"TIEMPO",
+}
+_INCOMPATIBLE = {
+    frozenset(["BTTS","CS"]),frozenset(["O/U","ESP"]),
+}
 def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     te=len(tt)if tt else 20
     forma_h_val=hf["ppg"] if hf["matches"]>0 else 0
@@ -1424,6 +1434,12 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
             comb_prob=c2[0]['prob']
     ta=" · ".join(f"{m['mercado']} ({m['prob']}%)"for m in aprobados[:4])if aprobados else"Ninguno"
 
+    # === COMBINADAS SUGERIDAS ===
+    combinadas = _generar_combinadas(aprobados)
+
+    # === SCORE DEL PARTIDO (para ranking de jornada) ===
+    match_score = _calcular_score(aprobados, ph, pa, conf)
+
     return{
         "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
         "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},
@@ -1435,24 +1451,14 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
             "home_gf":hp.get("goalsFor")if hp else None,"home_gc":hp.get("goalsAgainst")if hp else None,
             "away_gf":ap.get("goalsFor")if ap else None,"away_gc":ap.get("goalsAgainst")if ap else None},
         "mercados":mercados,
+        "combinadas":combinadas,
+        "match_score":match_score,
         "veredicto":{"texto":texto,"favorito":fav,"mercados_aprobados":ta,"total_aprobados":len(aprobados),"mercado_principal":mp,"mp_prob":mp_prob,"combinable":comb,"comb_prob":comb_prob},
     }
 
-    return{
-        "match":{"home":hn,"away":an,"fecha":md.get("utcDate",""),"jornada":md.get("matchday"),"competicion":md.get("competition",{}).get("name","")},
-        "probabilidades":{"home":ph,"draw":pd,"away":pa,"cuota_home":_cuota(ph),"cuota_draw":_cuota(pd),"cuota_away":_cuota(pa)},
-        "goles_esperados":ge,
-        "forma":{"home":hf,"away":af},
-        "h2h":{"total":h2t,"home_wins":h2h_home_wins,"away_wins":h2h_away_wins,"draws":h2h_draws,"total_goals":h2h.get("totalGoals",0)},
-        "posiciones":{"home":pos_h,"away":pos_a,
-            "home_pts":hp.get("points")if hp else None,"away_pts":ap.get("points")if ap else None,
-            "home_gf":hp.get("goalsFor")if hp else None,"home_gc":hp.get("goalsAgainst")if hp else None,
-            "away_gf":ap.get("goalsFor")if ap else None,"away_gc":ap.get("goalsAgainst")if ap else None},
-        "mercados":mercados,
-        "veredicto":{"texto":texto,"favorito":fav,"mercados_aprobados":ta,"total_aprobados":len(aprobados),"mercado_principal":mp,"combinable":comb},
-    }
-
 def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
+
+
     s=""
     if form["matches"]>0:
         r=_racha(form["form"])

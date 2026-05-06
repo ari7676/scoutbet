@@ -399,14 +399,18 @@ let matchScores={};
 let currentMatchId=null;
 
 async function cargarAvanzado(liga, matchId){
-  const btn=event.target;
+  if(!matchId){console.error('matchId is null');return;}
+  const btn=document.getElementById('btn-avanzado-'+matchId)||event.target;
   btn.textContent='⏳ Cargando...';btn.disabled=true;
   try{
-    const r=await fetch(`/analisis_avanzado/${liga}/${matchId}`);
+    const url=`/analisis_avanzado/${liga}/${matchId}`;
+    console.log('Fetching:', url);
+    const r=await fetch(url);
     const d=await r.json();
+    console.log('Response:', d);
     if(d.error){btn.textContent='⚠ '+d.error;btn.disabled=false;return;}
     const mercados=d.mercados||[];
-    if(!mercados.length){btn.textContent='Sin stats disponibles';return;}
+    if(!mercados.length){btn.textContent='Sin stats';return;}
     const aprobados=mercados.filter(m=>m.aprobado);
     const marketRows=mercados.map(m=>{
       const ap=m.aprobado,prob=m.prob||0;
@@ -415,11 +419,11 @@ async function cargarAvanzado(liga, matchId){
     const avEl=document.createElement('div');
     avEl.innerHTML=`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">⚡ STATS AVANZADAS</span><span style="font-family:var(--mono);font-size:10px;color:var(--neon)">${aprobados.length} aprobados</span></div><div class="analysis-card-body" style="padding:0 14px">${marketRows}</div></div>`;
     const pcEl=document.getElementById('panel-content');
-    const bets=pcEl.querySelectorAll('.bet-btn');
-    if(bets.length>0)pcEl.insertBefore(avEl,bets[0]);
+    const grid=pcEl.querySelector('[style*="grid-template-columns"]');
+    if(grid)pcEl.insertBefore(avEl,grid);
     else pcEl.appendChild(avEl);
-    btn.textContent='✓ Stats cargadas';btn.style.opacity='.5';
-  }catch(e){btn.textContent='⚠ Error';btn.disabled=false;}
+    btn.textContent='✓ Cargado';btn.style.opacity='.5';
+  }catch(e){console.error('cargarAvanzado error:',e);btn.textContent='⚠ Error';btn.disabled=false;}
 }
 
 function setView(name){

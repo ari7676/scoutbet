@@ -399,18 +399,15 @@ let matchScores={};
 let currentMatchId=null;
 
 async function cargarAvanzado(liga, matchId){
-  if(!matchId){console.error('matchId is null');return;}
-  const btn=document.getElementById('btn-avanzado-'+matchId)||event.target;
-  btn.textContent='⏳ Cargando...';btn.disabled=true;
+  if(!matchId){return;}
+  const btn=document.getElementById('btn-avanzado-'+matchId);
+  if(btn){btn.textContent='⏳';btn.disabled=true;}
   try{
-    const url=`/analisis_avanzado/${liga}/${matchId}`;
-    console.log('Fetching:', url);
-    const r=await fetch(url);
+    const r=await fetch(`/analisis_avanzado/${liga}/${matchId}`);
     const d=await r.json();
-    console.log('Response:', d);
-    if(d.error){btn.textContent='⚠ '+d.error;btn.disabled=false;return;}
+    if(d.error){if(btn){btn.textContent='⚠';btn.disabled=false;}return;}
     const mercados=d.mercados||[];
-    if(!mercados.length){btn.textContent='Sin stats';return;}
+    if(!mercados.length){if(btn)btn.textContent='Sin stats';return;}
     const aprobados=mercados.filter(m=>m.aprobado);
     const marketRows=mercados.map(m=>{
       const ap=m.aprobado,prob=m.prob||0;
@@ -422,8 +419,8 @@ async function cargarAvanzado(liga, matchId){
     const grid=pcEl.querySelector('[style*="grid-template-columns"]');
     if(grid)pcEl.insertBefore(avEl,grid);
     else pcEl.appendChild(avEl);
-    btn.textContent='✓ Cargado';btn.style.opacity='.5';
-  }catch(e){console.error('cargarAvanzado error:',e);btn.textContent='⚠ Error';btn.disabled=false;}
+    if(btn){btn.textContent='✓';btn.style.opacity='.5';}
+  }catch(e){if(btn){btn.textContent='⚠';btn.disabled=false;}}
 }
 
 function setView(name){
@@ -659,9 +656,15 @@ function renderAnalysis(d,home,away){
     ${mercadosArr.length>0?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">MERCADOS</span><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">${mercadosArr.length} evaluados</span></div><div class="analysis-card-body" style="padding:0 14px">${marketRows}</div></div>`:''}
     ${narracion?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">NARRATIVA</span></div><div class="narracion">${narracion}</div></div>`:''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-      <button class="bet-btn" ${aprobados===0?'disabled':''} onclick="openModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">${aprobados>0?'VER ANÁLISIS':'SIN APUESTAS'}</button>
-      <button class="bet-btn" style="background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none;font-size:11px" id="btn-avanzado-${currentMatchId}" onclick="cargarAvanzado('${currentLiga}',${currentMatchId})">⚡ AVANZADO</button>
+      <button class="bet-btn" ${aprobados===0?'disabled':''} id="btn-modal-${currentMatchId}">${aprobados>0?'VER ANÁLISIS':'SIN APUESTAS'}</button>
+      <button class="bet-btn" style="background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none;font-size:11px" id="btn-avanzado-${currentMatchId}">⚡ AVANZADO</button>
     </div>`;
+  // Agregar event listeners a los botones
+  const btnModal=document.getElementById('btn-modal-'+currentMatchId);
+  if(btnModal&&aprobados>0) btnModal.addEventListener('click',()=>openModal(d));
+  const btnAv=document.getElementById('btn-avanzado-'+currentMatchId);
+  if(btnAv) btnAv.addEventListener('click',()=>cargarAvanzado(currentLiga,currentMatchId));
+
   // Agregar combinadas sugeridas al panel si hay
   if(d.combinadas&&d.combinadas.length>0){
     const combHtml=d.combinadas.slice(0,2).map((c,i)=>`<div class="combinada-card"><div class="cc-header"><span class="cc-tipo">${c.tipo.toUpperCase()}</span><div class="cc-stats"><span class="cc-prob">${c.prob_combinada}%</span><span class="cc-cuota">@${c.cuota_combinada}</span></div></div>${c.legs.map(l=>`<div class="cc-leg"><span class="cc-leg-name" style="font-size:11px">${l.mercado}</span><span class="cc-leg-prob">${l.prob}%</span></div>`).join('')}</div>`).join('');

@@ -563,7 +563,24 @@ def partidos(codigo):
         # Football-data (default)
         desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
         hasta = (hoy + timedelta(days=120)).strftime("%Y-%m-%d")
-        data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "limit": 80})
+        # Para copas (CL, WC, EC), traer por separado scheduled + finished recientes
+        is_cup = codigo in ("CL", "WC", "EC")
+        if is_cup:
+            # Scheduled (próximos)
+            d1 = fd_get(f"/competitions/{codigo}/matches", {"status": "SCHEDULED", "limit": 20})
+            # Finished recientes (últimos 7 días)
+            d2 = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": (hoy - timedelta(days=7)).strftime('%Y-%m-%d'), "dateTo": hoy.strftime('%Y-%m-%d'), "status": "FINISHED", "limit": 20})
+            all_m = (d1.get("matches", []) if "error" not in d1 else []) + (d2.get("matches", []) if "error" not in d2 else [])
+            # Dedup by id
+            seen = set()
+            deduped = []
+            for mm in all_m:
+                if mm["id"] not in seen:
+                    seen.add(mm["id"])
+                    deduped.append(mm)
+            data = {"matches": deduped}
+        else:
+            data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "limit": 80})
         if "error" in data:
             return jsonify({"response": [], "error": data["error"]})
         for m in data.get("matches", []):

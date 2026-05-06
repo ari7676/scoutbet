@@ -1276,31 +1276,34 @@ def _ref_description(name):
 def _search_as(name, lid, season):
     if not name or not lid: return None
 
-    # Limpiar nombre: quitar sufijos comunes
-    clean = name.replace(" FC", "").replace(" CF", "").replace(" AFC", "").replace(" AC", "").strip()
+    # Limpiar nombre: quitar sufijos/prefijos comunes
+    clean = name.replace(" FC", "").replace(" CF", "").replace(" AFC", "").replace(" AC", "")\
+                .replace("AC ", "").replace("SS ", "").replace("US ", "").replace("AS ", "")\
+                .replace(" Calcio", "").strip()
 
-    # Estrategia 1: buscar dentro de los equipos de la liga (mas confiable)
-    d = as_get("/teams", {"league": lid, "season": season})
-    if "error" not in d and d.get("response"):
-        candidates = d["response"]
-        nl = name.lower()
-        cl = clean.lower()
-        # Match exacto
+    def _find_in(candidates, name, clean):
+        nl = name.lower(); cl = clean.lower()
         for t in candidates:
             tn = t["team"]["name"].lower()
             if tn == nl or tn == cl: return t["team"]["id"]
-        # Match parcial bidireccional
         for t in candidates:
             tn = t["team"]["name"].lower()
             if cl in tn or tn in cl: return t["team"]["id"]
         for t in candidates:
             tn = t["team"]["name"].lower()
             if nl in tn or tn in nl: return t["team"]["id"]
-        # Match por primera palabra
         first_word = clean.split(" ")[0].lower()
         if len(first_word) >= 3:
             for t in candidates:
                 if first_word in t["team"]["name"].lower(): return t["team"]["id"]
+        return None
+
+    # Estrategia 1: buscar dentro de los equipos de la liga (temporada actual y anterior)
+    for s in [season, season-1]:
+        d = as_get("/teams", {"league": lid, "season": s})
+        if "error" not in d and d.get("response"):
+            result = _find_in(d["response"], name, clean)
+            if result: return result
 
     # Estrategia 2: search global
     search_term = clean.split(" ")[0] if len(clean.split(" ")[0]) >= 3 else clean

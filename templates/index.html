@@ -654,8 +654,10 @@ function renderAnalysis(d,home,away){
     ${ea.home||ea.away?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">ESTADO ANÍMICO</span></div>${animoBadge(home,ea.home)}${animoBadge(away,ea.away)}</div>`:''}
     ${mercadosArr.length>0?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">MERCADOS</span><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">${mercadosArr.length} evaluados</span></div><div class="analysis-card-body" style="padding:0 14px">${marketRows}</div></div>`:''}
     ${narracion?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">NARRATIVA</span></div><div class="narracion">${narracion}</div></div>`:''}
-    <button class="bet-btn" ${aprobados===0?'disabled':''} onclick="openModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">${aprobados>0?'VER ANÁLISIS COMPLETO':'SIN APUESTAS RECOMENDADAS'}</button>
-    <button class="bet-btn" style="margin-top:8px;background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none;font-size:12px" onclick="cargarAvanzado('${currentLiga}',${currentMatchId})">⚡ STATS AVANZADAS (corners, tarjetas, remates)</button>`;
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+      <button class="bet-btn" ${aprobados===0?'disabled':''} onclick="openModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">${aprobados>0?'VER ANÁLISIS':'SIN APUESTAS'}</button>
+      <button class="bet-btn" style="background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none;font-size:11px" id="btn-avanzado-${currentMatchId}" onclick="cargarAvanzado('${currentLiga}',${currentMatchId})">⚡ AVANZADO</button>
+    </div>`;
   // Agregar combinadas sugeridas al panel si hay
   if(d.combinadas&&d.combinadas.length>0){
     const combHtml=d.combinadas.slice(0,2).map((c,i)=>`<div class="combinada-card"><div class="cc-header"><span class="cc-tipo">${c.tipo.toUpperCase()}</span><div class="cc-stats"><span class="cc-prob">${c.prob_combinada}%</span><span class="cc-cuota">@${c.cuota_combinada}</span></div></div>${c.legs.map(l=>`<div class="cc-leg"><span class="cc-leg-name" style="font-size:11px">${l.mercado}</span><span class="cc-leg-prob">${l.prob}%</span></div>`).join('')}</div>`).join('');

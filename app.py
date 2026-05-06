@@ -385,42 +385,50 @@ def analisis_avanzado(codigo, match_id):
 
 
 def _avg_stats_from_fd(team_id, liga_code, season):
-    """Estima stats avanzadas desde football-data usando últimos 10 partidos."""
-    data = fd_get(f"/teams/{team_id}/matches", {"status": "FINISHED", "limit": 10})
-    matches = data.get("matches", [])
-    if not matches:
+    """Estima stats avanzadas desde football-data usando últimos partidos del equipo en la liga."""
+    try:
+        data = fd_get(f"/competitions/{liga_code}/matches", {
+            "status": "FINISHED", "limit": 20
+        })
+        all_matches = data.get("matches", [])
+        # Filtrar solo los partidos del equipo
+        matches = [m for m in all_matches if
+                   m.get("homeTeam", {}).get("id") == team_id or
+                   m.get("awayTeam", {}).get("id") == team_id]
+        matches = matches[-10:]  # últimos 10
+
+        if not matches:
+            return None
+
+        shots_total = []; shots_on = []; corners = []; yellow = []; red = []
+
+        for m in matches:
+            sc = m.get("score", {}).get("fullTime", {})
+            hg = sc.get("home") or 0
+            ag = sc.get("away") or 0
+            is_home = m.get("homeTeam", {}).get("id") == team_id
+            team_g = hg if is_home else ag
+
+            shots_total.append(max(8, round(team_g * 5.5 + 7)))
+            shots_on.append(max(2, round(team_g * 2.5 + 2)))
+            corners.append(max(2, round(team_g * 1.8 + 3.5)))
+            yellow.append(round(1.8 + (0.3 if not is_home else 0)))
+            red.append(0.05)
+
+        def avg(lst): return round(sum(lst)/len(lst), 1) if lst else "—"
+
+        return {
+            "remates_pj": avg(shots_total),
+            "al_arco_pj": avg(shots_on),
+            "corners_pj": avg(corners),
+            "tarjetas_amarillas_pj": avg(yellow),
+            "tarjetas_rojas_pj": avg(red),
+            "posesion_avg": "—",
+            "faltas_pj": "—",
+            "source": "estimated"
+        }
+    except Exception as e:
         return None
-
-    shots_total = []; shots_on = []; corners = []; yellow = []; red = []
-
-    for m in matches:
-        sc = m.get("score", {}).get("fullTime", {})
-        hg = sc.get("home", 0) or 0
-        ag = sc.get("away", 0) or 0
-        total_g = hg + ag
-        is_home = m.get("homeTeam", {}).get("id") == team_id
-        team_g = hg if is_home else ag
-
-        # Estimaciones basadas en promedio histórico de la liga
-        shots_total.append(max(8, round(team_g * 5.5 + 7)))
-        shots_on.append(max(2, round(team_g * 2.5 + 2)))
-        corners.append(max(2, round(team_g * 1.8 + 3.5)))
-        refs = m.get("referees", [])
-        yellow.append(round(1.8 + (0.3 if not is_home else 0)))
-        red.append(0.05)
-
-    def avg(lst): return round(sum(lst)/len(lst), 1) if lst else "—"
-
-    return {
-        "remates_pj": avg(shots_total),
-        "al_arco_pj": avg(shots_on),
-        "corners_pj": avg(corners),
-        "tarjetas_amarillas_pj": avg(yellow),
-        "tarjetas_rojas_pj": avg(red),
-        "posesion_avg": "—",
-        "faltas_pj": "—",
-        "source": "estimated"
-    }
 
 def _avg_fixture_stats(team_id, league_id, season):
     """Promedia stats de los ultimos 5 partidos del equipo."""
@@ -1796,4 +1804,3 @@ def alertas():
     return jsonify({"alertas":alertas,"total":len(alertas)})
 if __name__=="__main__":
     app.run(debug=True)
-    

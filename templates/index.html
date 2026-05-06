@@ -398,6 +398,30 @@ let currentLiga='PL',allMatches=[],currentFilter='todos',analyzing=false,current
 let matchScores={};
 let currentMatchId=null;
 
+async function cargarAvanzadoMobile(liga, matchId, analysisData){
+  const container=document.getElementById('mob-panel-content');
+  const btn=container?container.querySelector('#btn-avanzado-'+matchId):null;
+  if(btn){btn.textContent='⏳';btn.disabled=true;}
+  try{
+    const r=await fetch(`/analisis_avanzado/${liga}/${matchId}`);
+    const d=await r.json();
+    if(d.error){if(btn){btn.textContent='⚠';btn.disabled=false;}return;}
+    const mercados=d.mercados||[];
+    if(!mercados.length){if(btn)btn.textContent='Sin stats';return;}
+    const aprobados=mercados.filter(m=>m.aprobado);
+    const marketRows=mercados.map(m=>{
+      const ap=m.aprobado,prob=m.prob||0;
+      return `<div class="market-row"><div><div class="market-name">${m.mercado}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="market-prob ${prob>=80?'ok':prob>=70?'warn':'bad'}">${prob}%</span><span class="market-badge ${ap?'ok':'no'}">${ap?'OK':'NO'}</span></div></div>`;
+    }).join('');
+    const avEl=document.createElement('div');
+    avEl.innerHTML=`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">⚡ STATS AVANZADAS</span><span style="font-family:var(--mono);font-size:10px;color:var(--neon)">${aprobados.length} aprobados</span></div><div class="analysis-card-body" style="padding:0 14px">${marketRows}</div></div>`;
+    const grid=container?container.querySelector('[style*="grid-template-columns"]'):null;
+    if(grid)container.insertBefore(avEl,grid);
+    else if(container)container.appendChild(avEl);
+    if(btn){btn.textContent='✓';btn.style.opacity='.5';}
+  }catch(e){if(btn){btn.textContent='⚠';btn.disabled=false;}}
+}
+
 async function cargarAvanzado(liga, matchId){
   if(!matchId){return;}
   const btn=document.getElementById('btn-avanzado-'+matchId);
@@ -625,7 +649,15 @@ async function analizarPartido(matchId,home,away){
     if(data.match_score) matchScores[matchId]=data.match_score;
     renderAnalysis(data,home,away);
     renderMatches(allMatches.filter(m=>{if(currentFilter==='todos')return true;if(currentFilter==='hoy'){const hoy=new Date().toDateString();return new Date(m.fecha||m.utcDate).toDateString()===hoy;}return true;}));
-    if(mobile){setTimeout(()=>{document.getElementById('mob-panel-content').innerHTML=document.getElementById('panel-content').innerHTML;document.getElementById('mob-panel-badge').textContent=document.getElementById('panel-badge').textContent;},50);}
+    if(mobile){setTimeout(()=>{
+      document.getElementById('mob-panel-content').innerHTML=document.getElementById('panel-content').innerHTML;
+      document.getElementById('mob-panel-badge').textContent=document.getElementById('panel-badge').textContent;
+      // Re-attach listeners in mobile panel
+      const btnModalM=document.getElementById('mob-panel-content').querySelector('#btn-modal-'+currentMatchId);
+      if(btnModalM&&aprobados>0) btnModalM.addEventListener('click',()=>openModal(d));
+      const btnAvM=document.getElementById('mob-panel-content').querySelector('#btn-avanzado-'+currentMatchId);
+      if(btnAvM) btnAvM.addEventListener('click',()=>cargarAvanzadoMobile(currentLiga,currentMatchId,d));
+    },50);}
   }catch(e){
     const err=`<div class="empty" style="color:var(--live)">Error: ${e.message}</div>`;
     document.getElementById('panel-content').innerHTML=err;

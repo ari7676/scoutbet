@@ -315,6 +315,31 @@ def index():
     return render_template("index.html", ligas={k:v["nombre"] for k,v in LIGAS.items()})
 
 
+@app.route("/diag_as/<codigo>/<int:match_id>")
+@api_login_required
+def diag_as(codigo, match_id):
+    liga = LIGAS.get(codigo, {})
+    as_id = liga.get("as_id")
+    season = liga.get("season")
+    md = fd_get(f"/matches/{match_id}")
+    if "error" in md or "id" not in md:
+        return jsonify({"error": "fd match not found", "raw": md})
+    hn = md["homeTeam"]["name"]
+    an = md["awayTeam"]["name"]
+    # Try to get teams from api-sports
+    teams_data = as_get("/teams", {"league": as_id, "season": season})
+    teams_prev = as_get("/teams", {"league": as_id, "season": season-1})
+    hid = _search_as(hn, as_id, season)
+    aid = _search_as(an, as_id, season)
+    return jsonify({
+        "fd_home": hn, "fd_away": an,
+        "as_league": as_id, "season": season,
+        "hid_found": hid, "aid_found": aid,
+        "teams_count_current": len(teams_data.get("response",[])),
+        "teams_count_prev": len(teams_prev.get("response",[])),
+        "sample_teams": [t["team"]["name"] for t in teams_data.get("response",[])[:10]],
+    })
+
 @app.route("/analisis_avanzado/<codigo>/<int:match_id>")
 @api_login_required
 def analisis_avanzado(codigo, match_id):

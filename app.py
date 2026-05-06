@@ -4,7 +4,7 @@ MatchIQ — Backend Flask v5
 - SQLite para guardar predicciones
 - Verificacion automatica de aciertos
 """
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, send_from_directory
 from datetime import datetime, timedelta
 from functools import wraps
 import requests, time, math, os, sqlite3, json
@@ -284,6 +284,15 @@ def api_login_required(f):
         if not session.get("auth"): return jsonify({"error":"unauthorized"}), 401
         return f(*args, **kwargs)
     return wrapper
+
+# PWA routes
+@app.route("/sw.js")
+def service_worker():
+    return send_from_directory("static", "sw.js", mimetype="application/javascript")
+
+@app.route("/manifest.json")
+def manifest():
+    return send_from_directory("static", "manifest.json", mimetype="application/json")
 
 @app.route("/login", methods=["GET","POST"])
 def login():

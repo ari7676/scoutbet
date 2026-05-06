@@ -633,11 +633,13 @@ async function analizarPartido(matchId,home,away){
 }
 
 function renderAnalysis(d,home,away){
-  const v=d.veredicto||{},mercados=d.mercados||{},aprobados=v.total_aprobados||0;
+  const v=d.veredicto||{},mercadosRaw=d.mercados||{},aprobados=v.total_aprobados||0;
+  // Normalizar mercados — puede ser array o objeto
+  const mercadosArr=Array.isArray(mercadosRaw)?mercadosRaw:Object.values(mercadosRaw);
   document.getElementById('panel-badge').textContent=aprobados;
   const mainMarket=v.mercado_principal||v.texto||'Sin mercado aprobado',mainProb=v.mp_prob||v.probabilidad||0;
-  const marketRows=Object.entries(mercados).map(([k,m])=>{
-    const ap=m.aprobado||m.aprovado,prob=m.prob||m.probabilidad||0,nombre=m.mercado||m.texto||m.descripcion||m.nombre||k;
+  const marketRows=mercadosArr.map(m=>{
+    const ap=m.aprobado||m.aprovado,prob=m.prob||m.probabilidad||0,nombre=m.mercado||m.texto||m.descripcion||m.nombre||'';
     return `<div class="market-row"><div><div class="market-name">${nombre}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="market-prob ${prob>=80?'ok':prob>=70?'warn':'bad'}">${prob}%</span><span class="market-badge ${ap?'ok':'no'}">${ap?'OK':'NO'}</span></div></div>`;
   }).join('');
   const narracion=d.narracion||d.narrativa||d.texto_narrativo||'',ea=d.estado_animico||{};
@@ -650,7 +652,7 @@ function renderAnalysis(d,home,away){
     ${aprobados>0?`<div class="veredicto-hero"><div class="v-label">MERCADO PRINCIPAL</div><div class="v-mercado">${mainMarket.replace(/\n/g,'<br>')}</div><div style="display:flex;align-items:center;gap:8px;margin-top:8px"><div class="v-prob" style="color:${mainProb>=70?'var(--neon)':mainProb>=55?'var(--warn)':'var(--live)'}">${mainProb}%</div>${mainProb<70?`<span style="font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.1em;padding:2px 6px;border-radius:3px;background:rgba(255,210,63,.12);color:var(--warn);border:1px solid rgba(255,210,63,.3)">${mainProb>=55?'MARGINAL':'BAJO'}</span>`:''}</div></div>`
     :`<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px"><div style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em;margin-bottom:6px">SIN MERCADOS APROBADOS</div><div style="font-size:12px;color:var(--dim2)">El modelo no encontró mercados con probabilidad suficiente.</div></div>`}
     ${ea.home||ea.away?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">ESTADO ANÍMICO</span></div>${animoBadge(home,ea.home)}${animoBadge(away,ea.away)}</div>`:''}
-    ${Object.keys(mercados).length>0?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">MERCADOS</span><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">${Object.keys(mercados).length} evaluados</span></div><div class="analysis-card-body" style="padding:0 14px">${marketRows}</div></div>`:''}
+    ${mercadosArr.length>0?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">MERCADOS</span><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">${mercadosArr.length} evaluados</span></div><div class="analysis-card-body" style="padding:0 14px">${marketRows}</div></div>`:''}
     ${narracion?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">NARRATIVA</span></div><div class="narracion">${narracion}</div></div>`:''}
     <button class="bet-btn" ${aprobados===0?'disabled':''} onclick="openModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">${aprobados>0?'VER ANÁLISIS COMPLETO':'SIN APUESTAS RECOMENDADAS'}</button>
     <button class="bet-btn" style="margin-top:8px;background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none;font-size:12px" onclick="cargarAvanzado('${currentLiga}',${currentMatchId})">⚡ STATS AVANZADAS (corners, tarjetas, remates)</button>`;

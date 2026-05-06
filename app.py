@@ -572,11 +572,11 @@ def partidos(codigo):
         # Football-data (default)
         desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
         hasta = (hoy + timedelta(days=120)).strftime("%Y-%m-%d")
-        # Para copas (CL, WC, EC), traer por separado scheduled + finished recientes
+        # Para copas (CL, WC, EC), traer por separado próximos + finished recientes
         is_cup = codigo in ("CL", "WC", "EC")
         if is_cup:
-            # Scheduled (próximos)
-            d1 = fd_get(f"/competitions/{codigo}/matches", {"status": "SCHEDULED", "limit": 20})
+            # Próximos (SCHEDULED + TIMED) por fecha
+            d1 = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": hoy.strftime('%Y-%m-%d'), "dateTo": (hoy + timedelta(days=90)).strftime('%Y-%m-%d'), "limit": 20})
             # Finished recientes (últimos 7 días)
             d2 = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": (hoy - timedelta(days=7)).strftime('%Y-%m-%d'), "dateTo": hoy.strftime('%Y-%m-%d'), "status": "FINISHED", "limit": 20})
             all_m = (d1.get("matches", []) if "error" not in d1 else []) + (d2.get("matches", []) if "error" not in d2 else [])

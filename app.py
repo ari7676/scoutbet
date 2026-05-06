@@ -421,13 +421,12 @@ def _mercados_avanzados(home, away, hn, an):
     # Corners totales
     if home.get("corners_pj") != "—" and away.get("corners_pj") != "—":
         total_corners = home["corners_pj"] + away["corners_pj"]
-        # Over 9.5 corners
         if total_corners >= 10:
             p = min(85, round(50 + (total_corners - 9.5) * 12))
             mercados.append({
                 "mercado": "Corners Totales Over 9.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
-                "aprobado": p >= UMBRAL,
+                "aprobado": p >= 70,
                 "sintesis": f"Promedio combinado de corners: {round(total_corners,1)}/partido. {hn} {home['corners_pj']} y {an} {away['corners_pj']}."
             })
         if total_corners <= 9:
@@ -435,28 +434,152 @@ def _mercados_avanzados(home, away, hn, an):
             mercados.append({
                 "mercado": "Corners Totales Under 9.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
-                "aprobado": p >= UMBRAL,
+                "aprobado": p >= 70,
                 "sintesis": f"Promedio combinado bajo: {round(total_corners,1)} corners/partido."
             })
 
-    # Tarjetas amarillas totales
+    # === REMATES TOTALES ===
+    if home.get("remates_pj") != "—" and away.get("remates_pj") != "—":
+        total_shots = home["remates_pj"] + away["remates_pj"]
+        # Over/Under 22.5
+        if total_shots >= 23:
+            p = min(82, round(50 + (total_shots - 22.5) * 8))
+            mercados.append({
+                "mercado": "Remates Totales Over 22.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
+                "aprobado": p >= 70,
+                "sintesis": f"Promedio combinado: {round(total_shots,1)} remates/partido. {hn} {home['remates_pj']} y {an} {away['remates_pj']}."
+            })
+        if total_shots <= 22:
+            p = min(82, round(50 + (22.5 - total_shots) * 8))
+            mercados.append({
+                "mercado": "Remates Totales Under 22.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
+                "aprobado": p >= 70,
+                "sintesis": f"Promedio combinado bajo: {round(total_shots,1)} remates/partido."
+            })
+        # Over/Under 25.5
+        if total_shots >= 26:
+            p = min(80, round(45 + (total_shots - 25.5) * 8))
+            mercados.append({
+                "mercado": "Remates Totales Over 25.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
+                "aprobado": p >= 70,
+                "sintesis": f"Equipos ofensivos: {round(total_shots,1)} remates combinados/partido."
+            })
+
+    # === REMATES AL ARCO ===
+    if home.get("al_arco_pj") != "—" and away.get("al_arco_pj") != "—":
+        total_sot = home["al_arco_pj"] + away["al_arco_pj"]
+        # Over/Under 8.5
+        if total_sot >= 9:
+            p = min(82, round(50 + (total_sot - 8.5) * 10))
+            mercados.append({
+                "mercado": "Remates al Arco Over 8.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT",
+                "aprobado": p >= 70,
+                "sintesis": f"Promedio combinado al arco: {round(total_sot,1)}/partido. {hn} {home['al_arco_pj']} y {an} {away['al_arco_pj']}."
+            })
+        if total_sot <= 8:
+            p = min(82, round(50 + (8.5 - total_sot) * 10))
+            mercados.append({
+                "mercado": "Remates al Arco Under 8.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT",
+                "aprobado": p >= 70,
+                "sintesis": f"Equipos poco precisos: {round(total_sot,1)} al arco/partido."
+            })
+        # Over/Under 10.5
+        if total_sot >= 11:
+            p = min(80, round(45 + (total_sot - 10.5) * 10))
+            mercados.append({
+                "mercado": "Remates al Arco Over 10.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT",
+                "aprobado": p >= 70,
+                "sintesis": f"Alta precisión combinada: {round(total_sot,1)} al arco/partido."
+            })
+
+    # === TARJETAS AMARILLAS ===
     if home.get("tarjetas_amarillas_pj") != "—" and away.get("tarjetas_amarillas_pj") != "—":
         total_y = home["tarjetas_amarillas_pj"] + away["tarjetas_amarillas_pj"]
-        if total_y >= 4.5:
-            p = min(80, round(50 + (total_y - 4.5) * 15))
+        # Over/Under 3.5
+        if total_y >= 4:
+            p = min(85, round(50 + (total_y - 3.5) * 12))
             mercados.append({
-                "mercado": "Tarjetas Amarillas Over 4.5",
+                "mercado": "Tarjetas Over 3.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 65,
-                "sintesis": f"Promedio combinado: {round(total_y,1)} amarillas/partido. {hn} {home['tarjetas_amarillas_pj']} y {an} {away['tarjetas_amarillas_pj']}."
+                "aprobado": p >= 70,
+                "sintesis": f"Promedio combinado: {round(total_y,1)} amarillas/partido."
+            })
+        if total_y <= 3:
+            p = min(85, round(50 + (3.5 - total_y) * 12))
+            mercados.append({
+                "mercado": "Tarjetas Under 3.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
+                "aprobado": p >= 70,
+                "sintesis": f"Partido limpio esperado: {round(total_y,1)} amarillas/partido."
+            })
+        # Over/Under 4.5
+        if total_y >= 5:
+            p = min(82, round(50 + (total_y - 4.5) * 12))
+            mercados.append({
+                "mercado": "Tarjetas Over 4.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
+                "aprobado": p >= 70,
+                "sintesis": f"Promedio alto: {round(total_y,1)} amarillas/partido. {hn} {home['tarjetas_amarillas_pj']} y {an} {away['tarjetas_amarillas_pj']}."
             })
         if total_y <= 4:
-            p = min(80, round(50 + (4.5 - total_y) * 15))
+            p = min(82, round(50 + (4.5 - total_y) * 12))
             mercados.append({
-                "mercado": "Tarjetas Amarillas Under 4.5",
+                "mercado": "Tarjetas Under 4.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 65,
-                "sintesis": f"Promedio combinado bajo: {round(total_y,1)} amarillas/partido."
+                "aprobado": p >= 70,
+                "sintesis": f"Pocas amarillas esperadas: {round(total_y,1)}/partido."
+            })
+        # Over/Under 5.5
+        if total_y >= 6:
+            p = min(80, round(45 + (total_y - 5.5) * 12))
+            mercados.append({
+                "mercado": "Tarjetas Over 5.5",
+                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
+                "aprobado": p >= 70,
+                "sintesis": f"Partido caliente esperado: {round(total_y,1)} amarillas/partido."
+            })
+
+    # === RANGO DE GOLES ===
+    if ge > 0:
+        # Probabilidad Poisson simplificada para rangos de goles
+        import math as _m
+        def _poisson_range(lam, lo, hi):
+            """Probabilidad de que goles caigan en rango [lo, hi]"""
+            p = 0
+            for k in range(lo, hi+1):
+                p += (lam**k * _m.exp(-lam)) / _m.factorial(k)
+            return min(95, round(p * 100))
+
+        p_01 = _poisson_range(ge, 0, 1)
+        p_23 = _poisson_range(ge, 2, 3)
+        p_4plus = max(0, 100 - p_01 - p_23)
+
+        if p_01 >= 30:
+            mercados.append({
+                "mercado": "Rango de Goles: 0-1",
+                "prob": p_01, "riesgo": 100-p_01, "cuota": _cuota(p_01), "tipo": "RANGE",
+                "aprobado": p_01 >= 65,
+                "sintesis": f"Con {ge} goles esperados, hay {p_01}% de probabilidad de 0 o 1 gol."
+            })
+        if p_23 >= 30:
+            mercados.append({
+                "mercado": "Rango de Goles: 2-3",
+                "prob": p_23, "riesgo": 100-p_23, "cuota": _cuota(p_23), "tipo": "RANGE",
+                "aprobado": p_23 >= 65,
+                "sintesis": f"Con {ge} goles esperados, el rango 2-3 es el más probable ({p_23}%)."
+            })
+        if p_4plus >= 20:
+            mercados.append({
+                "mercado": "Rango de Goles: 4+",
+                "prob": p_4plus, "riesgo": 100-p_4plus, "cuota": _cuota(p_4plus), "tipo": "RANGE",
+                "aprobado": p_4plus >= 60,
+                "sintesis": f"Partido abierto: {p_4plus}% de probabilidad de 4 o más goles."
             })
 
     # Posesion - Local domina
@@ -1306,8 +1429,9 @@ UMBRAL = 82  # Umbral global de aprobacion
 # Grupos de correlación para combinadas
 _CORR_GROUPS = {
     "1X2":"RES","DC":"RES","WTN":"RES",
-    "O/U":"GOLES","BTTS":"GOLES","GE":"GOLES","ESP":"GOLES",
+    "O/U":"GOLES","BTTS":"GOLES","GE":"GOLES","ESP":"GOLES","RANGE":"GOLES",
     "CS":"DEF","HT":"TIEMPO",
+    "CORNERS":"STATS","CARDS":"STATS","SHOTS":"STATS","SOT":"STATS","POSS":"STATS",
 }
 _INCOMPATIBLE = {
     frozenset(["BTTS","CS"]),frozenset(["O/U","ESP"]),

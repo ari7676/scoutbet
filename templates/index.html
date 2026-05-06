@@ -400,36 +400,25 @@ let currentMatchId=null;
 
 async function cargarAvanzado(liga, matchId){
   const btn=event.target;
-  btn.textContent='⏳ Cargando stats...';
-  btn.disabled=true;
+  btn.textContent='⏳ Cargando...';btn.disabled=true;
   try{
     const r=await fetch(`/analisis_avanzado/${liga}/${matchId}`);
     const d=await r.json();
-    if(d.error){btn.textContent='⚠ '+d.error;return;}
-    // Agregar mercados avanzados al panel
+    if(d.error){btn.textContent='⚠ '+d.error;btn.disabled=false;return;}
+    const mercados=d.mercados||[];
+    if(!mercados.length){btn.textContent='Sin stats disponibles';return;}
+    const aprobados=mercados.filter(m=>m.aprobado);
+    const marketRows=mercados.map(m=>{
+      const ap=m.aprobado,prob=m.prob||0;
+      return `<div class="market-row"><div><div class="market-name">${m.mercado}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="market-prob ${prob>=80?'ok':prob>=70?'warn':'bad'}">${prob}%</span><span class="market-badge ${ap?'ok':'no'}">${ap?'OK':'NO'}</span></div></div>`;
+    }).join('');
+    const avEl=document.createElement('div');
+    avEl.innerHTML=`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">⚡ STATS AVANZADAS</span><span style="font-family:var(--mono);font-size:10px;color:var(--neon)">${aprobados.length} aprobados</span></div><div class="analysis-card-body" style="padding:0 14px">${marketRows}</div></div>`;
     const pcEl=document.getElementById('panel-content');
-    if(d.mercados&&d.mercados.length>0){
-      const aprobados=d.mercados.filter(m=>m.aprobado);
-      const mHtml=d.mercados.map(m=>{
-        const bc=m.aprobado?'si':m.prob>=50?'marginal':'no';
-        const bt=m.aprobado?'APROBADO':m.prob>=50?'MARGINAL':'NO APROBADO';
-        const pc=m.prob>=70?'var(--neon)':m.prob>=55?'var(--warn)':'var(--dim)';
-        return `<div style="background:var(--bg2);border-radius:8px;padding:12px;border-left:3px solid ${m.aprobado?'var(--neon)':m.prob>=50?'var(--warn)':'var(--line)'}">
-          <div style="font-weight:600;font-size:13px">${m.mercado}</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin:3px 0">${m.tipo} <span style="background:${m.aprobado?'rgba(0,226,138,.15)':m.prob>=50?'rgba(255,210,63,.1)':'rgba(255,255,255,.05)'};color:${pc};padding:1px 6px;border-radius:3px;font-weight:700">${bt}</span></div>
-          <div style="display:flex;gap:12px;margin:6px 0"><span style="font-family:var(--mono);font-size:18px;font-weight:700;color:${pc}">${m.prob}%</span><span style="font-family:var(--mono);font-size:12px;color:var(--red)">Riesgo ${m.riesgo}%</span><span style="font-family:var(--mono);font-size:14px;color:var(--warn);font-weight:700">@${m.cuota}</span></div>
-          <div style="font-size:11px;color:var(--dim)">${m.sintesis||''}</div>
-        </div>`;
-      }).join('');
-      // Insertar antes del bet-btn
-      const avEl=document.createElement('div');
-      avEl.innerHTML=`<div style="border-top:1px solid var(--line);padding-top:12px;margin-top:4px"><div style="font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.1em;margin-bottom:8px;font-weight:700">⚡ STATS AVANZADAS — ${aprobados.length} APROBADOS</div>${mHtml}</div>`;
-      const bets=pcEl.querySelectorAll('.bet-btn');
-      if(bets.length>0) pcEl.insertBefore(avEl,bets[0]);
-      else pcEl.appendChild(avEl);
-    }
-    btn.textContent='✓ Stats cargadas';
-    btn.style.color='var(--dim)';
+    const bets=pcEl.querySelectorAll('.bet-btn');
+    if(bets.length>0)pcEl.insertBefore(avEl,bets[0]);
+    else pcEl.appendChild(avEl);
+    btn.textContent='✓ Stats cargadas';btn.style.opacity='.5';
   }catch(e){btn.textContent='⚠ Error';btn.disabled=false;}
 }
 

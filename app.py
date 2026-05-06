@@ -481,7 +481,12 @@ def _avg_fixture_stats(team_id, league_id, season):
     }
 
 
-def _mercados_avanzados(home, away, hn, an):
+def _mercados_avanzados(home, away, hn, an, ge=None):
+    if ge is None:
+        # Estimar ge desde remates al arco si está disponible
+        h_sot = home.get("al_arco_pj", 0) if isinstance(home.get("al_arco_pj"), (int, float)) else 0
+        a_sot = away.get("al_arco_pj", 0) if isinstance(away.get("al_arco_pj"), (int, float)) else 0
+        ge = round((h_sot + a_sot) * 0.33, 1) if (h_sot + a_sot) > 0 else 2.5
     """Genera mercados a partir de stats avanzadas."""
     if not home or not away: return []
     mercados = []

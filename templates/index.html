@@ -395,7 +395,43 @@ nav button.active,nav button:hover{background:var(--neon-dim);color:var(--neon)}
 
 <script>
 let currentLiga='PL',allMatches=[],currentFilter='todos',analyzing=false,currentMatch={home:'',away:'',id:null};
-let matchScores={};  // cache de scores por match_id
+let matchScores={};
+let currentMatchId=null;
+
+async function cargarAvanzado(liga, matchId){
+  const btn=event.target;
+  btn.textContent='⏳ Cargando stats...';
+  btn.disabled=true;
+  try{
+    const r=await fetch(`/analisis_avanzado/${liga}/${matchId}`);
+    const d=await r.json();
+    if(d.error){btn.textContent='⚠ '+d.error;return;}
+    // Agregar mercados avanzados al panel
+    const pcEl=document.getElementById('panel-content');
+    if(d.mercados&&d.mercados.length>0){
+      const aprobados=d.mercados.filter(m=>m.aprobado);
+      const mHtml=d.mercados.map(m=>{
+        const bc=m.aprobado?'si':m.prob>=50?'marginal':'no';
+        const bt=m.aprobado?'APROBADO':m.prob>=50?'MARGINAL':'NO APROBADO';
+        const pc=m.prob>=70?'var(--neon)':m.prob>=55?'var(--warn)':'var(--dim)';
+        return `<div style="background:var(--bg2);border-radius:8px;padding:12px;border-left:3px solid ${m.aprobado?'var(--neon)':m.prob>=50?'var(--warn)':'var(--line)'}">
+          <div style="font-weight:600;font-size:13px">${m.mercado}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin:3px 0">${m.tipo} <span style="background:${m.aprobado?'rgba(0,226,138,.15)':m.prob>=50?'rgba(255,210,63,.1)':'rgba(255,255,255,.05)'};color:${pc};padding:1px 6px;border-radius:3px;font-weight:700">${bt}</span></div>
+          <div style="display:flex;gap:12px;margin:6px 0"><span style="font-family:var(--mono);font-size:18px;font-weight:700;color:${pc}">${m.prob}%</span><span style="font-family:var(--mono);font-size:12px;color:var(--red)">Riesgo ${m.riesgo}%</span><span style="font-family:var(--mono);font-size:14px;color:var(--warn);font-weight:700">@${m.cuota}</span></div>
+          <div style="font-size:11px;color:var(--dim)">${m.sintesis||''}</div>
+        </div>`;
+      }).join('');
+      // Insertar antes del bet-btn
+      const avEl=document.createElement('div');
+      avEl.innerHTML=`<div style="border-top:1px solid var(--line);padding-top:12px;margin-top:4px"><div style="font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.1em;margin-bottom:8px;font-weight:700">⚡ STATS AVANZADAS — ${aprobados.length} APROBADOS</div>${mHtml}</div>`;
+      const bets=pcEl.querySelectorAll('.bet-btn');
+      if(bets.length>0) pcEl.insertBefore(avEl,bets[0]);
+      else pcEl.appendChild(avEl);
+    }
+    btn.textContent='✓ Stats cargadas';
+    btn.style.color='var(--dim)';
+  }catch(e){btn.textContent='⚠ Error';btn.disabled=false;}
+}
 
 function setView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -583,7 +619,7 @@ function aplicarOrden(tipo){
 }
 
 async function analizarPartido(matchId,home,away){
-  if(analyzing)return;analyzing=true;currentMatch={home,away,id:matchId};
+  if(analyzing)return;analyzing=true;currentMatch={home,away,id:matchId};currentMatchId=matchId;
   const mobile=window.innerWidth<=768;
   if(mobile){
     document.getElementById('mob-panel-content').innerHTML=`<div class="loading"><div class="spinner"></div><div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Analizando…</div></div>`;
@@ -627,7 +663,8 @@ function renderAnalysis(d,home,away){
     ${ea.home||ea.away?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">ESTADO ANÍMICO</span></div>${animoBadge(home,ea.home)}${animoBadge(away,ea.away)}</div>`:''}
     ${Object.keys(mercados).length>0?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">MERCADOS</span><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">${Object.keys(mercados).length} evaluados</span></div><div class="analysis-card-body" style="padding:0 14px">${marketRows}</div></div>`:''}
     ${narracion?`<div class="analysis-card"><div class="analysis-card-header"><span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em">NARRATIVA</span></div><div class="narracion">${narracion}</div></div>`:''}
-    <button class="bet-btn" ${aprobados===0?'disabled':''} onclick="openModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">${aprobados>0?'VER ANÁLISIS COMPLETO':'SIN APUESTAS RECOMENDADAS'}</button>`;
+    <button class="bet-btn" ${aprobados===0?'disabled':''} onclick="openModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">${aprobados>0?'VER ANÁLISIS COMPLETO':'SIN APUESTAS RECOMENDADAS'}</button>
+    <button class="bet-btn" style="margin-top:8px;background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none;font-size:12px" onclick="cargarAvanzado('${currentLiga}',${currentMatchId})">⚡ STATS AVANZADAS (corners, tarjetas, remates)</button>`;
   // Agregar combinadas sugeridas al panel si hay
   if(d.combinadas&&d.combinadas.length>0){
     const combHtml=d.combinadas.slice(0,2).map((c,i)=>`<div class="combinada-card"><div class="cc-header"><span class="cc-tipo">${c.tipo.toUpperCase()}</span><div class="cc-stats"><span class="cc-prob">${c.prob_combinada}%</span><span class="cc-cuota">@${c.cuota_combinada}</span></div></div>${c.legs.map(l=>`<div class="cc-leg"><span class="cc-leg-name" style="font-size:11px">${l.mercado}</span><span class="cc-leg-prob">${l.prob}%</span></div>`).join('')}</div>`).join('');

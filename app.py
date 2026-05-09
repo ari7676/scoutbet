@@ -26,6 +26,110 @@ AS_KEY = "fb49b7a70ea23977f8e7711c5ed027b1"
 AS_URL = "https://v3.football.api-sports.io"
 AS_HEADERS = {"x-apisports-key": AS_KEY}
 
+# Highlightly API
+HL_KEY = os.environ.get("HL_KEY", "")
+HL_URL = "https://soccer.highlightly.net"
+HL_HEADERS = {"x-rapidapi-key": HL_KEY}
+
+# Mapa de nombres alternativos para búsqueda en Highlightly
+HL_NAME_MAP = {
+    "Athletic Club": ["Athletic Bilbao", "Athletic Club Bilbao", "Athletic"],
+    "Valencia CF": ["Valencia", "Valencia CF"],
+    "RCD Espanyol de Barcelona": ["Espanyol", "RCD Espanyol"],
+    "RCD Mallorca": ["Mallorca", "Real Club Deportivo Mallorca"],
+    "CA Osasuna": ["Osasuna", "Club Atlético Osasuna"],
+    "Real Valladolid CF": ["Valladolid", "Real Valladolid"],
+    "Rayo Vallecano de Madrid": ["Rayo Vallecano", "Rayo"],
+    "Girona FC": ["Girona"],
+    "Getafe CF": ["Getafe"],
+    "Celta de Vigo": ["Celta Vigo", "RC Celta de Vigo"],
+    "Deportivo Alavés": ["Alavés", "Deportivo Alaves"],
+    "Real Betis Balompié": ["Real Betis", "Betis"],
+    "Club Atlético de Madrid": ["Atletico Madrid", "Atlético de Madrid"],
+    "AC Pisa 1909": ["Pisa"],
+    "US Cremonese": ["Cremonese"],
+    "US Lecce": ["Lecce"],
+    "US Sassuolo Calcio": ["Sassuolo"],
+    "Hellas Verona FC": ["Hellas Verona", "Verona"],
+    "ACF Fiorentina": ["Fiorentina"],
+    "Cagliari Calcio": ["Cagliari"],
+    "Udinese Calcio": ["Udinese"],
+    "Parma Calcio 1913": ["Parma"],
+    "FC Internazionale Milano": ["Inter Milan", "Inter", "Internazionale"],
+    "SS Lazio": ["Lazio"],
+    "AS Roma": ["Roma"],
+}
+
+def hl_get(ep, params=None):
+    if not HL_KEY:
+        return {"error": "No HL_KEY"}
+    try:
+        r = requests.get(f"{HL_URL}{ep}", headers=HL_HEADERS, params=params, timeout=15)
+        if r.status_code == 429:
+            time.sleep(5)
+            r = requests.get(f"{HL_URL}{ep}", headers=HL_HEADERS, params=params, timeout=15)
+        return r.json() if r.ok else {"error": r.status_code}
+    except Exception as e:
+        return {"error": str(e)}
+
+def _get_hl_team_id(team_name, league_code):
+    """Busca team ID en Highlightly probando múltiples variantes de nombre."""
+    country_map = {"PL":"England","PD":"Spain","SA":"Italy","BL1":"Germany","FL1":"France","BSA":"Brazil","CL":"Europe","PPL":"Portugal","DED":"Netherlands"}
+    country = country_map.get(league_code, "")
+    # Construir lista de nombres a probar
+    names_to_try = [team_name]
+    clean = team_name.replace(" FC","").replace(" CF","").replace(" AFC","").replace("AC ","").replace("SS ","").replace("US ","").replace("AS ","").replace(" Calcio","").strip()
+    if clean != team_name:
+        names_to_try.append(clean)
+    # Agregar variantes del mapa
+    if team_name in HL_NAME_MAP:
+        names_to_try.extend(HL_NAME_MAP[team_name])
+    # Agregar primera palabra si es suficientemente larga
+    first = clean.split(" ")[0]
+    if len(first) >= 4:
+        names_to_try.append(first)
+
+    for name in names_to_try:
+        d = hl_get("/teams", {"name": name, "countryName": country} if country else {"name": name})
+        if "error" not in d and d:
+            teams = d if isinstance(d, list) else d.get("data", [])
+            if teams:
+                return teams[0].get("id") or teams[0].get("teamId")
+    return None
+
+def _avg_stats_from_hl(team_id, liga_code):
+    """Obtiene stats reales de los últimos 5 partidos vía Highlightly."""
+    d = hl_get("/last-five-games", {"teamId": team_id})
+    if "error" in d or not d:
+        return None
+    games = d if isinstance(d, list) else d.get("data", [])
+    if not games:
+        return None
+    shots_total = []; shots_on = []; corners = []; yellow = []; red = []
+    for g in games[:5]:
+        stats = g.get("statistics", {})
+        is_home = str(g.get("homeTeamId","")) == str(team_id)
+        ts = stats.get("home",{}) if is_home else stats.get("away",{})
+        def sv(d, *keys):
+            for k in keys:
+                v = d.get(k)
+                if v is not None:
+                    try: return float(v)
+                    except: pass
+            return None
+        st = sv(ts,"shots","shotsTotal","total_shots")
+        so = sv(ts,"shotsOnTarget","shots_on_target","shotsOnGoal")
+        co = sv(ts,"corners","cornerKicks","corner_kicks")
+        yc = sv(ts,"yellowCards","yellow_cards")
+        rc = sv(ts,"redCards","red_cards")
+        if st is not None: shots_total.append(st)
+        if so is not None: shots_on.append(so)
+        if co is not None: corners.append(co)
+        if yc is not None: yellow.append(yc)
+        if rc is not None: red.append(rc)
+    def avg(lst): return round(sum(lst)/len(lst),1) if lst else "—"
+    return {"remates_pj":avg(shots_total),"al_arco_pj":avg(shots_on),"corners_pj":avg(corners),"tarjetas_amarillas_pj":avg(yellow),"tarjetas_rojas_pj":avg(red),"posesion_avg":"—","faltas_pj":"—","source":"highlightly"}
+
 LIGAS = {
     "PL":  {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League",  "as_id": 39,  "season": 2025, "source": "fd"},
     "PD":  {"nombre": "🇪🇸 La Liga",           "as_id": 140, "season": 2025, "source": "fd"},
@@ -437,7 +541,16 @@ def analisis_avanzado(codigo, match_id):
             home_avg = _avg_fixture_stats(hid, as_id, season)
             away_avg = _avg_fixture_stats(aid, as_id, season)
 
-    # Fallback: estimar desde football-data (últimos 10 partidos del equipo)
+    # Fallback 1: Highlightly
+    if (not home_avg or not away_avg) and HL_KEY:
+        h_hl_id = _get_hl_team_id(hn, codigo)
+        a_hl_id = _get_hl_team_id(an, codigo)
+        if h_hl_id and not home_avg:
+            home_avg = _avg_stats_from_hl(h_hl_id, codigo)
+        if a_hl_id and not away_avg:
+            away_avg = _avg_stats_from_hl(a_hl_id, codigo)
+
+    # Fallback 2: Estimación desde football-data
     if not home_avg:
         home_avg = _avg_stats_from_fd(home_id_fd, codigo, season)
     if not away_avg:
@@ -503,11 +616,13 @@ def _avg_stats_from_fd(team_id, liga_code, season):
 
 def _avg_fixture_stats(team_id, league_id, season):
     """Promedia stats de los ultimos 5 partidos del equipo."""
-    fx_data = as_get("/fixtures", {"team": team_id, "season": season, "league": league_id, "last": 5})
+    desde = (datetime.utcnow() - timedelta(days=120)).strftime("%Y-%m-%d")
+    hasta = datetime.utcnow().strftime("%Y-%m-%d")
+    fx_data = as_get("/fixtures", {"team": team_id, "season": season, "league": league_id, "from": desde, "to": hasta, "status": "FT"})
     if "error" in fx_data or not fx_data.get("response"):
         return None
 
-    fixtures = fx_data["response"]
+    fixtures = fx_data["response"][-5:]  # últimos 5
     totals = {
         "shots_total": [], "shots_on": [], "corners": [],
         "yellow": [], "red": [], "fouls": [], "possession": [],

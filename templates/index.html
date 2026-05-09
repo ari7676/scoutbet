@@ -422,6 +422,37 @@ async function cargarAvanzadoMobile(liga, matchId, analysisData){
   }catch(e){if(btn){btn.textContent='⚠';btn.disabled=false;}}
 }
 
+async function cargarIA(liga, matchId){
+  const btn=document.getElementById('btn-ia-'+matchId);
+  if(btn){btn.textContent='🤖 Analizando...';btn.disabled=true;}
+  try{
+    const r=await fetch(`/ia_analisis/${liga}/${matchId}`);
+    const d=await r.json();
+    if(d.error){if(btn){btn.textContent='⚠ '+d.error;btn.disabled=false;}return;}
+    const texto=d.analisis||'';
+    // Formatear texto con secciones
+    const html=texto
+      .replace(/🎯 RECOMENDACIÓN PRINCIPAL/g,'<div style="font-family:var(--mono);font-size:10px;color:#a78bfa;letter-spacing:.1em;font-weight:700;margin:12px 0 6px">🎯 RECOMENDACIÓN PRINCIPAL</div>')
+      .replace(/📊 ANÁLISIS DE STATS/g,'<div style="font-family:var(--mono);font-size:10px;color:#60a5fa;letter-spacing:.1em;font-weight:700;margin:12px 0 6px">📊 ANÁLISIS DE STATS</div>')
+      .replace(/⚡ MERCADO ALTERNATIVO/g,'<div style="font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.1em;font-weight:700;margin:12px 0 6px">⚡ MERCADO ALTERNATIVO</div>')
+      .replace(/⚠️ RIESGOS/g,'<div style="font-family:var(--mono);font-size:10px;color:var(--warn);letter-spacing:.1em;font-weight:700;margin:12px 0 6px">⚠️ RIESGOS</div>')
+      .replace(/\n/g,'<br>');
+    const avEl=document.createElement('div');
+    avEl.innerHTML=`<div class="analysis-card" style="border-left:3px solid #8b5cf6">
+      <div class="analysis-card-header">
+        <span style="font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.1em;color:#a78bfa">🤖 ANÁLISIS IA</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">Claude</span>
+      </div>
+      <div style="padding:0 16px 14px;font-size:13px;color:var(--dim);line-height:1.7">${html}</div>
+    </div>`;
+    const pcEl=document.getElementById('panel-content');
+    const grid=pcEl.querySelector('[style*="grid-template-columns"]');
+    if(grid)pcEl.insertBefore(avEl,grid);
+    else pcEl.appendChild(avEl);
+    if(btn){btn.textContent='✓ IA cargada';btn.style.opacity='.6';}
+  }catch(e){if(btn){btn.textContent='⚠ Error';btn.disabled=false;}}
+}
+
 async function cargarAvanzado(liga, matchId){
   if(!matchId){return;}
   const btn=document.getElementById('btn-avanzado-'+matchId);
@@ -690,7 +721,8 @@ function renderAnalysis(d,home,away){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
       <button class="bet-btn" ${aprobados===0?'disabled':''} id="btn-modal-${currentMatchId}">${aprobados>0?'VER ANÁLISIS':'SIN APUESTAS'}</button>
       <button class="bet-btn" style="background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none;font-size:11px" id="btn-avanzado-${currentMatchId}">⚡ AVANZADO</button>
-    </div>`;
+    </div>
+    <button class="bet-btn" style="margin-top:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;font-size:12px;letter-spacing:.05em" id="btn-ia-${currentMatchId}">🤖 ANÁLISIS IA</button>`;
   // Event delegation para botones del panel
   const pcEl2=document.getElementById('panel-content');
   pcEl2.onclick=function(e){
@@ -698,6 +730,7 @@ function renderAnalysis(d,home,away){
     if(!btn)return;
     if(btn.id==='btn-modal-'+currentMatchId&&aprobados>0)openModal(d);
     if(btn.id==='btn-avanzado-'+currentMatchId)cargarAvanzado(currentLiga,currentMatchId);
+    if(btn.id==='btn-ia-'+currentMatchId)cargarIA(currentLiga,currentMatchId);
   };
 
   // Agregar combinadas sugeridas al panel si hay

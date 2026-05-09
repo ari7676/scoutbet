@@ -315,6 +315,95 @@ def index():
     return render_template("index.html", ligas={k:v["nombre"] for k,v in LIGAS.items()})
 
 
+@app.route("/ia_analisis/<codigo>/<int:match_id>")
+@api_login_required
+def ia_analisis(codigo, match_id):
+    """Genera recomendación de apuesta usando IA con todos los datos del partido."""
+    import json as _json
+    
+    # Obtener datos del análisis completo
+    liga = LIGAS.get(codigo, {})
+    md = fd_get(f"/matches/{match_id}")
+    if "error" in md or "id" not in md:
+        return jsonify({"error": "Partido no encontrado"})
+    
+    hn = md["homeTeam"]["name"]
+    an = md["awayTeam"]["name"]
+    
+    # Pedir datos de análisis avanzado
+    try:
+        adv_resp = requests.get(
+            f"http://localhost:{os.environ.get('PORT', 10000)}/analisis_avanzado/{codigo}/{match_id}",
+            cookies={"session": request.cookies.get("session", "")},
+            timeout=30
+        )
+        adv_data = adv_resp.json() if adv_resp.ok else {}
+    except:
+        adv_data = {}
+    
+    mercados = adv_data.get("mercados", [])
+    home_stats = adv_data.get("home_stats", {})
+    away_stats = adv_data.get("away_stats", {})
+    aprobados = [m for m in mercados if m.get("aprobado")]
+    
+    # Construir prompt
+    prompt = f"""Sos un analista experto en apuestas deportivas. Analizá este partido y dá una recomendación concisa y fundamentada.
+
+PARTIDO: {hn} vs {an}
+LIGA: {liga.get('nombre', codigo)}
+
+STATS AVANZADAS:
+{hn}: Remates/PJ={home_stats.get('remates_pj','—')}, Al arco/PJ={home_stats.get('al_arco_pj','—')}, Corners/PJ={home_stats.get('corners_pj','—')}, Tarjetas/PJ={home_stats.get('tarjetas_amarillas_pj','—')}
+{an}: Remates/PJ={away_stats.get('remates_pj','—')}, Al arco/PJ={away_stats.get('al_arco_pj','—')}, Corners/PJ={away_stats.get('corners_pj','—')}, Tarjetas/PJ={away_stats.get('tarjetas_amarillas_pj','—')}
+
+MERCADOS APROBADOS POR EL MODELO:
+{chr(10).join([f"- {m['mercado']}: {m['prob']}% (@{m['cuota']})" for m in aprobados]) if aprobados else "Ninguno"}
+
+TODOS LOS MERCADOS EVALUADOS:
+{chr(10).join([f"- {m['mercado']}: {m['prob']}% {'✓' if m.get('aprobado') else '✗'}" for m in mercados[:12]])}
+
+Respondé en español argentino con este formato exacto:
+
+🎯 RECOMENDACIÓN PRINCIPAL
+[el mercado más sólido con justificación en 2 líneas]
+
+📊 ANÁLISIS DE STATS
+[qué dicen las estadísticas avanzadas sobre el estilo de juego esperado, 2-3 líneas]
+
+⚡ MERCADO ALTERNATIVO
+[segunda opción si la principal falla, con cuota y razonamiento]
+
+⚠️ RIESGOS
+[qué podría fallar, máximo 2 líneas]
+
+Sé directo y concreto. No uses frases genéricas. Basate en los números."""
+
+    # Llamar a Claude API
+    try:
+        r = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": os.environ.get("ANTHROPIC_API_KEY", ""),
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json"
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 600,
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=30
+        )
+        if r.ok:
+            data = r.json()
+            texto = data["content"][0]["text"]
+            return jsonify({"analisis": texto, "partido": f"{hn} vs {an}"})
+        else:
+            return jsonify({"error": f"API error: {r.status_code}"})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
 @app.route("/diag_as/<codigo>/<int:match_id>")
 @api_login_required
 def diag_as(codigo, match_id):

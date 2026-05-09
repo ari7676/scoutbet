@@ -426,21 +426,26 @@ async function cargarIA(liga, matchId){
   const btn=document.getElementById('btn-ia-'+matchId);
   if(btn){btn.textContent='🤖 Analizando...';btn.disabled=true;}
   
-  // Recopilar datos disponibles en el panel
   const d=window._lastAnalysis||{};
   const advData=window._lastAdvanced||{};
-  const mercados=[...(d.mercados||[]),...(advData.mercados||[])];
+  // Combinar mercados de análisis principal + avanzado
+  const mercadosPrincipales=Array.isArray(d.mercados)?d.mercados:Object.values(d.mercados||{});
+  const mercadosAvanzados=advData.mercados||[];
+  const mercados=[...mercadosPrincipales,...mercadosAvanzados];
   const home_stats=advData.home_stats||{};
   const away_stats=advData.away_stats||{};
   const liga_cfg={'PL':'Premier League','PD':'La Liga','SA':'Serie A','BL1':'Bundesliga','FL1':'Ligue 1','BSA':'Brasileirão','CL':'Champions League'};
+  // Extraer nombres del match
+  const matchData=d.match||{};
+  const home=matchData.home||matchData.homeTeam||window._currentHome||'Local';
+  const away=matchData.away||matchData.awayTeam||window._currentAway||'Visitante';
 
   try{
     const r=await fetch('/ia_analisis',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        home:d.match?.home||'',
-        away:d.match?.away||'',
+        home,away,
         liga:liga_cfg[liga]||liga,
         mercados,
         home_stats,
@@ -687,6 +692,7 @@ function aplicarOrden(tipo){
 
 async function analizarPartido(matchId,home,away){
   if(analyzing)return;analyzing=true;currentMatch={home,away,id:matchId};currentMatchId=matchId;
+  window._currentHome=home;window._currentAway=away;
   const mobile=window.innerWidth<=768;
   if(mobile){
     document.getElementById('mob-panel-content').innerHTML=`<div class="loading"><div class="spinner"></div><div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Analizando…</div></div>`;

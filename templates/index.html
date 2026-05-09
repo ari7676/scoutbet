@@ -691,12 +691,14 @@ function renderAnalysis(d,home,away){
       <button class="bet-btn" ${aprobados===0?'disabled':''} id="btn-modal-${currentMatchId}">${aprobados>0?'VER ANÁLISIS':'SIN APUESTAS'}</button>
       <button class="bet-btn" style="background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none;font-size:11px" id="btn-avanzado-${currentMatchId}">⚡ AVANZADO</button>
     </div>`;
-  // Agregar event listeners a los botones
-  const _mid=currentMatchId, _liga=currentLiga, _d=d, _ap=aprobados;
-  const btnModal=document.getElementById('btn-modal-'+_mid);
-  if(btnModal&&_ap>0) btnModal.addEventListener('click',()=>openModal(_d));
-  const btnAv=document.getElementById('btn-avanzado-'+_mid);
-  if(btnAv) btnAv.addEventListener('click',()=>cargarAvanzado(_liga,_mid));
+  // Event delegation para botones del panel
+  const pcEl2=document.getElementById('panel-content');
+  pcEl2.onclick=function(e){
+    const btn=e.target.closest('button');
+    if(!btn)return;
+    if(btn.id==='btn-modal-'+currentMatchId&&aprobados>0)openModal(d);
+    if(btn.id==='btn-avanzado-'+currentMatchId)cargarAvanzado(currentLiga,currentMatchId);
+  };
 
   // Agregar combinadas sugeridas al panel si hay
   if(d.combinadas&&d.combinadas.length>0){

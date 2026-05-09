@@ -692,10 +692,11 @@ function renderAnalysis(d,home,away){
       <button class="bet-btn" style="background:transparent;border:1px solid var(--neon);color:var(--neon);box-shadow:none;font-size:11px" id="btn-avanzado-${currentMatchId}">⚡ AVANZADO</button>
     </div>`;
   // Agregar event listeners a los botones
-  const btnModal=document.getElementById('btn-modal-'+currentMatchId);
-  if(btnModal&&aprobados>0) btnModal.addEventListener('click',()=>openModal(d));
-  const btnAv=document.getElementById('btn-avanzado-'+currentMatchId);
-  if(btnAv) btnAv.addEventListener('click',()=>cargarAvanzado(currentLiga,currentMatchId));
+  const _mid=currentMatchId, _liga=currentLiga, _d=d, _ap=aprobados;
+  const btnModal=document.getElementById('btn-modal-'+_mid);
+  if(btnModal&&_ap>0) btnModal.addEventListener('click',()=>openModal(_d));
+  const btnAv=document.getElementById('btn-avanzado-'+_mid);
+  if(btnAv) btnAv.addEventListener('click',()=>cargarAvanzado(_liga,_mid));
 
   // Agregar combinadas sugeridas al panel si hay
   if(d.combinadas&&d.combinadas.length>0){

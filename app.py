@@ -315,52 +315,35 @@ def index():
     return render_template("index.html", ligas={k:v["nombre"] for k,v in LIGAS.items()})
 
 
-@app.route("/ia_analisis/<codigo>/<int:match_id>")
+@app.route("/ia_analisis", methods=["POST"])
 @api_login_required
-def ia_analisis(codigo, match_id):
-    """Genera recomendación de apuesta usando IA con todos los datos del partido."""
-    import json as _json
-    
-    # Obtener datos del análisis completo
-    liga = LIGAS.get(codigo, {})
-    md = fd_get(f"/matches/{match_id}")
-    if "error" in md or "id" not in md:
-        return jsonify({"error": "Partido no encontrado"})
-    
-    hn = md["homeTeam"]["name"]
-    an = md["awayTeam"]["name"]
-    
-    # Pedir datos de análisis avanzado
-    try:
-        adv_resp = requests.get(
-            f"http://localhost:{os.environ.get('PORT', 10000)}/analisis_avanzado/{codigo}/{match_id}",
-            cookies={"session": request.cookies.get("session", "")},
-            timeout=30
-        )
-        adv_data = adv_resp.json() if adv_resp.ok else {}
-    except:
-        adv_data = {}
-    
-    mercados = adv_data.get("mercados", [])
-    home_stats = adv_data.get("home_stats", {})
-    away_stats = adv_data.get("away_stats", {})
+def ia_analisis():
+    """Genera recomendación de apuesta usando IA con datos enviados desde el frontend."""
+    body = request.get_json() or {}
+    hn = body.get("home", "Local")
+    an = body.get("away", "Visitante")
+    liga_nombre = body.get("liga", "")
+    mercados = body.get("mercados", [])
+    home_stats = body.get("home_stats", {})
+    away_stats = body.get("away_stats", {})
     aprobados = [m for m in mercados if m.get("aprobado")]
-    
-    # Construir prompt
+
+    def fmt(v): return str(v) if v and v != "—" else "sin datos"
+
     prompt = f"""Sos un analista experto en apuestas deportivas. Analizá este partido y dá una recomendación concisa y fundamentada.
 
 PARTIDO: {hn} vs {an}
-LIGA: {liga.get('nombre', codigo)}
+LIGA: {liga_nombre}
 
-STATS AVANZADAS:
-{hn}: Remates/PJ={home_stats.get('remates_pj','—')}, Al arco/PJ={home_stats.get('al_arco_pj','—')}, Corners/PJ={home_stats.get('corners_pj','—')}, Tarjetas/PJ={home_stats.get('tarjetas_amarillas_pj','—')}
-{an}: Remates/PJ={away_stats.get('remates_pj','—')}, Al arco/PJ={away_stats.get('al_arco_pj','—')}, Corners/PJ={away_stats.get('corners_pj','—')}, Tarjetas/PJ={away_stats.get('tarjetas_amarillas_pj','—')}
+STATS AVANZADAS (últimos 5 partidos):
+{hn}: Remates/PJ={fmt(home_stats.get('remates_pj'))}, Al arco/PJ={fmt(home_stats.get('al_arco_pj'))}, Corners/PJ={fmt(home_stats.get('corners_pj'))}, Tarjetas/PJ={fmt(home_stats.get('tarjetas_amarillas_pj'))}
+{an}: Remates/PJ={fmt(away_stats.get('remates_pj'))}, Al arco/PJ={fmt(away_stats.get('al_arco_pj'))}, Corners/PJ={fmt(away_stats.get('corners_pj'))}, Tarjetas/PJ={fmt(away_stats.get('tarjetas_amarillas_pj'))}
 
 MERCADOS APROBADOS POR EL MODELO:
 {chr(10).join([f"- {m['mercado']}: {m['prob']}% (@{m['cuota']})" for m in aprobados]) if aprobados else "Ninguno"}
 
 TODOS LOS MERCADOS EVALUADOS:
-{chr(10).join([f"- {m['mercado']}: {m['prob']}% {'✓' if m.get('aprobado') else '✗'}" for m in mercados[:12]])}
+{chr(10).join([f"- {m['mercado']}: {m['prob']}% {'✓' if m.get('aprobado') else '✗'}" for m in mercados[:15]])}
 
 Respondé en español argentino con este formato exacto:
 
@@ -376,9 +359,8 @@ Respondé en español argentino con este formato exacto:
 ⚠️ RIESGOS
 [qué podría fallar, máximo 2 líneas]
 
-Sé directo y concreto. No uses frases genéricas. Basate en los números."""
+Sé directo y concreto. No uses frases genéricas. Basate en los números reales. Si no hay datos de stats avanzadas, usá los mercados del modelo para dar tu análisis."""
 
-    # Llamar a Claude API
     try:
         r = requests.post(
             "https://api.anthropic.com/v1/messages",
@@ -397,9 +379,9 @@ Sé directo y concreto. No uses frases genéricas. Basate en los números."""
         if r.ok:
             data = r.json()
             texto = data["content"][0]["text"]
-            return jsonify({"analisis": texto, "partido": f"{hn} vs {an}"})
+            return jsonify({"analisis": texto})
         else:
-            return jsonify({"error": f"API error: {r.status_code}"})
+            return jsonify({"error": f"API error: {r.status_code} - {r.text[:200]}"})
     except Exception as e:
         return jsonify({"error": str(e)})
 

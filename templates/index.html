@@ -425,12 +425,31 @@ async function cargarAvanzadoMobile(liga, matchId, analysisData){
 async function cargarIA(liga, matchId){
   const btn=document.getElementById('btn-ia-'+matchId);
   if(btn){btn.textContent='🤖 Analizando...';btn.disabled=true;}
+  
+  // Recopilar datos disponibles en el panel
+  const d=window._lastAnalysis||{};
+  const advData=window._lastAdvanced||{};
+  const mercados=[...(d.mercados||[]),...(advData.mercados||[])];
+  const home_stats=advData.home_stats||{};
+  const away_stats=advData.away_stats||{};
+  const liga_cfg={'PL':'Premier League','PD':'La Liga','SA':'Serie A','BL1':'Bundesliga','FL1':'Ligue 1','BSA':'Brasileirão','CL':'Champions League'};
+
   try{
-    const r=await fetch(`/ia_analisis/${liga}/${matchId}`);
-    const d=await r.json();
-    if(d.error){if(btn){btn.textContent='⚠ '+d.error;btn.disabled=false;}return;}
-    const texto=d.analisis||'';
-    // Formatear texto con secciones
+    const r=await fetch('/ia_analisis',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        home:d.match?.home||'',
+        away:d.match?.away||'',
+        liga:liga_cfg[liga]||liga,
+        mercados,
+        home_stats,
+        away_stats
+      })
+    });
+    const resp=await r.json();
+    if(resp.error){if(btn){btn.textContent='⚠ '+resp.error;btn.disabled=false;}return;}
+    const texto=resp.analisis||'';
     const html=texto
       .replace(/🎯 RECOMENDACIÓN PRINCIPAL/g,'<div style="font-family:var(--mono);font-size:10px;color:#a78bfa;letter-spacing:.1em;font-weight:700;margin:12px 0 6px">🎯 RECOMENDACIÓN PRINCIPAL</div>')
       .replace(/📊 ANÁLISIS DE STATS/g,'<div style="font-family:var(--mono);font-size:10px;color:#60a5fa;letter-spacing:.1em;font-weight:700;margin:12px 0 6px">📊 ANÁLISIS DE STATS</div>')
@@ -446,6 +465,8 @@ async function cargarIA(liga, matchId){
       <div style="padding:0 16px 14px;font-size:13px;color:var(--dim);line-height:1.7">${html}</div>
     </div>`;
     const pcEl=document.getElementById('panel-content');
+    const iaExisting=pcEl.querySelector('[style*="8b5cf6"]');
+    if(iaExisting)iaExisting.remove();
     const grid=pcEl.querySelector('[style*="grid-template-columns"]');
     if(grid)pcEl.insertBefore(avEl,grid);
     else pcEl.appendChild(avEl);
@@ -475,6 +496,7 @@ async function cargarAvanzado(liga, matchId){
     if(grid)pcEl.insertBefore(avEl,grid);
     else pcEl.appendChild(avEl);
     if(btn){btn.textContent='✓';btn.style.opacity='.5';}
+    window._lastAdvanced=d;
   }catch(e){if(btn){btn.textContent='⚠';btn.disabled=false;}}
 }
 
@@ -696,7 +718,12 @@ async function analizarPartido(matchId,home,away){
   }finally{analyzing=false;}
 }
 
+// Guardar stats avanzadas globalmente cuando se cargan
+const _origCargarAvanzado=cargarAvanzado;
+window._lastAnalysis={};window._lastAdvanced={};
+
 function renderAnalysis(d,home,away){
+  window._lastAnalysis=d;
   const v=d.veredicto||{},mercadosRaw=d.mercados||{},aprobados=v.total_aprobados||0;
   // Normalizar mercados — puede ser array o objeto
   const mercadosArr=Array.isArray(mercadosRaw)?mercadosRaw:Object.values(mercadosRaw);

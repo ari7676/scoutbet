@@ -1,20 +1,6 @@
-const CACHE_NAME = 'matchiq-v3';
-
-// Install: skip waiting
-self.addEventListener('install', e => {
-  e.waitUntil(self.skipWaiting());
-});
-
-// Activate: clean ALL caches
+// Service worker desactivado - no cache
+self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-
-// Fetch: always network, no cache
-self.addEventListener('fetch', e => {
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-});
+// Sin fetch handler - pasa todo al navegador

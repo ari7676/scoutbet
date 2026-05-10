@@ -2149,15 +2149,20 @@ def _calcular_backtest():
 
 @app.route("/backtest/json")
 def backtest_json():
-    if not session.get("auth"):  # ← cambiar logged_in por auth
+    if not session.get("auth"):
         return jsonify({"error": "no auth"}), 401
-    ...
-
+    try:
+        data = _calcular_backtest()
+        return jsonify(data)
+    except Exception as e:
+        import traceback
+        return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
+    
 @app.route("/backtest")
 def backtest_page():
-    if not session.get("auth"):  # ← cambiar logged_in por auth
+    if not session.get("auth"):
         return redirect("/login")
-    ...
     return render_template("backtest.html")
+
 if __name__=="__main__":
     app.run(debug=True)

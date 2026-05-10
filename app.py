@@ -2034,7 +2034,12 @@ def _clasificar_mercado(texto):
 
 def _calcular_backtest():
     from collections import defaultdict
-    conn = sqlite3.connect(DB_PATH)
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+    else:
+        conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
         SELECT mercado_principal, mp_prob, mp_acertado,

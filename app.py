@@ -2034,7 +2034,7 @@ def _clasificar_mercado(texto):
 
 def _calcular_backtest():
     from collections import defaultdict
-    conn = _get_conn()
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
         SELECT mercado_principal, mp_prob, mp_acertado,

@@ -264,11 +264,16 @@ def _extract_prob_cuota(text):
         return (None, None)
 
 
-def verify_prediction(match_id, home_goals, away_goals):
+def verify_prediction(match_id, home_goals, away_goals, liga=None):
     """Verifica si el mercado principal y combinable acertaron."""
-    conn = sqlite3.connect(DB_PATH)
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+    else:
+        conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT mercado_principal, combinable, home, away FROM predicciones WHERE match_id=?", (match_id,))
+    c.execute("SELECT mercado_principal, combinable, home, away FROM predicciones WHERE match_id=%s" if database_url else "SELECT mercado_principal, combinable, home, away FROM predicciones WHERE match_id=?", (match_id,))
     row = c.fetchone()
     if not row:
         conn.close()
@@ -278,11 +283,44 @@ def verify_prediction(match_id, home_goals, away_goals):
     mp_ok = _check_mercado(mp, home_goals, away_goals, home, away)
     comb_ok = _check_mercado(comb, home_goals, away_goals, home, away) if comb else None
 
-    c.execute("""UPDATE predicciones SET resultado_home=?, resultado_away=?,
-        mp_acertado=?, comb_acertado=?, verificado=1 WHERE match_id=?""",
+    # Fetchear stats avanzados de api-sports si está disponible
+    corners_h = corners_a = remates_h = remates_a = remates_arco_h = remates_arco_a = tarjetas_am = tarjetas_ro = None
+    try:
+        liga_cfg = LIGAS.get(liga, {}) if liga else {}
+        if liga_cfg.get("source") == "as":
+            sx = as_get("/fixtures/statistics", {"fixture": match_id})
+            for team_stats in sx.get("response", []):
+                stats = {s["type"]: s["value"] for s in team_stats.get("statistics", [])}
+                is_home = team_stats.get("team", {}).get("id") == liga_cfg.get("home_team_id")
+                corners = stats.get("Corner Kicks", 0) or 0
+                shots = stats.get("Total Shots", 0) or 0
+                shots_on = stats.get("Shots on Goal", 0) or 0
+                yellow = stats.get("Yellow Cards", 0) or 0
+                red = stats.get("Red Cards", 0) or 0
+                if team_stats == sx.get("response", [])[0]:
+                    corners_h, remates_h, remates_arco_h = corners, shots, shots_on
+                    tarjetas_am = yellow
+                    tarjetas_ro = red
+                else:
+                    corners_a, remates_a, remates_arco_a = corners, shots, shots_on
+                    tarjetas_am = (tarjetas_am or 0) + yellow
+                    tarjetas_ro = (tarjetas_ro or 0) + red
+    except Exception as e:
+        print(f"Stats avanzados error: {e}")
+
+    ph = "%s" if database_url else "?"
+    c.execute(f"""UPDATE predicciones SET resultado_home={ph}, resultado_away={ph},
+        mp_acertado={ph}, comb_acertado={ph}, verificado=1,
+        corners_home={ph}, corners_away={ph},
+        remates_home={ph}, remates_away={ph},
+        remates_arco_home={ph}, remates_arco_away={ph},
+        tarjetas_amarillas={ph}, tarjetas_rojas={ph}
+        WHERE match_id={ph}""",
         (home_goals, away_goals,
          1 if mp_ok else (0 if mp_ok is False else None),
          1 if comb_ok else (0 if comb_ok is False else None),
+         corners_h, corners_a, remates_h, remates_a,
+         remates_arco_h, remates_arco_a, tarjetas_am, tarjetas_ro,
          match_id))
     conn.commit()
     conn.close()
@@ -1022,12 +1060,11 @@ def _auto_verify_pending():
                     st = f.get("fixture", {}).get("status", {}).get("short", "")
                     if st in ("FT", "AET", "PEN"):
                         g = f.get("goals", {})
-                        verify_prediction(match_id, g.get("home", 0), g.get("away", 0))
-            else:
+                       verify_prediction(match_id, g.get("home", 0), g.get("away", 0), liga)
                 d = fd_get(f"/matches/{match_id}")
                 if d.get("status") == "FINISHED":
                     sc = d.get("score", {}).get("fullTime", {})
-                    verify_prediction(match_id, sc.get("home", 0), sc.get("away", 0))
+                    verify_prediction(match_id, sc.get("home", 0), sc.get("away", 0), liga)
             time.sleep(0.5)  # respetar rate limit
         except Exception as e:
             print(f"Auto-verify error {match_id}: {e}")

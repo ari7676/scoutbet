@@ -1754,9 +1754,9 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     dc1x=ph+pd;dcx2=pa+pd
     if dc1x>=55:
         s=f"{hn} o Empate cubre el escenario mas probable. Solo pierde si gana {an} ({pa}%)."
-        mercados.append({"mercado":f"Doble Oportunidad 1X — {hn}","prob":dc1x,"riesgo":100-dc1x,"cuota":_cuota(dc1x),"tipo":"DC","aprobado":dc1x>=75,"sintesis":s})
+        mercados.append({"mercado":f"Doble Oportunidad 1X — {hn}","prob":dc1x,"riesgo":100-dc1x,"cuota":_cuota(dc1x),"tipo":"DC","aprobado":dc1x>=70,"sintesis":s})
     if dcx2>=55:
-        mercados.append({"mercado":f"Doble Oportunidad X2 — {an}","prob":dcx2,"riesgo":100-dcx2,"cuota":_cuota(dcx2),"tipo":"DC","aprobado":dcx2>=75,"sintesis":f"Cubre victoria de {an} o empate."})
+        mercados.append({"mercado":f"Doble Oportunidad X2 — {an}","prob":dcx2,"riesgo":100-dcx2,"cuota":_cuota(dcx2),"tipo":"DC","aprobado":dcx2>=70,"sintesis":f"Cubre victoria de {an} o empate."})
 
     if ge>=2.5:
         p=min(85,round(50+(ge-2.5)*20))

@@ -1054,13 +1054,13 @@ def _auto_verify_pending():
             liga_cfg = LIGAS.get(liga, {})
             source = liga_cfg.get("source", "fd")
             if source == "as":
-                fx = as_get("/fixtures", {"id": match_id})
-                if fx.get("response"):
-                    f = fx["response"][0]
-                    st = f.get("fixture", {}).get("status", {}).get("short", "")
-                    if st in ("FT", "AET", "PEN"):
-                        g = f.get("goals", {})
-                verify_prediction(match_id, g.get("home", 0), g.get("away", 0), liga)
+            fx = as_get("/fixtures", {"id": match_id})
+            if fx.get("response"):
+                f = fx["response"][0]
+                st = f.get("fixture", {}).get("status", {}).get("short", "")
+                if st in ("FT", "AET", "PEN"):
+                    g = f.get("goals", {})
+                    verify_prediction(match_id, g.get("home", 0), g.get("away", 0), liga)
         else:
             d = fd_get(f"/matches/{match_id}")
             if d.get("status") == "FINISHED":

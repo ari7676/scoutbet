@@ -1022,12 +1022,12 @@ def _auto_verify_pending():
                     st = f.get("fixture", {}).get("status", {}).get("short", "")
                     if st in ("FT", "AET", "PEN"):
                         g = f.get("goals", {})
-                        verify_prediction(match_id, g.get("home", 0), g.get("away", 0))
+                        verify_prediction(match_id, g.get("home", 0), g.get("away", 0), liga)
             else:
                 d = fd_get(f"/matches/{match_id}")
                 if d.get("status") == "FINISHED":
                     sc = d.get("score", {}).get("fullTime", {})
-                    verify_prediction(match_id, sc.get("home", 0), sc.get("away", 0))
+                    verify_prediction(match_id, sc.get("home", 0), sc.get("away", 0), liga)
             time.sleep(0.5)  # respetar rate limit
         except Exception as e:
             print(f"Auto-verify error {match_id}: {e}")

@@ -2081,7 +2081,9 @@ def _calcular_backtest():
     cur.execute("""
         SELECT mercado_principal, mp_prob, mp_acertado,
                combinable, comb_prob, comb_acertado,
-               resultado_home, resultado_away, home, away
+               resultado_home, resultado_away, home, away,
+               corners_home, corners_away, remates_home, remates_away,
+               remates_arco_home, remates_arco_away, tarjetas_amarillas
         FROM predicciones
         WHERE verificado = 1
           AND resultado_home IS NOT NULL
@@ -2100,7 +2102,7 @@ def _calcular_backtest():
     }
 
     for row in rows:
-        mp_texto, mp_prob, mp_acertado, comb_texto, comb_prob, comb_acertado, hg, ag, home, away = row
+        mp_texto, mp_prob, mp_acertado, comb_texto, comb_prob, comb_acertado, hg, ag, home, away, ch, ca, rh, ra, rah, raa, tam = row
         if mp_texto and mp_prob is not None and mp_acertado is not None:
             tipo = _clasificar_mercado(mp_texto)
             if tipo:

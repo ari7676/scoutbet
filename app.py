@@ -1036,40 +1036,7 @@ def _auto_verify_pending():
 @app.route("/estadisticas")
 @api_login_required
 def estadisticas():
-    _auto_verify_pending()
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("""SELECT COUNT(*), SUM(mp_acertado), SUM(comb_acertado),
-                 COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END),
-                 COUNT(CASE WHEN verificado=1 AND comb_acertado IS NOT NULL THEN 1 END)
-                 FROM predicciones WHERE verificado=1""")
-    total, mp_ok, comb_ok, mp_total, comb_total = c.fetchone()
-
-    # Detalle de cada partido verificado
-    c.execute("""SELECT match_id, fecha, home, away, resultado_home, resultado_away,
-                 mercado_principal, mp_acertado, combinable, comb_acertado, liga
-                 FROM predicciones WHERE verificado=1 ORDER BY fecha DESC""")
-    detalle = []
-    for row in c.fetchall():
-        detalle.append({
-            "match_id": row[0], "fecha": row[1], "home": row[2], "away": row[3],
-            "score": f"{row[4]}-{row[5]}",
-            "mercado_principal": row[6], "mp_acertado": row[7],
-            "combinable": row[8], "comb_acertado": row[9],
-            "liga": row[10]
-        })
-
-    conn.close()
-    return jsonify({
-        "total_verificados": total or 0,
-        "mp_aciertos": mp_ok or 0,
-        "mp_total": mp_total or 0,
-        "mp_pct": round((mp_ok or 0)/(mp_total or 1)*100, 1) if mp_total else 0,
-        "comb_aciertos": comb_ok or 0,
-        "comb_total": comb_total or 0,
-        "comb_pct": round((comb_ok or 0)/(comb_total or 1)*100, 1) if comb_total else 0,
-        "detalle": detalle,
-    })
+    return render_template("estadisticas.html")
 
 
 def _do_analyze(codigo, match_id):
@@ -1968,6 +1935,114 @@ def estadisticas_json():
     conn.close()
     return jsonify({"total":total,"ganadas":ganadas,"perdidas":perdidas,
                     "pendientes":pendientes,"acierto":acierto,"historial":historial})
+@app.route("/backtest")
+@api_login_required
+def backtest():
+    return render_template("backtest.html")
+
+
+@app.route("/backtest/json")
+@api_login_required
+def backtest_json():
+    _auto_verify_pending()
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    # Datos base: solo predicciones verificadas con mercado_principal
+    c.execute("""SELECT mercado_principal, mp_prob, mp_acertado
+                 FROM predicciones
+                 WHERE verificado=1 AND mp_acertado IS NOT NULL AND mercado_principal != ''
+                 AND mercado_principal NOT LIKE '%Ninguno%'""")
+    rows = c.fetchall()
+    conn.close()
+
+    if not rows:
+        return jsonify({"resumen": {"total_predicciones": 0, "accuracy_global": 0,
+                                     "mercados_evaluados": 0, "total_acertadas": 0},
+                        "por_mercado": [], "calibracion": [], "umbrales_optimos": []})
+
+    total = len(rows)
+    total_ok = sum(1 for r in rows if r[2] == 1)
+    accuracy_global = round(total_ok / total * 100, 1) if total else 0
+
+    # Agrupar por mercado
+    from collections import defaultdict
+    mercado_data = defaultdict(lambda: {"n": 0, "ok": 0, "probs": []})
+    for mercado, prob, ok in rows:
+        mercado_data[mercado]["n"] += 1
+        mercado_data[mercado]["ok"] += (ok or 0)
+        if prob: mercado_data[mercado]["probs"].append(prob)
+
+    por_mercado = []
+    for mercado, d in sorted(mercado_data.items(), key=lambda x: -x[1]["n"]):
+        if d["n"] < 3:
+            continue
+        acc = round(d["ok"] / d["n"] * 100, 1)
+        prob_media = round(sum(d["probs"]) / len(d["probs"]), 1) if d["probs"] else 0
+        umbral = UMBRALES.get(mercado, 70)
+        estado = "bueno" if acc >= 80 else "marginal" if acc >= 70 else "bajo"
+        por_mercado.append({"mercado": mercado, "n": d["n"], "ok": d["ok"],
+                             "accuracy": acc, "prob_media": prob_media,
+                             "umbral_actual": umbral, "estado": estado})
+
+    # Calibración por rango de probabilidad
+    rangos = [(50, 60), (60, 70), (70, 80), (80, 90), (90, 101)]
+    calibracion = []
+    for lo, hi in rangos:
+        bucket = [(p, ok) for _, p, ok in rows if p and lo <= p < hi]
+        if len(bucket) < 3:
+            continue
+        acc_real = round(sum(1 for _, ok in bucket if ok == 1) / len(bucket) * 100, 1)
+        prob_media = round(sum(p for p, _ in bucket) / len(bucket), 1)
+        calibracion.append({"rango": f"{lo}–{hi}%", "n": len(bucket),
+                             "accuracy_real": acc_real,
+                             "diferencia": round(acc_real - prob_media, 1)})
+
+    # Umbrales óptimos
+    umbrales_optimos = []
+    for mercado, d in mercado_data.items():
+        if d["n"] < 5:
+            continue
+        c_rows = [(p, ok) for _, p, ok in rows
+                  if _ == mercado and p and ok is not None]
+        if not c_rows:
+            continue
+        umbral_actual = UMBRALES.get(mercado, 70)
+        base_set = [ok for p, ok in c_rows if p >= umbral_actual]
+        acc_actual = round(sum(base_set) / len(base_set) * 100, 1) if base_set else 0
+
+        best_umbral, best_acc, best_cov = umbral_actual, acc_actual, len(base_set)
+        for t in range(50, 96, 5):
+            filtered = [ok for p, ok in c_rows if p >= t]
+            if len(filtered) < max(3, len(c_rows) * 0.3):
+                break
+            a = round(sum(filtered) / len(filtered) * 100, 1)
+            if a > best_acc:
+                best_umbral, best_acc, best_cov = t, a, len(filtered)
+
+        umbrales_optimos.append({
+            "mercado": mercado,
+            "umbral_actual": umbral_actual,
+            "umbral_optimo": best_umbral,
+            "accuracy_actual": acc_actual,
+            "accuracy_optima": best_acc,
+            "ganancia_acc": round(best_acc - acc_actual, 1),
+            "perdida_cobertura": best_cov - len(base_set)
+        })
+
+    return jsonify({
+        "resumen": {
+            "total_predicciones": total,
+            "accuracy_global": accuracy_global,
+            "mercados_evaluados": len(por_mercado),
+            "total_acertadas": total_ok
+        },
+        "por_mercado": por_mercado,
+        "calibracion": calibracion,
+        "umbrales_optimos": umbrales_optimos
+    })
+
+
 @app.route("/alertas")
 @api_login_required
 def alertas():

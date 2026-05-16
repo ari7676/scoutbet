@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estadísticas — MatchIQ</title>
+<style>
+  :root {
+    --bg: #0B1420; --surface: #111c2e; --border: #1e2d45;
+    --green: #00E28A; --green-dim: rgba(0,226,138,0.12);
+    --amber: #F5A623; --amber-dim: rgba(245,166,35,0.12);
+    --red: #E24B4A; --red-dim: rgba(226,75,74,0.12);
+    --blue: #4A9EFF; --text: #e8edf5; --muted: #6b7a99; --card: #131f33;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+  header { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+  header a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  header a:hover { color: var(--text); }
+  header h1 { font-family: 'Oswald', sans-serif; font-size: 20px; color: var(--green); letter-spacing: 0.5px; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+  .metric-card .val { font-size: 28px; font-weight: 600; color: var(--green); display: block; font-family: 'JetBrains Mono', monospace; }
+  .metric-card .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; display: block; }
+  section { margin-bottom: 32px; }
+  section h2 { font-family: 'Oswald', sans-serif; font-size: 16px; color: var(--text); letter-spacing: 0.5px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 9px 12px; color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 1px solid rgba(30,45,69,0.5); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-ok { background: var(--green-dim); color: var(--green); }
+  .badge-pend { background: var(--amber-dim); color: var(--amber); }
+  .badge-bad { background: var(--red-dim); color: var(--red); }
+  .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .muted { color: var(--muted); }
+  .loading { text-align: center; padding: 60px; color: var(--muted); font-size: 14px; }
+  .err { text-align: center; padding: 40px; color: var(--red); }
+  .nav-links { display: flex; gap: 16px; margin-left: auto; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); }
+  .nav-links a:hover { color: var(--text); border-color: var(--green); }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+<header>
+  <a href="/">← MatchIQ</a>
+  <h1>📊 ESTADÍSTICAS</h1>
+  <div class="nav-links">
+    <a href="/backtest">⚙ Backtest</a>
+  </div>
+</header>
+<div class="container">
+  <div id="root"><div class="loading">Cargando estadísticas...</div></div>
+</div>
+<script>
+fetch('/estadisticas/json')
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) { document.getElementById('root').innerHTML = `<div class="err">Error: ${data.error}</div>`; return; }
+    renderEstadisticas(data);
+  })
+  .catch(e => { document.getElementById('root').innerHTML = `<div class="err">Error: ${e.message}</div>`; });
+
+function renderEstadisticas(d) {
+  const pct = d.acierto || 0;
+  const pctColor = pct >= 80 ? 'var(--green)' : pct >= 70 ? 'var(--amber)' : 'var(--red)';
+  let html = `
+  <div class="metrics-grid">
+    <div class="metric-card"><span class="val">${d.total}</span><span class="lbl">predicciones totales</span></div>
+    <div class="metric-card"><span class="val" style="color:${pctColor}">${pct}%</span><span class="lbl">accuracy verificadas</span></div>
+    <div class="metric-card"><span class="val" style="color:var(--green)">${d.ganadas}</span><span class="lbl">aciertos</span></div>
+    <div class="metric-card"><span class="val" style="color:var(--red)">${d.perdidas}</span><span class="lbl">falladas</span></div>
+    <div class="metric-card"><span class="val" style="color:var(--amber)">${d.pendientes}</span><span class="lbl">pendientes</span></div>
+  </div>
+  <section>
+    <h2>Últimas 20 predicciones</h2>
+    <table><thead><tr><th>Fecha</th><th>Partido</th><th>Mercado</th><th>Prob</th><th>Resultado</th></tr></thead><tbody>`;
+
+  (d.historial || []).forEach(p => {
+    let badge, label;
+    if (p.verificado && p.mp_acertado === 1) { badge = 'badge-ok'; label = '✓'; }
+    else if (p.verificado && p.mp_acertado === 0) { badge = 'badge-bad'; label = '✗'; }
+    else { badge = 'badge-pend'; label = '⏳'; }
+
+    html += `<tr>
+      <td class="num muted">${p.fecha}</td>
+      <td>${p.home} vs ${p.away}</td>
+      <td>${p.mercado_principal || '—'}</td>
+      <td class="num">${p.mp_prob ? p.mp_prob + '%' : '—'}</td>
+      <td><span class="badge ${badge}">${label}</span></td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></section>`;
+  document.getElementById('root').innerHTML = html;
+}
+</script>
+</body>
+</html>

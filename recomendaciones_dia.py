@@ -22,7 +22,7 @@ FD_KEY = "e28d6269df9441fea1b6a19548e982c6"
 FD_URL = "https://api.football-data.org/v4"
 FD_HEADERS = {"X-Auth-Token": FD_KEY}
 
-AS_KEY = "fb49b7a70ea23977f8e7711c5ed027b1"
+AS_KEY = os.environ.get("AS_KEY", "fb49b7a70ea23977f8e7711c5ed027b1")
 AS_URL = "https://v3.football.api-sports.io"
 AS_HEADERS = {"x-apisports-key": AS_KEY}
 

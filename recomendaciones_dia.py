@@ -140,7 +140,7 @@ LIGAS = {
     "PPL": {"nombre": "🇵🇹 Primeira Liga",      "as_id": 94,  "season": 2025, "source": "fd"},
     "ELC": {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship",     "as_id": 40,  "season": 2025, "source": "fd"},
     "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
-    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026, "source": "fd"},
+    "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2025, "source": "as"},
     "AARG": {"nombre": "Primera División Argentina", "as_id": 128, "season": 2026, "source": "as"},
 }
 

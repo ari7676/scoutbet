@@ -357,7 +357,7 @@ def fd_get(ep, params=None):
     if ck in _cache and now-_cache[ck][1]<CACHE_TTL: return _cache[ck][0]
     try:
         r=requests.get(f"{FD_URL}{ep}",headers=FD_HEADERS,params=params,timeout=15)
-        if r.status_code==429: time.sleep(6); r=requests.get(f"{FD_URL}{ep}",headers=FD_HEADERS,params=params,timeout=15)
+        if r.status_code==429: time.sleep(1); r=requests.get(f"{FD_URL}{ep}",headers=FD_HEADERS,params=params,timeout=15)
         d=r.json(); _cache[ck]=(d,now); return d
     except Exception as e: return {"error":str(e)}
 

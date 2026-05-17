@@ -706,7 +706,7 @@ async function analizarPartido(matchId,home,away){
   try{
     const res=await fetch(`/analizar/${currentLiga}/${matchId}`);if(!res.ok)throw new Error(res.status);
     const data=await res.json();
-    if(data.match_score) matchScores[matchId]=data.match_score;
+    if(data.match_score !== undefined) matchScores[mid]=data.match_score;
     renderAnalysis(data,home,away);
     renderMatches(allMatches.filter(m=>{if(currentFilter==='todos')return true;if(currentFilter==='hoy'){const hoy=new Date().toDateString();return new Date(m.fecha||m.utcDate).toDateString()===hoy;}return true;}));
     if(mobile){setTimeout(()=>{

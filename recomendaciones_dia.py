@@ -1338,7 +1338,7 @@ def _do_analyze_fd(codigo, match_id):
         if score.get("home") is not None:
             verify_prediction(match_id, score["home"], score["away"])
             # Merge mercados avanzados
-       try:
+    try:
         as_id = liga.get("as_id")
         season = liga.get("season")
         hid_as = _search_as(hn, as_id, season)

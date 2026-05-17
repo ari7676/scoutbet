@@ -561,9 +561,9 @@ def analisis_avanzado(codigo, match_id):
     "tarjetas_amarillas_pj": 2.0, "tarjetas_rojas_pj": 0.1,
     "posesion_avg": "—", "faltas_pj": "—", "source": "default"
 }
-if not home_avg:
+    if not home_avg:
     home_avg = DEFAULT_STATS.copy()
-if not away_avg:
+    if not away_avg:
     away_avg = DEFAULT_STATS.copy()
 
     mercados_extra = _mercados_avanzados(home_avg, away_avg, hn, an)

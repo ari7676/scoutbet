@@ -934,6 +934,7 @@ async function generarMejorApuesta(){
   const hoy=new Date().toDateString();
   
   // Juntar partidos de TODAS las ligas
+const LIGAS = {{ ligas|tojson }};
 const todasLigas=Object.keys(LIGAS||{});
 let todosPartidos=[];
 for(const lg of todasLigas){

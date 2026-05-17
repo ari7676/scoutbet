@@ -557,14 +557,14 @@ def analisis_avanzado(codigo, match_id):
         away_avg = _avg_stats_from_fd(away_id_fd, codigo, season)
 
     DEFAULT_STATS = {
-    "remates_pj": 12.0, "al_arco_pj": 4.5, "corners_pj": 5.0,
-    "tarjetas_amarillas_pj": 2.0, "tarjetas_rojas_pj": 0.1,
-    "posesion_avg": "—", "faltas_pj": "—", "source": "default"
-}
-    if not home_avg:
-    home_avg = DEFAULT_STATS.copy()
-    if not away_avg:
-    away_avg = DEFAULT_STATS.copy()
+            "remates_pj": 12.0, "al_arco_pj": 4.5, "corners_pj": 5.0,
+            "tarjetas_amarillas_pj": 2.0, "tarjetas_rojas_pj": 0.1,
+            "posesion_avg": "—", "faltas_pj": "—", "source": "default"
+        }
+        if not home_avg:
+            home_avg = DEFAULT_STATS.copy()
+        if not away_avg:
+            away_avg = DEFAULT_STATS.copy()
 
     mercados_extra = _mercados_avanzados(home_avg, away_avg, hn, an)
 

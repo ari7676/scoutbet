@@ -1142,18 +1142,9 @@ def _do_analyze_as(codigo, match_id, liga):
             verify_prediction(match_id, goals["home"], goals["away"])
             # Merge mercados avanzados
     try:
-        as_id = liga.get("as_id")
-        season = liga.get("season")
-        hid_as = _search_as(hn, as_id, season)
-        aid_as = _search_as(an, as_id, season)
-        home_adv = _avg_fixture_stats(hid_as, as_id, season) if hid_as else None
-        away_adv = _avg_fixture_stats(aid_as, as_id, season) if aid_as else None
-        # Fallback estimación desde football-data
-        if not home_adv:
-            home_adv = _avg_stats_from_fd(hid, codigo, season)
-        if not away_adv:
-            away_adv = _avg_stats_from_fd(aid, codigo, season)
-        if home_adv and away_adv:
+        home_adv = resultado.get("stats_equipo", {}).get("home")
+        away_adv = resultado.get("stats_equipo", {}).get("away")
+        if home_adv and away_adv and home_adv.get("remates_pj") != "—":
             adv_markets = _mercados_avanzados(home_adv, away_adv, hn, an, resultado.get("goles_esperados"))
             resultado["mercados"].extend(adv_markets)
             resultado["mercados"].sort(key=lambda x: x["prob"], reverse=True)
@@ -1345,20 +1336,11 @@ def _do_analyze_fd(codigo, match_id):
         score = md.get("score",{}).get("fullTime",{})
         if score.get("home") is not None:
             verify_prediction(match_id, score["home"], score["away"])
-            # Merge mercados avanzados
+           # Merge mercados avanzados
     try:
-        as_id = liga.get("as_id")
-        season = liga.get("season")
-        hid_as = _search_as(hn, as_id, season)
-        aid_as = _search_as(an, as_id, season)
-        home_adv = _avg_fixture_stats(hid_as, as_id, season) if hid_as else None
-        away_adv = _avg_fixture_stats(aid_as, as_id, season) if aid_as else None
-        # Fallback estimación desde football-data
-        if not home_adv:
-            home_adv = _avg_stats_from_fd(hid, codigo, season)
-        if not away_adv:
-            away_adv = _avg_stats_from_fd(aid, codigo, season)
-        if home_adv and away_adv:
+        home_adv = resultado.get("stats_equipo", {}).get("home")
+        away_adv = resultado.get("stats_equipo", {}).get("away")
+        if home_adv and away_adv and home_adv.get("remates_pj") != "—":
             adv_markets = _mercados_avanzados(home_adv, away_adv, hn, an, resultado.get("goles_esperados"))
             resultado["mercados"].extend(adv_markets)
             resultado["mercados"].sort(key=lambda x: x["prob"], reverse=True)

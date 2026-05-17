@@ -1155,6 +1155,14 @@ def _do_analyze_as(codigo, match_id, liga):
                 resultado["veredicto"]["mercado_principal"] = mp
                 resultado["veredicto"]["mp_prob"] = aprobados_all[0]["prob"]
                 resultado["veredicto"]["total_aprobados"] = len(aprobados_all)
+                # Recalcular score con mercados avanzados
+        aprobados_final = [m for m in resultado["mercados"] if m.get("aprobado")]
+        resultado["match_score"] = _calcular_score(
+            aprobados_final,
+            resultado["probabilidades"]["home"],
+            resultado["probabilidades"]["away"],
+            resultado["veredicto"].get("favorito") and "alta" or "baja"
+        )
     except Exception as e:
         print(f"Mercados avanzados error: {e}")
     return resultado
@@ -1351,6 +1359,14 @@ def _do_analyze_fd(codigo, match_id):
                 resultado["veredicto"]["mercado_principal"] = mp
                 resultado["veredicto"]["mp_prob"] = aprobados_all[0]["prob"]
                 resultado["veredicto"]["total_aprobados"] = len(aprobados_all)
+                # Recalcular score con mercados avanzados
+        aprobados_final = [m for m in resultado["mercados"] if m.get("aprobado")]
+        resultado["match_score"] = _calcular_score(
+            aprobados_final,
+            resultado["probabilidades"]["home"],
+            resultado["probabilidades"]["away"],
+            resultado["veredicto"].get("favorito") and "alta" or "baja"
+        )
     except Exception as e:
         print(f"Mercados avanzados error: {e}")
     return resultado

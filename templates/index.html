@@ -934,13 +934,16 @@ async function generarMejorApuesta(){
   const hoy=new Date().toDateString();
   
   // Juntar partidos de TODAS las ligas
-  const todasLigas=Object.keys(LIGAS||{});
-  let todosPartidos=[];
-  if(typeof allMatchesByLiga!=='undefined'){
-    for(const lg of todasLigas) if(allMatchesByLiga[lg]) todosPartidos.push(...allMatchesByLiga[lg]);
-  } else {
-    todosPartidos=allMatches||[];
-  }
+const todasLigas=Object.keys(LIGAS||{});
+let todosPartidos=[];
+for(const lg of todasLigas){
+  try{
+    const r=await fetch(`/partidos/${lg}`);
+    const d=await r.json();
+    const ps=(d.response||[]).map(m=>({...m,liga:lg}));
+    todosPartidos.push(...ps);
+  }catch(e){}
+}
   
   const partidos_hoy=todosPartidos.filter(m=>{const f=new Date(m.fecha||m.utcDate);return m.estado!=='FINISHED'&&f.toDateString()===hoy;});
   if(!partidos_hoy.length){body.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim);font-size:13px">No hay partidos para hoy.</div>';return;}

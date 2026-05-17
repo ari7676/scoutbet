@@ -915,6 +915,53 @@ if(!window._analysisCache) window._analysisCache={};
 function abrirMejorApuesta(){document.getElementById('modal-mejor-apuesta').style.display='flex';generarMejorApuesta();}
 function cerrarMejorApuesta(){document.getElementById('modal-mejor-apuesta').style.display='none';}
 document.getElementById('modal-mejor-apuesta').addEventListener('click',function(e){if(e.target===this)cerrarMejorApuesta();});
+async function generarMejorApuesta(){
+  const body=document.getElementById('mejor-apuesta-body');
+  body.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim);font-family:var(--mono);font-size:12px">Analizando partidos de hoy...</div>';
+  const hoy=new Date().toDateString();
+  const partidos_hoy=allMatches.filter(m=>{const f=new Date(m.fecha||m.utcDate);return m.estado!=='FINISHED'&&f.toDateString()===hoy;});
+  if(!partidos_hoy.length){body.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim);font-size:13px">No hay partidos para hoy en esta liga.</div>';return;}
+  const aAnalizar=partidos_hoy.slice(0,5);
+  for(let i=0;i<aAnalizar.length;i++){
+    const m=aAnalizar[i];const mid=m.id||m.match_id;
+    body.innerHTML=`<div style="text-align:center;padding:20px;color:var(--dim);font-family:var(--mono);font-size:11px">Analizando ${m.home||m.homeTeam} vs ${m.away||m.awayTeam}... (${i+1}/${aAnalizar.length})</div>`;
+    if(!window._analysisCache[mid]){
+      try{
+        const res=await fetch(`/analizar/${currentLiga}/${mid}`);
+        const data=await res.json();
+        if(data.match_score)matchScores[mid]=data.match_score;
+        window._analysisCache[mid]=data;
+        try{
+          const resAdv=await fetch(`/analisis_avanzado/${currentLiga}/${mid}`);
+          const dataAdv=await resAdv.json();
+          if(!dataAdv.error&&dataAdv.mercados){
+            window._analysisCache[mid].mercados_avanzados=dataAdv.mercados;
+          }
+        }catch(e){}
+      }catch(e){}
+    }
+  }
+  const conScore=aAnalizar.filter(m=>matchScores[m.id||m.match_id]>=1).sort((a,b)=>(matchScores[b.id||b.match_id]||0)-(matchScores[a.id||a.match_id]||0));
+  if(!conScore.length){body.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim);font-size:13px">No se encontraron oportunidades claras.</div>';return;}
+  const top3=conScore.slice(0,3);
+  for(const m of top3){
+    const mid=m.id||m.match_id;const analData=window._analysisCache[mid];
+    if(analData?.veredicto?.mercado_principal){
+      const mp=analData.veredicto.mercado_principal;
+      const probM=mp.match(/(\d+)%/),cuotaM=mp.match(/@([\d.]+)/);
+      try{await fetch('/guardar_recomendacion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({match_id:mid,liga:currentLiga,home:m.home||m.homeTeam,away:m.away||m.awayTeam,fecha:(m.fecha||m.utcDate||'').slice(0,10),mercado:mp.split('(')[0].trim(),tipo:'individual',prob:probM?parseInt(probM[1]):null,cuota:cuotaM?parseFloat(cuotaM[1]):null})});}catch(e){}
+    }
+  }
+  let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center"><div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--neon)">${conScore.length}</div><div style="font-size:11px;color:var(--dim);margin-top:4px">con oportunidades</div></div><div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center"><div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text)">${partidos_hoy.length}</div><div style="font-size:11px;color:var(--dim);margin-top:4px">partidos hoy</div></div></div><div style="font-family:var(--mono);font-size:10px;color:var(--neon);letter-spacing:.15em;margin-bottom:10px">🥇 TOP ${top3.length} RECOMENDADOS</div>`;
+  top3.forEach((m,i)=>{
+    const mid=m.id||m.match_id;const score=matchScores[mid]||0;const analData=window._analysisCache[mid];
+    const mp=analData?.veredicto?.mercado_principal||'—';
+    const mercadosAdv=(analData?.mercados_avanzados||[]).filter(x=>x.aprobado);
+    const advText=mercadosAdv.length?`<div style="font-size:11px;color:var(--neon);margin-top:4px">⚡ ${mercadosAdv.length} mercado${mercadosAdv.length>1?'s':''} avanzado${mercadosAdv.length>1?'s':''}: ${mercadosAdv.map(x=>x.mercado).join(', ')}</div>`:'';
+    html+=`<div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid var(--neon)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-family:var(--display);font-size:13px;font-weight:600">${i+1}. ${m.home||m.homeTeam} vs ${m.away||m.awayTeam}</div><span style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--neon);background:var(--neon-dim);border:1px solid rgba(0,226,138,.3);padding:2px 8px;border-radius:4px">Score ${score}</span></div><div style="font-size:12px;color:var(--dim);margin-bottom:4px"><strong style="color:var(--text)">Mercado:</strong> ${mp}</div>${advText}</div>`;
+  });
+  body.innerHTML=html;
+}
 cargarLiga('PL');
 </script>
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}</script>

@@ -1141,21 +1141,20 @@ def _do_analyze_as(codigo, match_id, liga):
         if goals.get("home") is not None:
             verify_prediction(match_id, goals["home"], goals["away"])
             # Merge mercados avanzados
-    
-        try:
-            home_adv = resultado.get("stats_equipo", {}).get("home")
-            away_adv = resultado.get("stats_equipo", {}).get("away")
-            print(f"DEBUG adv: home={home_adv} away={away_adv}")
-            if home_adv and away_adv and home_adv.get("remates_pj") != "—":
-                adv_markets = _mercados_avanzados(home_adv, away_adv, hn, an, resultado.get("goles_esperados"))
-                resultado["mercados"].extend(adv_markets)
-                resultado["mercados"].sort(key=lambda x: x["prob"], reverse=True)
-                aprobados_all = [m for m in resultado["mercados"] if m.get("aprobado")]
-                if aprobados_all:
-                    mp = f"{aprobados_all[0]['mercado']} ({aprobados_all[0]['prob']}% · cuota @{aprobados_all[0]['cuota']})"
-                    resultado["veredicto"]["mercado_principal"] = mp
-                    resultado["veredicto"]["mp_prob"] = aprobados_all[0]["prob"]
-                    resultado["veredicto"]["total_aprobados"] = len(aprobados_all)
+    try:
+        home_adv = resultado.get("stats_equipo", {}).get("home")
+        away_adv = resultado.get("stats_equipo", {}).get("away")
+        print(f"DEBUG adv: home={home_adv} away={away_adv}")
+        if home_adv and away_adv and home_adv.get("remates_pj") != "—":
+            adv_markets = _mercados_avanzados(home_adv, away_adv, hn, an, resultado.get("goles_esperados"))
+            resultado["mercados"].extend(adv_markets)
+            resultado["mercados"].sort(key=lambda x: x["prob"], reverse=True)
+            aprobados_all = [m for m in resultado["mercados"] if m.get("aprobado")]
+            if aprobados_all:
+                mp = f"{aprobados_all[0]['mercado']} ({aprobados_all[0]['prob']}% · cuota @{aprobados_all[0]['cuota']})"
+                resultado["veredicto"]["mercado_principal"] = mp
+                resultado["veredicto"]["mp_prob"] = aprobados_all[0]["prob"]
+                resultado["veredicto"]["total_aprobados"] = len(aprobados_all)
     except Exception as e:
         print(f"Mercados avanzados error: {e}")
     return resultado

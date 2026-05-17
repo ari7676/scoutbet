@@ -66,7 +66,7 @@ def hl_get(ep, params=None):
     try:
         r = requests.get(f"{HL_URL}{ep}", headers=HL_HEADERS, params=params, timeout=15)
         if r.status_code == 429:
-            time.sleep(5)
+            time.sleep(1)  
             r = requests.get(f"{HL_URL}{ep}", headers=HL_HEADERS, params=params, timeout=15)
         return r.json() if r.ok else {"error": r.status_code}
     except Exception as e:

@@ -1151,11 +1151,11 @@ def _do_analyze_as(codigo, match_id, liga):
                 resultado["mercados"].extend(adv_markets)
                 resultado["mercados"].sort(key=lambda x: x["prob"], reverse=True)
                 aprobados_all = [m for m in resultado["mercados"] if m.get("aprobado")]
-            if aprobados_all:
-                mp = f"{aprobados_all[0]['mercado']} ({aprobados_all[0]['prob']}% · cuota @{aprobados_all[0]['cuota']})"
-                resultado["veredicto"]["mercado_principal"] = mp
-                resultado["veredicto"]["mp_prob"] = aprobados_all[0]["prob"]
-                resultado["veredicto"]["total_aprobados"] = len(aprobados_all)
+                if aprobados_all:
+                    mp = f"{aprobados_all[0]['mercado']} ({aprobados_all[0]['prob']}% · cuota @{aprobados_all[0]['cuota']})"
+                    resultado["veredicto"]["mercado_principal"] = mp
+                    resultado["veredicto"]["mp_prob"] = aprobados_all[0]["prob"]
+                    resultado["veredicto"]["total_aprobados"] = len(aprobados_all)
     except Exception as e:
         print(f"Mercados avanzados error: {e}")
     return resultado

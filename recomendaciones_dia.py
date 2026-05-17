@@ -2106,7 +2106,7 @@ def alertas():
                     "minutos_restantes":int(diff/60)})
         except: continue
     return jsonify({"alertas":alertas,"total":len(alertas)})
-    @app.route("/clear_cache")
+@app.route("/clear_cache")
 @api_login_required
 def clear_cache():
     conn = sqlite3.connect(DB_PATH)

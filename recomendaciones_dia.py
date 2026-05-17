@@ -1048,23 +1048,6 @@ def _do_analyze(codigo, match_id):
     resultado = _do_analyze_as(codigo, match_id, liga) if source == "as" else _do_analyze_fd(codigo, match_id)
     if "error" not in resultado:
         save_cached_analysis(match_id, codigo, resultado)
-# Merge mercados avanzados
-    try:
-        if hid and aid:
-            home_adv = _avg_fixture_stats(hid, as_id, season)
-            away_adv = _avg_fixture_stats(aid, as_id, season)
-            if home_adv and away_adv:
-                adv_markets = _mercados_avanzados(home_adv, away_adv, hn, an, resultado.get("goles_esperados"))
-                resultado["mercados"].extend(adv_markets)
-                resultado["mercados"].sort(key=lambda x: x["prob"], reverse=True)
-                aprobados_all = [m for m in resultado["mercados"] if m.get("aprobado")]
-                if aprobados_all:
-                    mp = f"{aprobados_all[0]['mercado']} ({aprobados_all[0]['prob']}% · cuota @{aprobados_all[0]['cuota']})"
-                    resultado["veredicto"]["mercado_principal"] = mp
-                    resultado["veredicto"]["mp_prob"] = aprobados_all[0]["prob"]
-                    resultado["veredicto"]["total_aprobados"] = len(aprobados_all)
-    except Exception as e:
-        print(f"Mercados avanzados error: {e}")
     return resultado
 
 def _do_analyze_as(codigo, match_id, liga):
@@ -1157,6 +1140,23 @@ def _do_analyze_as(codigo, match_id, liga):
         goals = fx.get("goals", {})
         if goals.get("home") is not None:
             verify_prediction(match_id, goals["home"], goals["away"])
+            # Merge mercados avanzados
+    try:
+        if hid and aid:
+            home_adv = _avg_fixture_stats(hid, as_id, season)
+            away_adv = _avg_fixture_stats(aid, as_id, season)
+            if home_adv and away_adv:
+                adv_markets = _mercados_avanzados(home_adv, away_adv, hn, an, resultado.get("goles_esperados"))
+                resultado["mercados"].extend(adv_markets)
+                resultado["mercados"].sort(key=lambda x: x["prob"], reverse=True)
+                aprobados_all = [m for m in resultado["mercados"] if m.get("aprobado")]
+                if aprobados_all:
+                    mp = f"{aprobados_all[0]['mercado']} ({aprobados_all[0]['prob']}% · cuota @{aprobados_all[0]['cuota']})"
+                    resultado["veredicto"]["mercado_principal"] = mp
+                    resultado["veredicto"]["mp_prob"] = aprobados_all[0]["prob"]
+                    resultado["veredicto"]["total_aprobados"] = len(aprobados_all)
+    except Exception as e:
+        print(f"Mercados avanzados error: {e}")
     return resultado
 
 
@@ -1338,7 +1338,7 @@ def _do_analyze_fd(codigo, match_id):
         if score.get("home") is not None:
             verify_prediction(match_id, score["home"], score["away"])
             # Merge mercados avanzados
-    try:
+       try:
         as_id = liga.get("as_id")
         season = liga.get("season")
         hid_as = _search_as(hn, as_id, season)

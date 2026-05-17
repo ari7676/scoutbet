@@ -954,7 +954,7 @@ for(const lg of todasLigas){
     body.innerHTML=`<div style="text-align:center;padding:20px;color:var(--dim);font-family:var(--mono);font-size:11px">Analizando ${m.home||m.homeTeam} vs ${m.away||m.awayTeam}... (${i+1}/${aAnalizar.length})</div>`;
     if(!window._analysisCache[mid]){try{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8000);const res=await fetch(`/analizar/${liga}/${mid}`,{signal:controller.signal});clearTimeout(timeout);const data=await res.json();if(data.match_score)matchScores[mid]=data.match_score;window._analysisCache[mid]=data;}catch(e){window._analysisCache[mid]={};}}
   }
-  const conScore=aAnalizar.filter(m=>matchScores[m.id||m.match_id]>=0).sort((a,b)=>(matchScores[b.id||b.match_id]||0)-(matchScores[a.id||a.match_id]||0));
+  const conScore=aAnalizar.filter(m=>matchScores[m.id||m.match_id]>=20).sort((a,b)=>(matchScores[b.id||b.match_id]||0)-(matchScores[a.id||a.match_id]||0));
   if(!conScore.length){body.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim);font-size:13px">No se encontraron oportunidades claras.</div>';return;}
   const top3=conScore.slice(0,3);
   const TIPOS_ADV=['CORNERS','CARDS','SHOTS','SOT','POSS','RANGE'];

@@ -1141,9 +1141,11 @@ def _do_analyze_as(codigo, match_id, liga):
         if goals.get("home") is not None:
             verify_prediction(match_id, goals["home"], goals["away"])
             # Merge mercados avanzados
-    try:
+    
+        try:
         home_adv = resultado.get("stats_equipo", {}).get("home")
         away_adv = resultado.get("stats_equipo", {}).get("away")
+        print(f"DEBUG adv: home={home_adv} away={away_adv}")
         if home_adv and away_adv and home_adv.get("remates_pj") != "—":
             adv_markets = _mercados_avanzados(home_adv, away_adv, hn, an, resultado.get("goles_esperados"))
             resultado["mercados"].extend(adv_markets)

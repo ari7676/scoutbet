@@ -549,6 +549,15 @@ async function openAnalysis(liga, matchId, row) {
   } catch(e) {
     document.getElementById('avanzado-content').innerHTML = `<div class="empty">Sin datos avanzados</div>`;
   }
+
+  // Load formacion en paralelo
+  try {
+    const r3 = await fetch(`${API}/formacion/${liga}/${matchId}`);
+    const fdata = await r3.json();
+    renderFormacion(fdata);
+  } catch(e) {
+    document.getElementById('formacion-content').innerHTML = '<div class="empty">Sin datos de formación</div>';
+  }
 }
 
 function closePanel() {
@@ -766,16 +775,6 @@ function renderAvanzado(d) {
   }
 
   document.getElementById('avanzado-content').innerHTML = html;
-}
-
-  // Load formacion en paralelo
-  try {
-    const r3 = await fetch(`${API}/formacion/${liga}/${matchId}`);
-    const fdata = await r3.json();
-    renderFormacion(fdata);
-  } catch(e) {
-    document.getElementById('formacion-content').innerHTML = '<div class="empty">Sin datos de formación</div>';
-  }
 }
 
 function renderFormacion(d) {

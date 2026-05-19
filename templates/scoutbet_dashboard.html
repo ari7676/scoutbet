@@ -277,6 +277,23 @@
   .suplentes-title { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 6px; }
   .suplentes-list { font-size: 12px; color: var(--muted); line-height: 1.8; }
 
+  /* HISTORIAL */
+  .historial-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+  .hstat-card { background: var(--surface); border-radius: 3px; padding: 12px; text-align: center; border: 1px solid var(--border); }
+  .hstat-val { font-size: 28px; font-weight: 900; color: var(--accent); font-family: var(--mono); }
+  .hstat-val.red { color: var(--red); }
+  .hstat-val.warn { color: var(--warn); }
+  .hstat-label { font-size: 11px; color: var(--muted); font-family: var(--mono); letter-spacing: 1px; margin-top: 4px; }
+  .historial-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .historial-table th { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  .historial-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .historial-table tr:hover td { background: var(--surface2); }
+  .resultado-badge { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border-radius: 2px; }
+  .resultado-badge.win { background: #001a0e; color: var(--accent); border: 1px solid var(--accent); }
+  .resultado-badge.loss { background: #1a0000; color: var(--red); border: 1px solid var(--red); }
+  .resultado-badge.pending { background: #1a1000; color: var(--warn); border: 1px solid var(--warn); }
+  .historial-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+
   /* SCROLLBAR */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -329,6 +346,7 @@
     <button class="league-btn" onclick="loadLeague('WC')">🌍 Copa del Mundo</button>
     <div class="sidebar-title" style="margin-top:16px">HERRAMIENTAS</div>
     <button class="league-btn" onclick="showBetOfDay()">⚡ Apuesta del día</button>
+    <button class="league-btn" onclick="showHistorial()">📋 Historial</button>
   </aside>
 
   <div class="content" id="main-content">
@@ -340,6 +358,11 @@
 
     <div id="matches-section">
       <div class="empty">← Seleccioná una liga para ver los partidos</div>
+    </div>
+
+    <!-- HISTORIAL SECTION -->
+    <div id="historial-section" style="display:none">
+      <div id="historial-content"><div class="loading"><div class="spinner"></div> cargando...</div></div>
     </div>
   </div>
 </div>
@@ -429,6 +452,9 @@ async function loadLeague(code) {
   document.querySelectorAll('.league-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
   closePanel();
+  document.getElementById('bet-of-day-section').style.display = 'none';
+  document.getElementById('historial-section').style.display = 'none';
+  document.getElementById('matches-section').style.display = 'block';
 
   const sec = document.getElementById('matches-section');
   sec.innerHTML = '<div class="loading"><div class="spinner"></div> cargando partidos...</div>';
@@ -886,6 +912,8 @@ async function showBetOfDay() {
   const sec = document.getElementById('matches-section');
   const bod = document.getElementById('bet-of-day-section');
   bod.style.display = 'block';
+  document.getElementById('historial-section').style.display = 'none';
+  document.getElementById('matches-section').style.display = 'block';
   sec.innerHTML = '<div class="loading"><div class="spinner"></div> analizando todas las ligas...</div>';
 
   const leagues = ['PL','PD','SA','BL1','FL1','BSA','WC'];
@@ -959,12 +987,119 @@ function openAnalysisLiga(liga, matchId, row) {
   openAnalysis(liga, matchId, row);
 }
 
+// ── HISTORIAL ────────────────────────────────────
+async function showHistorial() {
+  document.querySelectorAll('.league-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  closePanel();
+
+  document.getElementById('bet-of-day-section').style.display = 'none';
+  document.getElementById('matches-section').style.display = 'none';
+  document.getElementById('historial-section').style.display = 'block';
+  document.getElementById('historial-content').innerHTML = '<div class="loading"><div class="spinner"></div> cargando historial...</div>';
+
+  try {
+    const r = await fetch(`${API}/historial`);
+    const data = await r.json();
+    renderHistorial(data);
+  } catch(e) {
+    document.getElementById('historial-content').innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+  }
+}
+
+function renderHistorial(data) {
+  const s = data.stats || {};
+  const preds = data.predicciones || [];
+  const perdidas = (s.verificadas || 0) - (s.ganadas || 0);
+
+  let html = `
+    <div class="section-title" style="margin-bottom:16px">HISTORIAL DE PREDICCIONES</div>
+    <div class="historial-stats">
+      <div class="hstat-card">
+        <div class="hstat-val">${s.total || 0}</div>
+        <div class="hstat-label">TOTAL</div>
+      </div>
+      <div class="hstat-card">
+        <div class="hstat-val">${s.ganadas || 0}</div>
+        <div class="hstat-label">ACERTADAS</div>
+      </div>
+      <div class="hstat-card">
+        <div class="hstat-val red">${perdidas}</div>
+        <div class="hstat-label">FALLADAS</div>
+      </div>
+      <div class="hstat-card">
+        <div class="hstat-val warn">${s.acierto || 0}%</div>
+        <div class="hstat-label">ACIERTO</div>
+      </div>
+    </div>
+    <div class="historial-filters">
+      <button class="filter-btn active" onclick="filterHistorial('all', this, ${JSON.stringify(preds).replace(/"/g, '&quot;')})">Todos</button>
+      <button class="filter-btn" onclick="filterHistorial('win', this, ${JSON.stringify(preds).replace(/"/g, '&quot;')})">Acertados</button>
+      <button class="filter-btn" onclick="filterHistorial('loss', this, ${JSON.stringify(preds).replace(/"/g, '&quot;')})">Fallados</button>
+      <button class="filter-btn" onclick="filterHistorial('pending', this, ${JSON.stringify(preds).replace(/"/g, '&quot;')})">Pendientes</button>
+    </div>
+    <div id="historial-table-container">`;
+
+  html += renderHistorialTable(preds);
+  html += '</div>';
+  document.getElementById('historial-content').innerHTML = html;
+  // Store preds globally for filtering
+  window._historialPreds = preds;
+}
+
+function filterHistorial(type, btn, preds) {
+  document.querySelectorAll('.historial-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const data = window._historialPreds || preds;
+  let filtered = data;
+  if (type === 'win') filtered = data.filter(p => p.mp_acertado === 1);
+  else if (type === 'loss') filtered = data.filter(p => p.mp_acertado === 0);
+  else if (type === 'pending') filtered = data.filter(p => !p.verificado);
+  document.getElementById('historial-table-container').innerHTML = renderHistorialTable(filtered);
+}
+
+function renderHistorialTable(preds) {
+  if (!preds.length) return '<div class="empty">Sin predicciones</div>';
+  let html = `
+    <table class="historial-table">
+      <thead>
+        <tr>
+          <th>FECHA</th>
+          <th>PARTIDO</th>
+          <th>LIGA</th>
+          <th>MERCADO</th>
+          <th>PROB</th>
+          <th>RESULTADO</th>
+          <th>ESTADO</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  preds.forEach(p => {
+    let badge, badgeClass;
+    if (!p.verificado) { badge = 'PENDIENTE'; badgeClass = 'pending'; }
+    else if (p.mp_acertado === 1) { badge = '✓ ACERTADO'; badgeClass = 'win'; }
+    else if (p.mp_acertado === 0) { badge = '✗ FALLADO'; badgeClass = 'loss'; }
+    else { badge = 'N/V'; badgeClass = 'pending'; }
+
+    const mercado = p.mercado_principal ? p.mercado_principal.split(' (')[0] : '—';
+    html += `
+      <tr>
+        <td style="font-family:var(--mono);font-size:12px;white-space:nowrap">${p.fecha}</td>
+        <td><strong>${p.home}</strong> vs ${p.away}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${p.liga}</td>
+        <td style="max-width:200px;font-size:12px">${mercado}</td>
+        <td style="font-family:var(--mono);color:var(--accent)">${p.mp_prob || '—'}%</td>
+        <td style="font-family:var(--mono);color:var(--muted)">${p.resultado || '—'}</td>
+        <td><span class="resultado-badge ${badgeClass}">${badge}</span></td>
+      </tr>`;
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
 // ── INIT ─────────────────────────────────────────
 checkStatus();
 setInterval(checkStatus, 30000);
-
-// Auto-analizar al cargar
-fetch(`${API}/auto_analizar`).catch(() => {});
 </script>
 </body>
 </html>

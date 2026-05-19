@@ -885,7 +885,7 @@ def partidos(codigo):
                     deduped.append(mm)
             data = {"matches": deduped}
         else:
-            data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "limit": 80})
+            data = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": desde, "dateTo": hasta, "limit": 80, "season": liga.get("season", 2025)})
         if "error" in data:
             return jsonify({"response": [], "error": data["error"]})
         for m in data.get("matches", []):

@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScoutBet Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --surface2: #181818;
+    --border: #222;
+    --accent: #00e676;
+    --accent2: #00bcd4;
+    --warn: #ff6f00;
+    --red: #f44336;
+    --text: #e0e0e0;
+    --muted: #555;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Barlow Condensed', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100; background: var(--bg);
+  }
+  .logo { font-family: var(--mono); font-size: 18px; color: var(--accent); letter-spacing: 2px; }
+  .logo span { color: var(--muted); }
+  #status-bar { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  #status-bar.ok { color: var(--accent); }
+  #status-bar.err { color: var(--red); }
+
+  /* LAYOUT */
+  .main { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 57px); }
+
+  /* SIDEBAR */
+  aside {
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    position: sticky; top: 57px; height: calc(100vh - 57px); overflow-y: auto;
+  }
+  .sidebar-title { font-family: var(--mono); font-size: 10px; color: var(--muted); padding: 8px 20px; letter-spacing: 2px; }
+  .league-btn {
+    display: block; width: 100%; text-align: left;
+    padding: 10px 20px; background: none; border: none; cursor: pointer;
+    color: var(--text); font-family: var(--sans); font-size: 15px; font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .league-btn:hover { background: var(--surface); color: var(--accent); }
+  .league-btn.active { border-left-color: var(--accent); color: var(--accent); background: var(--surface); }
+
+  /* CONTENT */
+  .content { padding: 24px; overflow-y: auto; }
+
+  /* APUESTA DEL DIA */
+  .bet-of-day {
+    background: linear-gradient(135deg, #001a0e 0%, #0a1a10 100%);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bet-of-day::before {
+    content: 'APUESTA DEL DÍA';
+    position: absolute; top: 12px; right: 16px;
+    font-family: var(--mono); font-size: 10px; color: var(--accent); opacity: 0.5; letter-spacing: 3px;
+  }
+  .bet-of-day h2 { font-size: 13px; font-family: var(--mono); color: var(--accent); margin-bottom: 12px; }
+  .best-pick { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .best-pick .cuota { color: var(--accent); }
+  .best-meta { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  /* MATCHES TABLE */
+  .section-title {
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    letter-spacing: 3px; margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .matches-grid { display: flex; flex-direction: column; gap: 4px; margin-bottom: 32px; }
+  .match-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px 60px 60px;
+    align-items: center; gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-radius: 3px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+  }
+  .match-row:hover { border-color: var(--accent); background: var(--surface2); }
+  .match-row.selected { border-color: var(--accent); background: #001a0e; }
+  .match-time { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .match-teams { font-weight: 500; }
+  .match-teams .vs { color: var(--muted); font-size: 12px; margin: 0 4px; }
+  .match-score { font-family: var(--mono); font-size: 13px; color: var(--accent); text-align: center; }
+  .match-score.empty { color: var(--muted); }
+  .badge {
+    font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 2px;
+    text-align: center; font-weight: 700;
+  }
+  .badge.green { background: #001a0e; color: var(--accent); border: 1px solid var(--accent); }
+  .badge.gray { background: #1a1a1a; color: var(--muted); border: 1px solid var(--border); }
+  .badge.orange { background: #1a0e00; color: var(--warn); border: 1px solid var(--warn); }
+  .score-badge { font-family: var(--mono); font-size: 12px; color: var(--accent2); text-align: right; }
+
+  /* ANALYSIS PANEL */
+  .analysis-panel {
+    position: fixed; right: 0; top: 57px;
+    width: 520px; height: calc(100vh - 57px);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    z-index: 50;
+  }
+  .analysis-panel.open { transform: translateX(0); }
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .panel-header h3 { font-size: 16px; font-weight: 700; }
+  .close-btn {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 20px; line-height: 1;
+  }
+  .close-btn:hover { color: var(--text); }
+  .panel-body { padding: 20px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 8px 16px; background: none; border: none; cursor: pointer;
+    font-family: var(--sans); font-size: 14px; font-weight: 500;
+    color: var(--muted); border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* VEREDICTO */
+  .veredicto-card {
+    background: linear-gradient(135deg, #001a0e, #0a1208);
+    border: 1px solid var(--accent);
+    border-radius: 4px; padding: 16px; margin-bottom: 16px;
+  }
+  .veredicto-label { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 2px; margin-bottom: 8px; }
+  .veredicto-mp { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .veredicto-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* PROBABILIDADES */
+  .probs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .prob-card { background: var(--surface2); border-radius: 3px; padding: 12px; text-align: center; }
+  .prob-label { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .prob-val { font-size: 24px; font-weight: 900; }
+  .prob-val.home { color: var(--accent); }
+  .prob-val.draw { color: var(--muted); }
+  .prob-val.away { color: var(--accent2); }
+  .prob-cuota { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* MERCADOS */
+  .mercados-list { display: flex; flex-direction: column; gap: 6px; }
+  .mercado-item {
+    background: var(--surface2); border-radius: 3px; padding: 10px 12px;
+    border-left: 3px solid var(--border);
+    transition: border-color 0.15s;
+  }
+  .mercado-item.aprobado { border-left-color: var(--accent); }
+  .mercado-item.rechazado { opacity: 0.5; }
+  .mercado-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .mercado-name { font-size: 13px; font-weight: 600; }
+  .mercado-prob { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+  .mercado-prob.low { color: var(--muted); }
+  .mercado-bar { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 4px; }
+  .mercado-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.5s; }
+  .mercado-fill.low { background: var(--muted); }
+  .mercado-sint { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .mercado-cuota { font-family: var(--mono); font-size: 11px; color: var(--accent2); }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .stat-block { background: var(--surface2); border-radius: 3px; padding: 12px; }
+  .stat-team { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 8px; letter-spacing: 1px; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px solid var(--border); }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-val { font-family: var(--mono); color: var(--accent); }
+
+  /* FORMA */
+  .forma-badges { display: flex; gap: 4px; margin-bottom: 4px; }
+  .forma-badge {
+    width: 22px; height: 22px; border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+  }
+  .forma-badge.W { background: #001a0e; color: var(--accent); }
+  .forma-badge.D { background: #1a1a00; color: #ffc107; }
+  .forma-badge.L { background: #1a0000; color: var(--red); }
+
+  /* IA */
+  .ia-output {
+    background: var(--surface2); border-radius: 4px; padding: 16px;
+    font-size: 13px; line-height: 1.7; color: var(--text);
+    white-space: pre-wrap; font-family: var(--sans);
+    border-left: 3px solid var(--accent2);
+    min-height: 100px;
+  }
+  .ia-btn {
+    width: 100%; padding: 12px;
+    background: linear-gradient(90deg, #001a10, #001520);
+    border: 1px solid var(--accent2);
+    color: var(--accent2); cursor: pointer;
+    font-family: var(--mono); font-size: 13px;
+    border-radius: 3px; margin-bottom: 12px;
+    transition: all 0.15s;
+  }
+  .ia-btn:hover { background: #001a20; }
+  .ia-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* COMBINADAS */
+  .comb-card { background: var(--surface2); border-radius: 3px; padding: 12px; margin-bottom: 8px; }
+  .comb-legs { margin-bottom: 8px; }
+  .comb-leg { font-size: 12px; color: var(--muted); padding: 2px 0; }
+  .comb-leg::before { content: '↳ '; color: var(--accent); }
+  .comb-footer { display: flex; justify-content: space-between; }
+  .comb-cuota { font-family: var(--mono); font-size: 14px; color: var(--accent); font-weight: 700; }
+  .comb-prob { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  /* H2H */
+  .h2h-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+  .h2h-home { background: var(--accent); }
+  .h2h-draw { background: var(--muted); }
+  .h2h-away { background: var(--accent2); }
+  .h2h-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; }
+
+  /* LOADING */
+  .loading {
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px; color: var(--muted); font-family: var(--mono); font-size: 13px;
+    gap: 8px;
+  }
+  .spinner {
+    width: 16px; height: 16px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty { color: var(--muted); font-family: var(--mono); font-size: 13px; padding: 24px; text-align: center; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* RESUMEN */
+  .resumen-box {
+    background: var(--surface2); border-radius: 3px; padding: 14px;
+    font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px;
+    border-left: 3px solid var(--warn);
+  }
+
+  /* GE */
+  .ge-badge {
+    display: inline-block; background: #1a0e00; border: 1px solid var(--warn);
+    color: var(--warn); font-family: var(--mono); font-size: 12px;
+    padding: 3px 10px; border-radius: 2px; margin-bottom: 12px;
+  }
+
+  /* FILTERS */
+  .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 4px 12px; background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); cursor: pointer; font-family: var(--mono); font-size: 11px;
+    border-radius: 2px; transition: all 0.15s;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SCOUT<span>BET</span></div>
+  <div id="status-bar">conectando...</div>
+</header>
+
+<div class="main">
+  <aside>
+    <div class="sidebar-title">LIGAS</div>
+    <button class="league-btn" onclick="loadLeague('PL')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
+    <button class="league-btn" onclick="loadLeague('PD')">🇪🇸 La Liga</button>
+    <button class="league-btn" onclick="loadLeague('SA')">🇮🇹 Serie A</button>
+    <button class="league-btn" onclick="loadLeague('BL1')">🇩🇪 Bundesliga</button>
+    <button class="league-btn" onclick="loadLeague('FL1')">🇫🇷 Ligue 1</button>
+    <button class="league-btn" onclick="loadLeague('DED')">🇳🇱 Eredivisie</button>
+    <button class="league-btn" onclick="loadLeague('PPL')">🇵🇹 Primeira Liga</button>
+    <button class="league-btn" onclick="loadLeague('ELC')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship</button>
+    <button class="league-btn" onclick="loadLeague('CL')">🏆 Champions League</button>
+    <button class="league-btn" onclick="loadLeague('BSA')">🇧🇷 Brasileirão</button>
+    <button class="league-btn" onclick="loadLeague('AARG')">🇦🇷 Argentina</button>
+    <div class="sidebar-title" style="margin-top:16px">HERRAMIENTAS</div>
+    <button class="league-btn" onclick="showBetOfDay()">⚡ Apuesta del día</button>
+  </aside>
+
+  <div class="content" id="main-content">
+    <div class="bet-of-day" id="bet-of-day-section" style="display:none">
+      <h2>MEJOR APUESTA DEL DÍA</h2>
+      <div class="best-pick" id="bod-pick">—</div>
+      <div class="best-meta" id="bod-meta">—</div>
+    </div>
+
+    <div id="matches-section">
+      <div class="empty">← Seleccioná una liga para ver los partidos</div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL DE ANÁLISIS -->
+<div class="analysis-panel" id="analysis-panel">
+  <div class="panel-header">
+    <h3 id="panel-title">Análisis</h3>
+    <button class="close-btn" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('veredicto')">Veredicto</button>
+      <button class="tab" onclick="switchTab('mercados')">Mercados</button>
+      <button class="tab" onclick="switchTab('avanzado')">Avanzado</button>
+      <button class="tab" onclick="switchTab('ia')">IA</button>
+      <button class="tab" onclick="switchTab('combinadas')">Combis</button>
+    </div>
+
+    <!-- VEREDICTO -->
+    <div class="tab-content active" id="tab-veredicto">
+      <div id="veredicto-content"><div class="loading"><div class="spinner"></div> cargando...</div></div>
+    </div>
+
+    <!-- MERCADOS -->
+    <div class="tab-content" id="tab-mercados">
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterMercados('all', this)">Todos</button>
+        <button class="filter-btn" onclick="filterMercados('aprobado', this)">Aprobados</button>
+        <button class="filter-btn" onclick="filterMercados('1X2', this)">1X2</button>
+        <button class="filter-btn" onclick="filterMercados('O/U', this)">Goles</button>
+        <button class="filter-btn" onclick="filterMercados('CORNERS', this)">Corners</button>
+        <button class="filter-btn" onclick="filterMercados('CARDS', this)">Tarjetas</button>
+      </div>
+      <div id="mercados-content"><div class="empty">—</div></div>
+    </div>
+
+    <!-- AVANZADO -->
+    <div class="tab-content" id="tab-avanzado">
+      <div id="avanzado-content"><div class="loading"><div class="spinner"></div> cargando...</div></div>
+    </div>
+
+    <!-- IA -->
+    <div class="tab-content" id="tab-ia">
+      <button class="ia-btn" id="ia-btn" onclick="loadIA()">⚡ Generar análisis con IA</button>
+      <div id="ia-content"><div class="empty">Presioná el botón para generar el análisis</div></div>
+    </div>
+
+    <!-- COMBINADAS -->
+    <div class="tab-content" id="tab-combinadas">
+      <div id="combinadas-content"><div class="empty">—</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://scoutbet.onrender.com';
+let currentLeague = null;
+let currentMatch = null;
+let allMatches = [];
+let analysisData = null;
+let advancedData = null;
+let allMercados = [];
+
+// ── STATUS ──────────────────────────────────────
+async function checkStatus() {
+  try {
+    const r = await fetch(`${API}/`);
+    const el = document.getElementById('status-bar');
+    if (r.ok) { el.textContent = '● online'; el.className = 'ok'; }
+    else { el.textContent = '● error'; el.className = 'err'; }
+  } catch(e) {
+    document.getElementById('status-bar').textContent = '● offline';
+    document.getElementById('status-bar').className = 'err';
+  }
+}
+
+// ── LOAD LEAGUE ─────────────────────────────────
+async function loadLeague(code) {
+  currentLeague = code;
+  document.querySelectorAll('.league-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  closePanel();
+
+  const sec = document.getElementById('matches-section');
+  sec.innerHTML = '<div class="loading"><div class="spinner"></div> cargando partidos...</div>';
+
+  try {
+    const r = await fetch(`${API}/partidos/${code}`);
+    const data = await r.json();
+    allMatches = data.response || [];
+    renderMatches(allMatches);
+  } catch(e) {
+    sec.innerHTML = `<div class="empty">Error al cargar: ${e.message}</div>`;
+  }
+}
+
+function renderMatches(matches) {
+  const sec = document.getElementById('matches-section');
+  if (!matches.length) { sec.innerHTML = '<div class="empty">No hay partidos disponibles</div>'; return; }
+
+  // Agrupar por fecha
+  const groups = {};
+  matches.forEach(m => {
+    const d = m.fecha ? m.fecha.substring(0, 10) : 'Sin fecha';
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(m);
+  });
+
+  let html = '';
+  Object.keys(groups).sort().forEach(date => {
+    const label = formatDate(date);
+    html += `<div class="section-title">${label}</div><div class="matches-grid">`;
+    groups[date].forEach(m => {
+      const scored = m.resultado || '';
+      const scoreHtml = scored
+        ? `<div class="match-score">${scored}</div>`
+        : `<div class="match-score empty">vs</div>`;
+      const estado = m.estado === 'FINISHED' ? 'FIN'
+        : m.estado === 'SCHEDULED' || m.estado === 'TIMED' ? '⏰'
+        : m.estado || '—';
+      const badgeClass = m.estado === 'FINISHED' ? 'gray' : 'green';
+      const time = m.fecha ? new Date(m.fecha).toLocaleTimeString('es', {hour:'2-digit',minute:'2-digit',timeZone:'America/Argentina/Buenos_Aires'}) : '—';
+      const score = m.match_score ? m.match_score : '';
+
+      html += `
+        <div class="match-row" onclick="openAnalysis('${currentLeague}', ${m.id}, this)"
+             data-id="${m.id}" id="mr-${m.id}">
+          <div class="match-time">${time}</div>
+          <div class="match-teams">${m.home} <span class="vs">vs</span> ${m.away}</div>
+          ${scoreHtml}
+          <div class="badge ${badgeClass}">${estado}</div>
+          <div class="score-badge">${score ? score+'pts' : ''}</div>
+        </div>`;
+    });
+    html += '</div>';
+  });
+
+  sec.innerHTML = html;
+}
+
+function formatDate(d) {
+  if (!d || d === 'Sin fecha') return 'Sin fecha';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+}
+
+// ── ANALYSIS PANEL ───────────────────────────────
+async function openAnalysis(liga, matchId, row) {
+  document.querySelectorAll('.match-row').forEach(r => r.classList.remove('selected'));
+  if (row) row.classList.add('selected');
+
+  currentMatch = { liga, matchId };
+  analysisData = null;
+  advancedData = null;
+  allMercados = [];
+
+  document.getElementById('analysis-panel').classList.add('open');
+  document.getElementById('panel-title').textContent = 'Cargando...';
+  document.getElementById('veredicto-content').innerHTML = '<div class="loading"><div class="spinner"></div> analizando...</div>';
+  document.getElementById('mercados-content').innerHTML = '<div class="empty">—</div>';
+  document.getElementById('avanzado-content').innerHTML = '<div class="loading"><div class="spinner"></div> cargando stats...</div>';
+  document.getElementById('ia-content').innerHTML = '<div class="empty">Presioná el botón para generar el análisis</div>';
+  document.getElementById('combinadas-content').innerHTML = '<div class="empty">—</div>';
+  document.getElementById('ia-btn').disabled = false;
+  switchTab('veredicto');
+
+  // Load análisis base
+  try {
+    const r = await fetch(`${API}/analizar/${liga}/${matchId}`);
+    analysisData = await r.json();
+    if (analysisData.error) throw new Error(analysisData.error);
+
+    document.getElementById('panel-title').textContent =
+      `${analysisData.match.home} vs ${analysisData.match.away}`;
+
+    renderVeredicto(analysisData);
+    allMercados = analysisData.mercados || [];
+    renderMercados(allMercados);
+    renderCombinadas(analysisData.combinadas || []);
+  } catch(e) {
+    document.getElementById('veredicto-content').innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+  }
+
+  // Load avanzado en paralelo
+  try {
+    const r2 = await fetch(`${API}/analisis_avanzado/${liga}/${matchId}`);
+    advancedData = await r2.json();
+    if (!advancedData.error) {
+      // Merge mercados avanzados
+      if (advancedData.mercados && advancedData.mercados.length) {
+        const existing = new Set(allMercados.map(m => m.mercado));
+        advancedData.mercados.forEach(m => { if (!existing.has(m.mercado)) allMercados.push(m); });
+        allMercados.sort((a,b) => b.prob - a.prob);
+        renderMercados(allMercados);
+      }
+      renderAvanzado(advancedData);
+    }
+  } catch(e) {
+    document.getElementById('avanzado-content').innerHTML = `<div class="empty">Sin datos avanzados</div>`;
+  }
+}
+
+function closePanel() {
+  document.getElementById('analysis-panel').classList.remove('open');
+  document.querySelectorAll('.match-row').forEach(r => r.classList.remove('selected'));
+  currentMatch = null;
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── VEREDICTO ────────────────────────────────────
+function renderVeredicto(d) {
+  const v = d.veredicto;
+  const p = d.probabilidades;
+  const ge = d.goles_esperados;
+  const hf = d.forma?.home || {};
+  const af = d.forma?.away || {};
+
+  let html = `
+    <div class="veredicto-card">
+      <div class="veredicto-label">MERCADO PRINCIPAL</div>
+      <div class="veredicto-mp">${v.mercado_principal || 'Sin mercado aprobado'}</div>
+      <div class="veredicto-text">${v.texto || ''}</div>
+    </div>
+
+    <div class="ge-badge">⚽ ${ge} goles esperados</div>
+
+    <div class="probs">
+      <div class="prob-card">
+        <div class="prob-label">LOCAL</div>
+        <div class="prob-val home">${p.home}%</div>
+        <div class="prob-cuota">@${p.cuota_home}</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-label">EMPATE</div>
+        <div class="prob-val draw">${p.draw}%</div>
+        <div class="prob-cuota">@${p.cuota_draw}</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-label">VISITANTE</div>
+        <div class="prob-val away">${p.away}%</div>
+        <div class="prob-cuota">@${p.cuota_away}</div>
+      </div>
+    </div>`;
+
+  // H2H
+  const h2h = d.h2h;
+  if (h2h && h2h.total > 0) {
+    const t = h2h.total;
+    const hw = h2h.home_wins, aw = h2h.away_wins, dr = h2h.draws;
+    html += `
+      <div class="section-title" style="margin-bottom:8px">H2H — ${t} partidos</div>
+      <div class="h2h-bar">
+        <div class="h2h-home" style="width:${hw/t*100}%"></div>
+        <div class="h2h-draw" style="width:${dr/t*100}%"></div>
+        <div class="h2h-away" style="width:${aw/t*100}%"></div>
+      </div>
+      <div class="h2h-labels">
+        <span style="color:var(--accent)">${hw}V local</span>
+        <span style="color:var(--muted)">${dr} empates</span>
+        <span style="color:var(--accent2)">${aw}V visitante</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;margin-bottom:16px">
+        ${h2h.total_goals} goles totales · ${(h2h.total_goals/t).toFixed(1)}/partido
+      </div>`;
+  }
+
+  // Forma
+  html += `<div class="section-title" style="margin-bottom:8px">FORMA RECIENTE</div>
+    <div class="stats-grid">
+      <div class="stat-block">
+        <div class="stat-team">${d.match?.home?.substring(0,16).toUpperCase()}</div>
+        <div class="forma-badges">${renderForma(hf.form)}</div>
+        <div class="stat-row"><span>PPG</span><span class="stat-val">${hf.ppg || 0}</span></div>
+        <div class="stat-row"><span>Goles/PJ</span><span class="stat-val">${hf.gf_avg || 0}</span></div>
+        <div class="stat-row"><span>Recibidos/PJ</span><span class="stat-val">${hf.gc_avg || 0}</span></div>
+        <div class="stat-row"><span>Clean sheets</span><span class="stat-val">${hf.clean_sheets || 0}</span></div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-team">${d.match?.away?.substring(0,16).toUpperCase()}</div>
+        <div class="forma-badges">${renderForma(af.form)}</div>
+        <div class="stat-row"><span>PPG</span><span class="stat-val">${af.ppg || 0}</span></div>
+        <div class="stat-row"><span>Goles/PJ</span><span class="stat-val">${af.gf_avg || 0}</span></div>
+        <div class="stat-row"><span>Recibidos/PJ</span><span class="stat-val">${af.gc_avg || 0}</span></div>
+        <div class="stat-row"><span>Clean sheets</span><span class="stat-val">${af.clean_sheets || 0}</span></div>
+      </div>
+    </div>`;
+
+  // Posiciones
+  const pos = d.posiciones;
+  if (pos && pos.home) {
+    html += `
+      <div class="section-title" style="margin-bottom:8px">POSICIONES</div>
+      <div class="stats-grid">
+        <div class="stat-block">
+          <div class="stat-team">${d.match?.home?.substring(0,16).toUpperCase()}</div>
+          <div class="stat-row"><span>Posición</span><span class="stat-val">#${pos.home}</span></div>
+          <div class="stat-row"><span>Puntos</span><span class="stat-val">${pos.home_pts || '—'}</span></div>
+          <div class="stat-row"><span>GF</span><span class="stat-val">${pos.home_gf ?? '—'}</span></div>
+          <div class="stat-row"><span>GC</span><span class="stat-val">${pos.home_gc ?? '—'}</span></div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-team">${d.match?.away?.substring(0,16).toUpperCase()}</div>
+          <div class="stat-row"><span>Posición</span><span class="stat-val">#${pos.away}</span></div>
+          <div class="stat-row"><span>Puntos</span><span class="stat-val">${pos.away_pts || '—'}</span></div>
+          <div class="stat-row"><span>GF</span><span class="stat-val">${pos.away_gf ?? '—'}</span></div>
+          <div class="stat-row"><span>GC</span><span class="stat-val">${pos.away_gc ?? '—'}</span></div>
+        </div>
+      </div>`;
+  }
+
+  // Resumen
+  if (d.resumen) {
+    html += `<div class="resumen-box">${d.resumen}</div>`;
+  }
+
+  document.getElementById('veredicto-content').innerHTML = html;
+}
+
+function renderForma(f) {
+  if (!f) return '';
+  return f.split('').map(c => `<div class="forma-badge ${c}">${c}</div>`).join('');
+}
+
+// ── MERCADOS ─────────────────────────────────────
+function renderMercados(mercados, filter = 'all') {
+  if (!mercados.length) { document.getElementById('mercados-content').innerHTML = '<div class="empty">Sin mercados</div>'; return; }
+
+  let filtered = mercados;
+  if (filter === 'aprobado') filtered = mercados.filter(m => m.aprobado);
+  else if (filter !== 'all') filtered = mercados.filter(m => m.tipo === filter || m.tipo?.startsWith(filter));
+
+  let html = '<div class="mercados-list">';
+  filtered.forEach(m => {
+    const apClass = m.aprobado ? 'aprobado' : 'rechazado';
+    const probClass = m.prob >= 70 ? '' : 'low';
+    html += `
+      <div class="mercado-item ${apClass}">
+        <div class="mercado-top">
+          <div class="mercado-name">${m.mercado}</div>
+          <div class="mercado-prob ${probClass}">${m.prob}%</div>
+        </div>
+        <div class="mercado-bar"><div class="mercado-fill ${probClass}" style="width:${m.prob}%"></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="mercado-sint">${m.sintesis || ''}</div>
+          <div class="mercado-cuota">@${m.cuota}</div>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  document.getElementById('mercados-content').innerHTML = html;
+}
+
+function filterMercados(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMercados(allMercados, type);
+}
+
+// ── AVANZADO ─────────────────────────────────────
+function renderAvanzado(d) {
+  const hs = d.home_stats || {};
+  const as_ = d.away_stats || {};
+  const hn = d.home_team || 'Local';
+  const an = d.away_team || 'Visitante';
+
+  const statRow = (label, hv, av) => `
+    <div class="stat-row"><span>${label}</span><span class="stat-val">${hv ?? '—'}</span></div>`;
+
+  let html = `
+    <div class="section-title" style="margin-bottom:8px">STATS ÚLTIMOS 5 PARTIDOS</div>
+    <div class="stats-grid">
+      <div class="stat-block">
+        <div class="stat-team">${hn.substring(0,16).toUpperCase()}</div>
+        ${statRow('Remates/PJ', hs.remates_pj)}
+        ${statRow('Al arco/PJ', hs.al_arco_pj)}
+        ${statRow('Corners/PJ', hs.corners_pj)}
+        ${statRow('Amarillas/PJ', hs.tarjetas_amarillas_pj)}
+        ${statRow('Faltas/PJ', hs.faltas_pj)}
+        ${statRow('Posesión', hs.posesion_avg !== '—' ? hs.posesion_avg + '%' : '—')}
+        <div class="stat-row"><span style="font-size:10px;color:var(--muted)">Fuente</span><span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${hs.source || '—'}</span></div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-team">${an.substring(0,16).toUpperCase()}</div>
+        ${statRow('Remates/PJ', as_.remates_pj)}
+        ${statRow('Al arco/PJ', as_.al_arco_pj)}
+        ${statRow('Corners/PJ', as_.corners_pj)}
+        ${statRow('Amarillas/PJ', as_.tarjetas_amarillas_pj)}
+        ${statRow('Faltas/PJ', as_.faltas_pj)}
+        ${statRow('Posesión', as_.posesion_avg !== '—' ? as_.posesion_avg + '%' : '—')}
+        <div class="stat-row"><span style="font-size:10px;color:var(--muted)">Fuente</span><span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${as_.source || '—'}</span></div>
+      </div>
+    </div>`;
+
+  if (d.mercados && d.mercados.length) {
+    html += `<div class="section-title" style="margin-bottom:8px">MERCADOS AVANZADOS</div>
+      <div class="mercados-list">`;
+    d.mercados.slice(0,8).forEach(m => {
+      html += `
+        <div class="mercado-item ${m.aprobado ? 'aprobado' : 'rechazado'}">
+          <div class="mercado-top">
+            <div class="mercado-name">${m.mercado}</div>
+            <div class="mercado-prob ${m.prob >= 70 ? '' : 'low'}">${m.prob}% @${m.cuota}</div>
+          </div>
+          <div class="mercado-bar"><div class="mercado-fill ${m.prob >= 70 ? '' : 'low'}" style="width:${m.prob}%"></div></div>
+          <div class="mercado-sint">${m.sintesis || ''}</div>
+        </div>`;
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('avanzado-content').innerHTML = html;
+}
+
+// ── IA ───────────────────────────────────────────
+async function loadIA() {
+  if (!analysisData) return;
+  const btn = document.getElementById('ia-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generando...';
+  document.getElementById('ia-content').innerHTML = '<div class="loading"><div class="spinner"></div> consultando IA...</div>';
+
+  try {
+    const hs = advancedData?.home_stats || {};
+    const as_ = advancedData?.away_stats || {};
+    const body = {
+      home: analysisData.match.home,
+      away: analysisData.match.away,
+      liga: analysisData.match.competicion,
+      mercados: allMercados,
+      home_stats: hs,
+      away_stats: as_,
+    };
+    const r = await fetch(`${API}/ia_analisis`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    document.getElementById('ia-content').innerHTML = `<div class="ia-output">${data.analisis}</div>`;
+  } catch(e) {
+    document.getElementById('ia-content').innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    btn.disabled = false;
+  }
+  btn.textContent = '🔄 Regenerar';
+  btn.disabled = false;
+}
+
+// ── COMBINADAS ───────────────────────────────────
+function renderCombinadas(combinadas) {
+  if (!combinadas.length) {
+    document.getElementById('combinadas-content').innerHTML = '<div class="empty">Sin combinadas disponibles</div>';
+    return;
+  }
+  let html = '';
+  combinadas.forEach(c => {
+    html += `<div class="comb-card">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px">${c.tipo.toUpperCase()}</div>
+      <div class="comb-legs">`;
+    c.legs.forEach(l => {
+      html += `<div class="comb-leg">${l.mercado} — ${l.prob}% @${l.cuota}</div>`;
+    });
+    html += `</div>
+      <div class="comb-footer">
+        <div class="comb-cuota">@${c.cuota_combinada}</div>
+        <div class="comb-prob">prob ~${c.prob_combinada}%</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('combinadas-content').innerHTML = html;
+}
+
+// ── APUESTA DEL DÍA ──────────────────────────────
+async function showBetOfDay() {
+  document.querySelectorAll('.league-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  closePanel();
+
+  const sec = document.getElementById('matches-section');
+  const bod = document.getElementById('bet-of-day-section');
+  bod.style.display = 'block';
+  sec.innerHTML = '<div class="loading"><div class="spinner"></div> analizando todas las ligas...</div>';
+
+  const leagues = ['PL','PD','SA','BL1','FL1','BSA'];
+  let best = null;
+  let allToday = [];
+
+  for (const code of leagues) {
+    try {
+      const r = await fetch(`${API}/partidos/${code}`);
+      const data = await r.json();
+      const today = (data.response || []).filter(m => {
+        if (!m.fecha) return false;
+        const d = new Date(m.fecha);
+        const now = new Date();
+        return d.toDateString() === now.toDateString() && m.estado !== 'FINISHED';
+      });
+      today.forEach(m => { m._liga = code; allToday.push(m); });
+    } catch(e) {}
+  }
+
+  if (!allToday.length) {
+    sec.innerHTML = '<div class="empty">No hay partidos de hoy disponibles</div>';
+    document.getElementById('bod-pick').textContent = 'Sin partidos hoy';
+    return;
+  }
+
+  // Tomar el de mayor match_score
+  allToday.sort((a,b) => (b.match_score || 0) - (a.match_score || 0));
+  best = allToday[0];
+
+  // Analizar el mejor
+  try {
+    const r = await fetch(`${API}/analizar/${best._liga}/${best.id}`);
+    const ana = await r.json();
+    if (!ana.error) {
+      const mp = ana.veredicto.mercado_principal;
+      document.getElementById('bod-pick').innerHTML = mp || 'Sin mercado aprobado';
+      document.getElementById('bod-meta').textContent = `${best.home} vs ${best.away}`;
+    }
+  } catch(e) {}
+
+  // Renderizar todos de hoy
+  currentLeague = null;
+  allToday.forEach(m => m._liga && (m.liga_code = m._liga));
+  renderMatchesWithLiga(allToday);
+}
+
+function renderMatchesWithLiga(matches) {
+  const sec = document.getElementById('matches-section');
+  if (!matches.length) { sec.innerHTML = '<div class="empty">No hay partidos</div>'; return; }
+
+  let html = '<div class="section-title">PARTIDOS DE HOY</div><div class="matches-grid">';
+  matches.forEach(m => {
+    const liga = m._liga || m.liga_code || '';
+    const time = m.fecha ? new Date(m.fecha).toLocaleTimeString('es', {hour:'2-digit',minute:'2-digit',timeZone:'America/Argentina/Buenos_Aires'}) : '—';
+    html += `
+      <div class="match-row" onclick="openAnalysisLiga('${liga}', ${m.id}, this)" data-id="${m.id}">
+        <div class="match-time">${time}</div>
+        <div class="match-teams">${m.home} <span class="vs">vs</span> ${m.away}</div>
+        <div class="match-score empty">vs</div>
+        <div class="badge green">${liga}</div>
+        <div class="score-badge">${m.match_score ? m.match_score+'pts' : ''}</div>
+      </div>`;
+  });
+  html += '</div>';
+  sec.innerHTML = html;
+}
+
+function openAnalysisLiga(liga, matchId, row) {
+  currentLeague = liga;
+  openAnalysis(liga, matchId, row);
+}
+
+// ── INIT ─────────────────────────────────────────
+checkStatus();
+setInterval(checkStatus, 30000);
+</script>
+</body>
+</html>

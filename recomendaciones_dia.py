@@ -363,6 +363,10 @@ def manifest():
 def index():
     return render_template("index.html", ligas={k:v["nombre"] for k,v in LIGAS.items()})
 
+@app.route("/dashboard")
+def dashboard():
+    return render_template("scoutbet_dashboard.html")
+
 
 @app.route("/ia_analisis", methods=["POST"])
 def ia_analisis():

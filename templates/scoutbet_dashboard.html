@@ -262,6 +262,21 @@
 
   .empty { color: var(--muted); font-family: var(--mono); font-size: 13px; padding: 24px; text-align: center; }
 
+  /* FORMACION */
+  .formacion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .formacion-team { background: var(--surface2); border-radius: 4px; padding: 14px; }
+  .formacion-header { margin-bottom: 12px; }
+  .formacion-nombre { font-size: 15px; font-weight: 700; color: var(--text); }
+  .formacion-esquema { font-family: var(--mono); font-size: 22px; color: var(--accent); font-weight: 700; margin: 4px 0; }
+  .formacion-coach { font-size: 13px; color: var(--muted); }
+  .formacion-xi { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .jugador-row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; background: var(--surface); border-radius: 3px; font-size: 13px; }
+  .jugador-num { font-family: var(--mono); font-size: 12px; color: var(--accent); width: 20px; text-align: center; }
+  .jugador-pos { font-family: var(--mono); font-size: 10px; color: var(--accent2); width: 24px; }
+  .jugador-nombre { color: var(--text); flex: 1; }
+  .suplentes-title { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 6px; }
+  .suplentes-list { font-size: 12px; color: var(--muted); line-height: 1.8; }
+
   /* SCROLLBAR */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -342,6 +357,7 @@
       <button class="tab" onclick="switchTab('avanzado')">Avanzado</button>
       <button class="tab" onclick="switchTab('ia')">IA</button>
       <button class="tab" onclick="switchTab('combinadas')">Combis</button>
+      <button class="tab" onclick="switchTab('formacion')">Formación</button>
     </div>
 
     <!-- VEREDICTO -->
@@ -376,6 +392,11 @@
     <!-- COMBINADAS -->
     <div class="tab-content" id="tab-combinadas">
       <div id="combinadas-content"><div class="empty">—</div></div>
+    </div>
+
+    <!-- FORMACION -->
+    <div class="tab-content" id="tab-formacion">
+      <div id="formacion-content"><div class="empty">Seleccioná un partido para ver la formación</div></div>
     </div>
   </div>
 </div>
@@ -491,6 +512,8 @@ async function openAnalysis(liga, matchId, row) {
   document.getElementById('combinadas-content').innerHTML = '<div class="empty">—</div>';
   document.getElementById('ia-btn').disabled = false;
   switchTab('veredicto');
+
+  document.getElementById('formacion-content').innerHTML = '<div class="loading"><div class="spinner"></div> cargando formación...</div>';
 
   // Load análisis base
   try {
@@ -743,6 +766,57 @@ function renderAvanzado(d) {
   }
 
   document.getElementById('avanzado-content').innerHTML = html;
+}
+
+  // Load formacion en paralelo
+  try {
+    const r3 = await fetch(`${API}/formacion/${liga}/${matchId}`);
+    const fdata = await r3.json();
+    renderFormacion(fdata);
+  } catch(e) {
+    document.getElementById('formacion-content').innerHTML = '<div class="empty">Sin datos de formación</div>';
+  }
+}
+
+function renderFormacion(d) {
+  if (!d.disponible) {
+    document.getElementById('formacion-content').innerHTML = `<div class="empty">${d.mensaje || 'Formaciones no disponibles aún'}</div>`;
+    return;
+  }
+  const lineups = d.lineups || [];
+  if (!lineups.length) {
+    document.getElementById('formacion-content').innerHTML = '<div class="empty">Sin formaciones disponibles</div>';
+    return;
+  }
+
+  let html = '<div class="formacion-grid">';
+  lineups.forEach(team => {
+    html += `
+      <div class="formacion-team">
+        <div class="formacion-header">
+          <div class="formacion-nombre">${team.equipo}</div>
+          <div class="formacion-esquema">${team.formacion || '—'}</div>
+          <div class="formacion-coach">DT: ${team.entrenador || '—'}</div>
+        </div>
+        <div class="formacion-xi">`;
+    (team.xi || []).forEach(p => {
+      html += `
+          <div class="jugador-row">
+            <div class="jugador-num">${p.numero || '—'}</div>
+            <div class="jugador-pos">${p.pos || ''}</div>
+            <div class="jugador-nombre">${p.nombre}</div>
+          </div>`;
+    });
+    html += `</div>`;
+    if (team.suplentes && team.suplentes.length) {
+      html += `
+        <div class="suplentes-title">SUPLENTES</div>
+        <div class="suplentes-list">${team.suplentes.join(' · ')}</div>`;
+    }
+    html += `</div>`;
+  });
+  html += '</div>';
+  document.getElementById('formacion-content').innerHTML = html;
 }
 
 // ── IA ───────────────────────────────────────────

@@ -835,8 +835,8 @@ def partidos(codigo):
     if source == "as":
         as_id = liga.get("as_id")
         season = liga.get("season")
-        desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
-        hasta = (hoy + timedelta(days=120)).strftime("%Y-%m-%d")
+        desde = (hoy - timedelta(days=30)).strftime("%Y-%m-%d")
+        hasta = (hoy + timedelta(days=14)).strftime("%Y-%m-%d")
         data = as_get("/fixtures", {"league": as_id, "season": season, "from": desde, "to": hasta})
         if "error" in data:
             return jsonify({"response": [], "error": data["error"]})
@@ -870,8 +870,8 @@ def partidos(codigo):
                 "tiene_prediccion": pred is not None,
             })
     else:
-        desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
-        hasta = (hoy + timedelta(days=120)).strftime("%Y-%m-%d")
+        desde = (hoy - timedelta(days=30)).strftime("%Y-%m-%d")
+        hasta = (hoy + timedelta(days=14)).strftime("%Y-%m-%d")
         is_cup = codigo in ("CL", "WC", "EC")
         if is_cup:
             d1 = fd_get(f"/competitions/{codigo}/matches", {"dateFrom": hoy.strftime('%Y-%m-%d'), "dateTo": (hoy + timedelta(days=90)).strftime('%Y-%m-%d'), "limit": 20})

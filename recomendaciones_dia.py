@@ -133,7 +133,7 @@ LIGAS = {
     "ELC": {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship",     "as_id": 40,  "season": 2025, "source": "fd"},
     "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
     "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026, "source": "fd"},
-    "AARG": {"nombre": "Primera División Argentina", "as_id": 128, "season": 2026, "source": "as"},
+    "WC":  {"nombre": "🌍 Copa del Mundo", "as_id": 1, "season": 2026, "source": "fd"},
 }
 
 _cache = {}

@@ -16,7 +16,7 @@
     --warn: #ff6f00;
     --red: #f44336;
     --text: #e0e0e0;
-    --muted: #555;
+    --muted: #888;
     --mono: 'Space Mono', monospace;
     --sans: 'Barlow Condensed', sans-serif;
   }
@@ -311,7 +311,7 @@
     <button class="league-btn" onclick="loadLeague('ELC')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship</button>
     <button class="league-btn" onclick="loadLeague('CL')">🏆 Champions League</button>
     <button class="league-btn" onclick="loadLeague('BSA')">🇧🇷 Brasileirão</button>
-    <button class="league-btn" onclick="loadLeague('AARG')">🇦🇷 Argentina</button>
+    <button class="league-btn" onclick="loadLeague('WC')">🌍 Copa del Mundo</button>
     <div class="sidebar-title" style="margin-top:16px">HERRAMIENTAS</div>
     <button class="league-btn" onclick="showBetOfDay()">⚡ Apuesta del día</button>
   </aside>
@@ -815,7 +815,7 @@ async function showBetOfDay() {
   bod.style.display = 'block';
   sec.innerHTML = '<div class="loading"><div class="spinner"></div> analizando todas las ligas...</div>';
 
-  const leagues = ['PL','PD','SA','BL1','FL1','BSA'];
+  const leagues = ['PL','PD','SA','BL1','FL1','BSA','WC'];
   let best = null;
   let allToday = [];
 

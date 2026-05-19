@@ -671,7 +671,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Remates al Arco Over 8.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Promedio combinado al arco: {round(total_sot,1)}/partido. {hn} {home['al_arco_pj']} y {an} {away['al_arco_pj']}."
             })
         if total_sot <= 8:
@@ -679,7 +679,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Remates al Arco Under 8.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Equipos poco precisos: {round(total_sot,1)} al arco/partido."
             })
         if total_sot >= 11:
@@ -687,7 +687,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Remates al Arco Over 10.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Alta precisión combinada: {round(total_sot,1)} al arco/partido."
             })
 
@@ -698,7 +698,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Tarjetas Over 3.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Promedio combinado: {round(total_y,1)} amarillas/partido."
             })
         if total_y <= 3:
@@ -706,7 +706,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Tarjetas Under 3.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Partido limpio esperado: {round(total_y,1)} amarillas/partido."
             })
         if total_y >= 5:
@@ -714,7 +714,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Tarjetas Over 4.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Promedio alto: {round(total_y,1)} amarillas/partido. {hn} {home['tarjetas_amarillas_pj']} y {an} {away['tarjetas_amarillas_pj']}."
             })
         if total_y <= 4:
@@ -722,7 +722,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Tarjetas Under 4.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Pocas amarillas esperadas: {round(total_y,1)}/partido."
             })
         if total_y >= 6:
@@ -730,7 +730,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Tarjetas Over 5.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Partido caliente esperado: {round(total_y,1)} amarillas/partido."
             })
 
@@ -2020,6 +2020,43 @@ def historial():
             "verificado": r[14],
         })
 
+    return jsonify({
+        "stats": {"total": total, "ganadas": ganadas, "verificadas": verificadas, "acierto": acierto},
+        "predicciones": predicciones
+    })
+
+@app.route("/historial")
+def historial():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota,
+                 combinable, comb_prob, resultado_home, resultado_away,
+                 mp_acertado, comb_acertado, verificado
+                 FROM predicciones
+                 ORDER BY fecha DESC LIMIT 200""")
+    rows = c.fetchall()
+    c.execute("""SELECT COUNT(*),
+                 SUM(CASE WHEN mp_acertado=1 THEN 1 ELSE 0 END),
+                 COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END)
+                 FROM predicciones""")
+    stats = c.fetchone()
+    conn.close()
+    total = stats[0] or 0
+    ganadas = stats[1] or 0
+    verificadas = stats[2] or 0
+    acierto = round(ganadas / verificadas * 100, 1) if verificadas else 0
+    predicciones = []
+    for r in rows:
+        predicciones.append({
+            "match_id": r[0], "liga": r[1],
+            "fecha": r[2][:10] if r[2] else "—",
+            "home": r[3], "away": r[4],
+            "mercado_principal": r[5], "mp_prob": r[6], "mp_cuota": r[7],
+            "combinable": r[8], "comb_prob": r[9],
+            "resultado": f"{r[10]}-{r[11]}" if r[10] is not None else None,
+            "mp_acertado": r[12], "comb_acertado": r[13],
+            "verificado": r[14],
+        })
     return jsonify({
         "stats": {"total": total, "ganadas": ganadas, "verificadas": verificadas, "acierto": acierto},
         "predicciones": predicciones

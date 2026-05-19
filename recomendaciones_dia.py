@@ -2025,43 +2025,6 @@ def historial():
         "predicciones": predicciones
     })
 
-@app.route("/historial")
-def historial():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("""SELECT match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota,
-                 combinable, comb_prob, resultado_home, resultado_away,
-                 mp_acertado, comb_acertado, verificado
-                 FROM predicciones
-                 ORDER BY fecha DESC LIMIT 200""")
-    rows = c.fetchall()
-    c.execute("""SELECT COUNT(*),
-                 SUM(CASE WHEN mp_acertado=1 THEN 1 ELSE 0 END),
-                 COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END)
-                 FROM predicciones""")
-    stats = c.fetchone()
-    conn.close()
-    total = stats[0] or 0
-    ganadas = stats[1] or 0
-    verificadas = stats[2] or 0
-    acierto = round(ganadas / verificadas * 100, 1) if verificadas else 0
-    predicciones = []
-    for r in rows:
-        predicciones.append({
-            "match_id": r[0], "liga": r[1],
-            "fecha": r[2][:10] if r[2] else "—",
-            "home": r[3], "away": r[4],
-            "mercado_principal": r[5], "mp_prob": r[6], "mp_cuota": r[7],
-            "combinable": r[8], "comb_prob": r[9],
-            "resultado": f"{r[10]}-{r[11]}" if r[10] is not None else None,
-            "mp_acertado": r[12], "comb_acertado": r[13],
-            "verificado": r[14],
-        })
-    return jsonify({
-        "stats": {"total": total, "ganadas": ganadas, "verificadas": verificadas, "acierto": acierto},
-        "predicciones": predicciones
-    })
-
 @app.route("/clear_cache")
 def clear_cache():
     conn = sqlite3.connect(DB_PATH)

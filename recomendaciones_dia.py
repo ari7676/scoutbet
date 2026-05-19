@@ -2083,7 +2083,7 @@ def backfill(codigo):
         return jsonify({"error": "Liga no encontrada"})
     
     hoy = datetime.utcnow()
-    desde = (hoy - timedelta days=30)).strftime("%Y-%m-%d")
+    desde = (hoy - timedelta (days=30)).strftime("%Y-%m-%d")
     hasta = hoy.strftime("%Y-%m-%d")
     source = liga.get("source", "fd")
     

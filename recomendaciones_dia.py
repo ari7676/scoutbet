@@ -2000,31 +2000,24 @@ def formacion(codigo, match_id):
         hn = md["homeTeam"]["name"]
         an = md["awayTeam"]["name"]
         fecha = md.get("utcDate", "")[:10]
-        hid = _search_as(hn, as_id, season)
-        if not hid:
-            return jsonify({"error": f"No se encontró {hn} en api-sports"})
-        # Buscar en rango de 3 días para no fallar por timezone
-        desde = (datetime.fromisoformat(fecha) - timedelta(days=1)).strftime("%Y-%m-%d")
-        hasta = (datetime.fromisoformat(fecha) + timedelta(days=1)).strftime("%Y-%m-%d")
+
+        # Buscar fixture directo por fecha y liga sin pasar por teams
         fx_data = as_get("/fixtures", {
-            "team": hid, "season": season, "league": as_id,
-            "from": desde, "to": hasta
+            "date": fecha, "league": as_id, "season": season
         })
         fixtures = fx_data.get("response", [])
-        if not fixtures:
-            return jsonify({"error": f"Sin fixture en api-sports para {hn} en {fecha}"})
-        # Buscar el fixture que coincida con el rival
-        an_lower = an.lower()
         fixture_id = None
+        hn_l = hn.lower(); an_l = an.lower()
         for fx in fixtures:
             teams = fx.get("teams", {})
-            home_name = teams.get("home", {}).get("name", "").lower()
-            away_name = teams.get("away", {}).get("name", "").lower()
-            if an_lower in home_name or an_lower in away_name or home_name in an_lower or away_name in an_lower:
+            h = teams.get("home", {}).get("name", "").lower()
+            a = teams.get("away", {}).get("name", "").lower()
+            if (hn_l in h or h in hn_l or hn_l.split()[0] in h) and \
+               (an_l in a or a in an_l or an_l.split()[0] in a):
                 fixture_id = fx.get("fixture", {}).get("id")
                 break
         if not fixture_id:
-            fixture_id = fixtures[0].get("fixture", {}).get("id")
+            return jsonify({"disponible": False, "mensaje": f"Partido no encontrado en api-sports ({hn} vs {an})"})
 
     lineups = as_get("/fixtures/lineups", {"fixture": fixture_id})
     if "error" in lineups or not lineups.get("response"):

@@ -1989,15 +1989,11 @@ def formacion(codigo, match_id):
     liga = LIGAS.get(codigo, {})
     as_id = liga.get("as_id")
     season = liga.get("season")
-
-    # Buscar fixture en api-sports
-    # Para ligas fd, necesitamos mapear el match_id a fixture_id de api-sports
     source = liga.get("source", "fd")
-    
+
     if source == "as":
         fixture_id = match_id
     else:
-        # Buscar por fecha y equipos en api-sports
         md = fd_get(f"/matches/{match_id}")
         if "error" in md or "id" not in md:
             return jsonify({"error": "Partido no encontrado"})
@@ -2005,20 +2001,31 @@ def formacion(codigo, match_id):
         an = md["awayTeam"]["name"]
         fecha = md.get("utcDate", "")[:10]
         hid = _search_as(hn, as_id, season)
-        aid = _search_as(an, as_id, season)
         if not hid:
-            return jsonify({"error": "No se encontró el partido en api-sports"})
-        # Buscar fixture por equipo y fecha
+            return jsonify({"error": f"No se encontró {hn} en api-sports"})
+        # Buscar en rango de 3 días para no fallar por timezone
+        desde = (datetime.fromisoformat(fecha) - timedelta(days=1)).strftime("%Y-%m-%d")
+        hasta = (datetime.fromisoformat(fecha) + timedelta(days=1)).strftime("%Y-%m-%d")
         fx_data = as_get("/fixtures", {
             "team": hid, "season": season, "league": as_id,
-            "from": fecha, "to": fecha
+            "from": desde, "to": hasta
         })
         fixtures = fx_data.get("response", [])
         if not fixtures:
-            return jsonify({"error": "Sin fixture en api-sports para esta fecha"})
-        fixture_id = fixtures[0].get("fixture", {}).get("id")
+            return jsonify({"error": f"Sin fixture en api-sports para {hn} en {fecha}"})
+        # Buscar el fixture que coincida con el rival
+        an_lower = an.lower()
+        fixture_id = None
+        for fx in fixtures:
+            teams = fx.get("teams", {})
+            home_name = teams.get("home", {}).get("name", "").lower()
+            away_name = teams.get("away", {}).get("name", "").lower()
+            if an_lower in home_name or an_lower in away_name or home_name in an_lower or away_name in an_lower:
+                fixture_id = fx.get("fixture", {}).get("id")
+                break
+        if not fixture_id:
+            fixture_id = fixtures[0].get("fixture", {}).get("id")
 
-    # Lineups
     lineups = as_get("/fixtures/lineups", {"fixture": fixture_id})
     if "error" in lineups or not lineups.get("response"):
         return jsonify({"disponible": False, "mensaje": "Formaciones no disponibles aún"})

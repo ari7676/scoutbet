@@ -1984,6 +1984,70 @@ def alertas():
         except: continue
     return jsonify({"alertas":alertas,"total":len(alertas)})
 
+@app.route("/formacion/<codigo>/<int:match_id>")
+def formacion(codigo, match_id):
+    liga = LIGAS.get(codigo, {})
+    as_id = liga.get("as_id")
+    season = liga.get("season")
+
+    # Buscar fixture en api-sports
+    # Para ligas fd, necesitamos mapear el match_id a fixture_id de api-sports
+    source = liga.get("source", "fd")
+    
+    if source == "as":
+        fixture_id = match_id
+    else:
+        # Buscar por fecha y equipos en api-sports
+        md = fd_get(f"/matches/{match_id}")
+        if "error" in md or "id" not in md:
+            return jsonify({"error": "Partido no encontrado"})
+        hn = md["homeTeam"]["name"]
+        an = md["awayTeam"]["name"]
+        fecha = md.get("utcDate", "")[:10]
+        hid = _search_as(hn, as_id, season)
+        aid = _search_as(an, as_id, season)
+        if not hid:
+            return jsonify({"error": "No se encontró el partido en api-sports"})
+        # Buscar fixture por equipo y fecha
+        fx_data = as_get("/fixtures", {
+            "team": hid, "season": season, "league": as_id,
+            "from": fecha, "to": fecha
+        })
+        fixtures = fx_data.get("response", [])
+        if not fixtures:
+            return jsonify({"error": "Sin fixture en api-sports para esta fecha"})
+        fixture_id = fixtures[0].get("fixture", {}).get("id")
+
+    # Lineups
+    lineups = as_get("/fixtures/lineups", {"fixture": fixture_id})
+    if "error" in lineups or not lineups.get("response"):
+        return jsonify({"disponible": False, "mensaje": "Formaciones no disponibles aún"})
+
+    result = []
+    for team in lineups["response"]:
+        t = team.get("team", {})
+        coach = team.get("coach", {})
+        formation = team.get("formation", "")
+        xi = []
+        for p in team.get("startXI", []):
+            pl = p.get("player", {})
+            xi.append({
+                "nombre": pl.get("name", ""),
+                "numero": pl.get("number"),
+                "pos": pl.get("pos", ""),
+                "grid": pl.get("grid", "")
+            })
+        subs = [p.get("player", {}).get("name", "") for p in team.get("substitutes", [])]
+        result.append({
+            "equipo": t.get("name", ""),
+            "formacion": formation,
+            "entrenador": coach.get("name", ""),
+            "xi": xi,
+            "suplentes": subs
+        })
+
+    return jsonify({"disponible": True, "lineups": result})
+
 @app.route("/clear_cache")
 def clear_cache():
     conn = sqlite3.connect(DB_PATH)

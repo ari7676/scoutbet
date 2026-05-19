@@ -2029,8 +2029,8 @@ def historial():
 def auto_analizar():
     """Analiza automaticamente todos los partidos de hoy y ayer de todas las ligas."""
     hoy = datetime.utcnow()
-    desde = (hoy - timedelta(days=1)).strftime("%Y-%m-%d")
-    hasta = hoy.strftime("%Y-%m-%d")
+    desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
+    hasta = (hoy + timedelta(days=1)).strftime("%Y-%m-%d")
     
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -2077,13 +2077,13 @@ def auto_analizar():
 
 @app.route("/backfill/<codigo>")
 def backfill(codigo):
-    """Analiza los ultimos 14 dias de partidos finalizados de una liga."""
+    """Analiza los ultimos 30 dias de partidos finalizados de una liga."""
     liga = LIGAS.get(codigo, {})
     if not liga:
         return jsonify({"error": "Liga no encontrada"})
     
     hoy = datetime.utcnow()
-    desde = (hoy - timedelta(days=14)).strftime("%Y-%m-%d")
+    desde = (hoy - timedelta days=30)).strftime("%Y-%m-%d")
     hasta = hoy.strftime("%Y-%m-%d")
     source = liga.get("source", "fd")
     

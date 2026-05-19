@@ -962,6 +962,9 @@ function openAnalysisLiga(liga, matchId, row) {
 // ── INIT ─────────────────────────────────────────
 checkStatus();
 setInterval(checkStatus, 30000);
+
+// Auto-analizar al cargar
+fetch(`${API}/auto_analizar`).catch(() => {});
 </script>
 </body>
 </html>

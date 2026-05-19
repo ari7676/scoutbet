@@ -2025,6 +2025,103 @@ def historial():
         "predicciones": predicciones
     })
 
+@app.route("/auto_analizar")
+def auto_analizar():
+    """Analiza automaticamente todos los partidos de hoy y ayer de todas las ligas."""
+    hoy = datetime.utcnow()
+    desde = (hoy - timedelta(days=1)).strftime("%Y-%m-%d")
+    hasta = hoy.strftime("%Y-%m-%d")
+    
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT match_id FROM predicciones")
+    ya_analizados = {row[0] for row in c.fetchall()}
+    conn.close()
+    
+    procesados = 0
+    errores = 0
+    
+    for codigo, liga in LIGAS.items():
+        try:
+            source = liga.get("source", "fd")
+            ids = []
+            if source == "as":
+                data = as_get("/fixtures", {
+                    "league": liga.get("as_id"), "season": liga.get("season"),
+                    "from": desde, "to": hasta
+                })
+                ids = [fx.get("fixture",{}).get("id") for fx in data.get("response",[]) if fx.get("fixture",{}).get("id")]
+            else:
+                data = fd_get(f"/competitions/{codigo}/matches", {
+                    "dateFrom": desde, "dateTo": hasta, "limit": 20
+                })
+                ids = [m["id"] for m in data.get("matches", [])]
+            
+            for mid in ids:
+                if mid in ya_analizados:
+                    continue
+                try:
+                    r = _do_analyze(codigo, mid)
+                    if "error" not in r:
+                        procesados += 1
+                    else:
+                        errores += 1
+                    time.sleep(0.3)
+                except Exception as e:
+                    errores += 1
+        except Exception as e:
+            print(f"Auto analizar error {codigo}: {e}")
+    
+    return jsonify({"procesados": procesados, "errores": errores})
+
+
+@app.route("/backfill/<codigo>")
+def backfill(codigo):
+    """Analiza los ultimos 14 dias de partidos finalizados de una liga."""
+    liga = LIGAS.get(codigo, {})
+    if not liga:
+        return jsonify({"error": "Liga no encontrada"})
+    
+    hoy = datetime.utcnow()
+    desde = (hoy - timedelta(days=14)).strftime("%Y-%m-%d")
+    hasta = hoy.strftime("%Y-%m-%d")
+    source = liga.get("source", "fd")
+    
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT match_id FROM predicciones")
+    ya_analizados = {row[0] for row in c.fetchall()}
+    conn.close()
+    
+    ids = []
+    if source == "as":
+        data = as_get("/fixtures", {
+            "league": liga.get("as_id"), "season": liga.get("season"),
+            "from": desde, "to": hasta, "status": "FT"
+        })
+        ids = [fx.get("fixture",{}).get("id") for fx in data.get("response",[]) if fx.get("fixture",{}).get("id")]
+    else:
+        data = fd_get(f"/competitions/{codigo}/matches", {
+            "dateFrom": desde, "dateTo": hasta, "status": "FINISHED", "limit": 100
+        })
+        ids = [m["id"] for m in data.get("matches", [])]
+    
+    pendientes = [mid for mid in ids if mid not in ya_analizados]
+    procesados = errores = 0
+    
+    for mid in pendientes:
+        try:
+            r = _do_analyze(codigo, mid)
+            if "error" not in r:
+                procesados += 1
+            else:
+                errores += 1
+            time.sleep(0.5)
+        except Exception as e:
+            errores += 1
+    
+    return jsonify({"procesados": procesados, "errores": errores, "total": len(pendientes)})
+
 @app.route("/clear_cache")
 def clear_cache():
     conn = sqlite3.connect(DB_PATH)

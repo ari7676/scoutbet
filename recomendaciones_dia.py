@@ -2102,8 +2102,8 @@ def backfill(codigo):
         ids = [fx.get("fixture",{}).get("id") for fx in data.get("response",[]) if fx.get("fixture",{}).get("id")]
     else:
         data = fd_get(f"/competitions/{codigo}/matches", {
-            "dateFrom": desde, "dateTo": hasta, "status": "FINISHED", "limit": 100
-        })
+    "dateFrom": desde, "dateTo": hasta, "limit": 100
+})
         ids = [m["id"] for m in data.get("matches", [])]
     
     pendientes = [mid for mid in ids if mid not in ya_analizados]

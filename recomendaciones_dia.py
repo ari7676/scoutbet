@@ -133,7 +133,7 @@ LIGAS = {
     "ELC": {"nombre": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship",     "as_id": 40,  "season": 2025, "source": "fd"},
     "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
     "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026, "source": "fd"},
-    "WC":  {"nombre": "🌍 Copa del Mundo", "as_id": 1, "season": 2026, "source": "fd"},
+    "AARG": {"nombre": "Primera División Argentina", "as_id": 128, "season": 2026, "source": "as"},
 }
 
 _cache = {}
@@ -141,20 +141,20 @@ CACHE_TTL = 300
 CACHE_TTL_AS = 43200
 CACHE_TTL_FX_STATS = 604800
 UMBRALES = {
-    "1X2":       70,
-    "DRAW":      35,
-    "DC":        75,
-    "OU":        70,
-    "BTTS":      70,
-    "GE_05":     85,
-    "GE_15":     70,
-    "CS":        70,
-    "WTN":       70,
-    "HT_OVER":   75,
-    "HT_UNDER":  70,
-    "NO00_SHOW": 70,
-    "NO00":      82,
-    "ADV":       65,
+    "1X2":       75,
+    "DRAW":      40,
+    "DC":        78,
+    "OU":        75,
+    "BTTS":      75,
+    "GE_05":     87,
+    "GE_15":     78,
+    "CS":        78,
+    "WTN":       60,
+    "HT_OVER":   78,
+    "HT_UNDER":  80,
+    "NO00_SHOW": 75,
+    "NO00":      85,
+    "ADV":       72,
 }
 
 
@@ -362,10 +362,6 @@ def manifest():
 @app.route("/")
 def index():
     return render_template("index.html", ligas={k:v["nombre"] for k,v in LIGAS.items()})
-
-@app.route("/dashboard")
-def dashboard():
-    return render_template("scoutbet_dashboard.html")
 
 
 @app.route("/ia_analisis", methods=["POST"])
@@ -625,7 +621,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Corners Totales Over 9.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Promedio combinado de corners: {round(total_corners,1)}/partido. {hn} {home['corners_pj']} y {an} {away['corners_pj']}."
             })
         if total_corners <= 9:
@@ -633,7 +629,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Corners Totales Under 9.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Promedio combinado bajo: {round(total_corners,1)} corners/partido."
             })
 
@@ -644,7 +640,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Remates Totales Over 22.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Promedio combinado: {round(total_shots,1)} remates/partido. {hn} {home['remates_pj']} y {an} {away['remates_pj']}."
             })
         if total_shots <= 22:
@@ -652,7 +648,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Remates Totales Under 22.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Promedio combinado bajo: {round(total_shots,1)} remates/partido."
             })
         if total_shots >= 26:
@@ -660,7 +656,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mercados.append({
                 "mercado": "Remates Totales Over 25.5",
                 "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
-                "aprobado": p >= 70,
+                "aprobado": p >= 75,
                 "sintesis": f"Equipos ofensivos: {round(total_shots,1)} remates combinados/partido."
             })
 
@@ -1713,9 +1709,9 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     p1o=min(88,round(50+(ght-0.5)*40)) if ght>=0.5 else max(20,round(ght/0.5*40))
     p1u=100-p1o
     if p1o>=50:
-        mercados.append({"mercado":"1er Tiempo — Over 0.5 Goles","prob":p1o,"riesgo":100-p1o,"cuota":_cuota(p1o),"tipo":"HT","aprobado":p1o>=75,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Ritmo ofensivo temprano."})
+        mercados.append({"mercado":"1er Tiempo — Over 0.5 Goles","prob":p1o,"riesgo":100-p1o,"cuota":_cuota(p1o),"tipo":"HT","aprobado":p1o>=78,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Ritmo ofensivo temprano."})
     if p1u>=40:
-        mercados.append({"mercado":"1er Tiempo — Under 0.5 Goles","prob":p1u,"riesgo":100-p1u,"cuota":_cuota(p1u),"tipo":"HT","aprobado":p1u>=70,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Equipos cautelosos en arranque."})
+        mercados.append({"mercado":"1er Tiempo — Under 0.5 Goles","prob":p1u,"riesgo":100-p1u,"cuota":_cuota(p1u),"tipo":"HT","aprobado":p1u>=80,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Equipos cautelosos en arranque."})
 
     p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
     if pn00>=70:
@@ -1984,69 +1980,46 @@ def alertas():
         except: continue
     return jsonify({"alertas":alertas,"total":len(alertas)})
 
-@app.route("/formacion/<codigo>/<int:match_id>")
-def formacion(codigo, match_id):
-    liga = LIGAS.get(codigo, {})
-    as_id = liga.get("as_id")
-    season = liga.get("season")
-    source = liga.get("source", "fd")
+@app.route("/historial")
+def historial():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota,
+                 combinable, comb_prob, resultado_home, resultado_away,
+                 mp_acertado, comb_acertado, verificado, creado
+                 FROM predicciones
+                 ORDER BY fecha DESC LIMIT 200""")
+    rows = c.fetchall()
+    # Stats globales
+    c.execute("""SELECT COUNT(*),
+                 SUM(CASE WHEN mp_acertado=1 THEN 1 ELSE 0 END),
+                 COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END)
+                 FROM predicciones""")
+    stats = c.fetchone()
+    conn.close()
 
-    if source == "as":
-        fixture_id = match_id
-    else:
-        md = fd_get(f"/matches/{match_id}")
-        if "error" in md or "id" not in md:
-            return jsonify({"error": "Partido no encontrado"})
-        hn = md["homeTeam"]["name"]
-        an = md["awayTeam"]["name"]
-        fecha = md.get("utcDate", "")[:10]
+    total = stats[0] or 0
+    ganadas = stats[1] or 0
+    verificadas = stats[2] or 0
+    acierto = round(ganadas / verificadas * 100, 1) if verificadas else 0
 
-        # Buscar fixture directo por fecha y liga sin pasar por teams
-        fx_data = as_get("/fixtures", {
-            "date": fecha, "league": as_id, "season": season
-        })
-        fixtures = fx_data.get("response", [])
-        fixture_id = None
-        hn_l = hn.lower(); an_l = an.lower()
-        for fx in fixtures:
-            teams = fx.get("teams", {})
-            h = teams.get("home", {}).get("name", "").lower()
-            a = teams.get("away", {}).get("name", "").lower()
-            if (hn_l in h or h in hn_l or hn_l.split()[0] in h) and \
-               (an_l in a or a in an_l or an_l.split()[0] in a):
-                fixture_id = fx.get("fixture", {}).get("id")
-                break
-        if not fixture_id:
-            return jsonify({"disponible": False, "mensaje": f"Partido no encontrado en api-sports ({hn} vs {an})"})
-
-    lineups = as_get("/fixtures/lineups", {"fixture": fixture_id})
-    if "error" in lineups or not lineups.get("response"):
-        return jsonify({"disponible": False, "mensaje": "Formaciones no disponibles aún"})
-
-    result = []
-    for team in lineups["response"]:
-        t = team.get("team", {})
-        coach = team.get("coach", {})
-        formation = team.get("formation", "")
-        xi = []
-        for p in team.get("startXI", []):
-            pl = p.get("player", {})
-            xi.append({
-                "nombre": pl.get("name", ""),
-                "numero": pl.get("number"),
-                "pos": pl.get("pos", ""),
-                "grid": pl.get("grid", "")
-            })
-        subs = [p.get("player", {}).get("name", "") for p in team.get("substitutes", [])]
-        result.append({
-            "equipo": t.get("name", ""),
-            "formacion": formation,
-            "entrenador": coach.get("name", ""),
-            "xi": xi,
-            "suplentes": subs
+    predicciones = []
+    for r in rows:
+        predicciones.append({
+            "match_id": r[0], "liga": r[1],
+            "fecha": r[2][:10] if r[2] else "—",
+            "home": r[3], "away": r[4],
+            "mercado_principal": r[5], "mp_prob": r[6], "mp_cuota": r[7],
+            "combinable": r[8], "comb_prob": r[9],
+            "resultado": f"{r[10]}-{r[11]}" if r[10] is not None else None,
+            "mp_acertado": r[12], "comb_acertado": r[13],
+            "verificado": r[14],
         })
 
-    return jsonify({"disponible": True, "lineups": result})
+    return jsonify({
+        "stats": {"total": total, "ganadas": ganadas, "verificadas": verificadas, "acierto": acierto},
+        "predicciones": predicciones
+    })
 
 @app.route("/clear_cache")
 def clear_cache():

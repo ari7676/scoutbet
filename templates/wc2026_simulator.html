@@ -926,11 +926,11 @@ async function init() {
     const [r1, r2, r3] = await Promise.all([
       fetch(`${API}/wc_data`),
       fetch(`${API}/wc_ausencias`),
-      fetch(`${API}/wc_fatiga`).catch(() => ({ json: () => ({}) }))
+      fetch(`${API}/wc_fatiga`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({}))
     ]);
     const data = await r1.json();
     ausenciasData = await r2.json();
-    fatigaData = await r3.json();
+    fatigaData = r3 || {};
     eloData = data.elo || {};
     fixtures = data.fixtures || [];
 

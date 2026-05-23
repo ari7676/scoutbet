@@ -590,7 +590,7 @@ header {
     </div>
 
     <!-- ── MODIFICADORES CONTEXTUALES ─────────────── -->
-    <div class="modifiers-section" id="modifiers-section" style="display:none">
+    <div class="modifiers-section" id="modifiers-section"></div>
       <div class="modifiers-label">MODIFICADORES CONTEXTUALES</div>
       <div class="modifiers-row">
 
@@ -1269,9 +1269,6 @@ function analyzeMatch() {
   if (idx === '') return;
   const f = fixtures[parseInt(idx)];
   if (!f) return;
-
-  // Mostrar sección de modificadores
-  document.getElementById('modifiers-section').style.display = 'block';
 
   // Auto-detect fatiga (solo fase eliminatoria)
   if (!f.group) {

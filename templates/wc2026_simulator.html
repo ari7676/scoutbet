@@ -392,41 +392,6 @@ function getFlag(name) {
   return FLAGS[name] || "🏳";
 }
 
-// ── INIT ────────────────────────────────────────
-async function init() {
-  setProgress(10);
-  setText("CARGANDO ELO RATINGS...");
-  
-  try {
-    const r = await fetch(`${API}/wc_data`);
-    const data = await r.json();
-    eloData = data.elo || {};
-    fixtures = data.fixtures || [];
-    
-    setProgress(60);
-    setText("PROCESANDO GRUPOS...");
-    
-    document.getElementById('status-dot').className = 'ok';
-    document.getElementById('status-text').textContent = `${fixtures.length} partidos · ${Object.keys(eloData).length} ratings ELO`;
-    
-    buildGroups();
-    buildMatchSelect();
-    buildPenaltyGrid();
-    
-    setProgress(100);
-    setTimeout(() => {
-      document.getElementById('loading').classList.add('hidden');
-    }, 300);
-    
-  } catch(e) {
-    setText("ERROR: " + e.message);
-    document.getElementById('status-text').textContent = "error de conexión";
-  }
-}
-
-function setProgress(p) { document.getElementById('progress-fill').style.width = p + '%'; }
-function setText(t) { document.getElementById('loading-text').textContent = t; }
-
 // ── ELO LOOKUP ──────────────────────────────────
 // ELO ratings hardcodeados (eloratings.net, mayo 2026)
 const ELO_RATINGS = {
@@ -474,6 +439,42 @@ function getRank(name) {
   if (eloData[name]) return eloData[name].rank;
   return 50;
 }
+
+
+// ── INIT ────────────────────────────────────────
+async function init() {
+  setProgress(10);
+  setText("CARGANDO ELO RATINGS...");
+  
+  try {
+    const r = await fetch(`${API}/wc_data`);
+    const data = await r.json();
+    eloData = data.elo || {};
+    fixtures = data.fixtures || [];
+    
+    setProgress(60);
+    setText("PROCESANDO GRUPOS...");
+    
+    document.getElementById('status-dot').className = 'ok';
+    document.getElementById('status-text').textContent = `${fixtures.length} partidos · ${Object.keys(eloData).length} ratings ELO`;
+    
+    buildGroups();
+    buildMatchSelect();
+    buildPenaltyGrid();
+    
+    setProgress(100);
+    setTimeout(() => {
+      document.getElementById('loading').classList.add('hidden');
+    }, 300);
+    
+  } catch(e) {
+    setText("ERROR: " + e.message);
+    document.getElementById('status-text').textContent = "error de conexión";
+  }
+}
+
+function setProgress(p) { document.getElementById('progress-fill').style.width = p + '%'; }
+function setText(t) { document.getElementById('loading-text').textContent = t; }
 
 // ── MODELO ELO ──────────────────────────────────
 function eloWinProb(eloA, eloB, homeBonus = 0) {

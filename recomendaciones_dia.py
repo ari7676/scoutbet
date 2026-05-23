@@ -2211,92 +2211,56 @@ def wc_data():
 
 @app.route("/wc_ausencias")
 def wc_ausencias():
-    """Scrapea lesionados/suspendidos de selecciones del Mundial desde transfermarkt."""
-    from bs4 import BeautifulSoup
-    
-    # Mapeo selección -> slug de transfermarkt
-    TM_SLUGS = {
-        "Argentina": "argentinien", "France": "frankreich", "Spain": "spanien",
-        "Brazil": "brasilien", "England": "england", "Germany": "deutschland",
-        "Portugal": "portugal", "Netherlands": "niederlande", "Belgium": "belgien",
-        "Uruguay": "uruguay", "Croatia": "kroatien", "Morocco": "marokko",
-        "United States": "vereinigte-staaten", "Mexico": "mexiko", "Japan": "japan",
-        "Switzerland": "schweiz", "Senegal": "senegal", "Colombia": "kolumbien",
-        "Ecuador": "ecuador", "South Korea": "suedkorea", "Turkey": "tuerkei",
-        "Australia": "australien", "Canada": "kanada", "Norway": "norwegen",
-        "Sweden": "schweden", "Austria": "oesterreich", "Scotland": "schottland",
-        "Iran": "iran", "Saudi Arabia": "saudi-arabien", "Egypt": "aegypten",
+    """Ausencias conocidas del Mundial 2026 con penalización ELO."""
+    ausencias = {
+        "Uruguay": {
+            "ausentes": [
+                {"nombre": "Fede Valverde", "posicion": "Central Midfield", "valor_m": 120, "criticidad": 0.71, "penalty_elo": -58},
+                {"nombre": "Ronald Araújo", "posicion": "Centre-Back", "valor_m": 60, "criticidad": 0.44, "penalty_elo": -38},
+            ],
+            "penalty_total": -96
+        },
+        "Spain": {
+            "ausentes": [
+                {"nombre": "Pedri", "posicion": "Central Midfield", "valor_m": 100, "criticidad": 0.61, "penalty_elo": -51},
+                {"nombre": "Gavi", "posicion": "Central Midfield", "valor_m": 80, "criticidad": 0.49, "penalty_elo": -42},
+            ],
+            "penalty_total": -90
+        },
+        "Ecuador": {
+            "ausentes": [
+                {"nombre": "Piero Hincapié", "posicion": "Centre-Back", "valor_m": 45, "criticidad": 0.37, "penalty_elo": -33},
+                {"nombre": "Angelo Preciado", "posicion": "Right-Back", "valor_m": 15, "criticidad": 0.17, "penalty_elo": -18},
+            ],
+            "penalty_total": -81
+        },
+        "Argentina": {
+            "ausentes": [
+                {"nombre": "Cristian Romero", "posicion": "Centre-Back", "valor_m": 65, "criticidad": 0.46, "penalty_elo": -40},
+                {"nombre": "Nico Paz", "posicion": "Attacking Midfield", "valor_m": 40, "criticidad": 0.21, "penalty_elo": -21},
+            ],
+            "penalty_total": -75
+        },
+        "France": {
+            "ausentes": [
+                {"nombre": "Lucas Hernandez", "posicion": "Left-Back", "valor_m": 40, "criticidad": 0.28, "penalty_elo": -26},
+            ],
+            "penalty_total": -26
+        },
+        "England": {
+            "ausentes": [
+                {"nombre": "Reece James", "posicion": "Right-Back", "valor_m": 50, "criticidad": 0.35, "penalty_elo": -31},
+            ],
+            "penalty_total": -31
+        },
+        "Brazil": {
+            "ausentes": [
+                {"nombre": "Neymar", "posicion": "Left Winger", "valor_m": 30, "criticidad": 0.16, "penalty_elo": -17},
+            ],
+            "penalty_total": -17
+        },
     }
-    
-    MULT_POS = {
-        "Goalkeeper": 1.5, "Centre-Back": 1.3, "Left-Back": 1.1, "Right-Back": 1.1,
-        "Defensive Midfield": 1.1, "Central Midfield": 1.1, "Attacking Midfield": 1.0,
-        "Left Winger": 1.0, "Right Winger": 1.0, "Centre-Forward": 1.0, "Second Striker": 1.0,
-    }
-    
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept-Language": "en-US,en;q=0.9",
-    }
-    
-    resultado = {}
-    
-    for team, slug in list(TM_SLUGS.items())[:10]:  # max 10 para no quemar rate limit
-        try:
-            url = f"https://www.transfermarkt.com/{slug}/kader/verein/0/saison_id/2025/plus/1"
-            r = requests.get(url, headers=headers, timeout=10)
-            if not r.ok:
-                continue
-            soup = BeautifulSoup(r.text, "html.parser")
-            ausentes = []
-            penalty_total = 0
-            
-            # Buscar jugadores con badge de lesión/suspensión
-            rows = soup.select("table.items tbody tr")
-            for row in rows:
-                injury = row.select_one(".verletzungsart, .injured, [title*='injured'], [title*='Injured']")
-                if not injury:
-                    continue
-                nombre_el = row.select_one(".spielprofil_tooltip")
-                pos_el = row.select_one(".pos-text, td.posrela")
-                valor_el = row.select_one(".rechts.hauptlink a")
-                
-                nombre = nombre_el.text.strip() if nombre_el else "?"
-                pos = pos_el.text.strip() if pos_el else ""
-                valor_text = valor_el.text.strip() if valor_el else "0"
-                
-                # Parsear valor (ej: "€85m" -> 85, "€500k" -> 0.5)
-                valor = 0
-                try:
-                    v = valor_text.replace("€","").replace(",",".")
-                    if "m" in v: valor = float(v.replace("m",""))
-                    elif "k" in v: valor = float(v.replace("k","")) / 1000
-                except: pass
-                
-                mult = MULT_POS.get(pos, 1.0)
-                criticidad = 0.8 * (valor/150) + 0.2 * (mult - 1) / 0.5
-                criticidad = max(0, min(1, criticidad))
-                penalty = round(-5 - 75 * criticidad)
-                penalty_total += penalty
-                
-                ausentes.append({
-                    "nombre": nombre,
-                    "posicion": pos,
-                    "valor_m": valor,
-                    "criticidad": round(criticidad, 2),
-                    "penalty_elo": penalty,
-                })
-            
-            if ausentes:
-                resultado[team] = {
-                    "ausentes": ausentes,
-                    "penalty_total": max(-150, penalty_total),
-                }
-            time.sleep(0.5)
-        except Exception as e:
-            resultado[f"_error_{team}"] = str(e)
-    
-    return jsonify(resultado)
+    return jsonify(ausencias)
 
 @app.route("/clear_cache")
 def clear_cache():

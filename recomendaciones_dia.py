@@ -2209,6 +2209,95 @@ def wc_data():
 
     return jsonify({"elo": elo_data, "fixtures": fixtures, "total_fixtures": len(fixtures)})
 
+    @app.route("/wc_ausencias")
+def wc_ausencias():
+    """Scrapea lesionados/suspendidos de selecciones del Mundial desde transfermarkt."""
+    from bs4 import BeautifulSoup
+    
+    # Mapeo selección -> slug de transfermarkt
+    TM_SLUGS = {
+        "Argentina": "argentinien", "France": "frankreich", "Spain": "spanien",
+        "Brazil": "brasilien", "England": "england", "Germany": "deutschland",
+        "Portugal": "portugal", "Netherlands": "niederlande", "Belgium": "belgien",
+        "Uruguay": "uruguay", "Croatia": "kroatien", "Morocco": "marokko",
+        "United States": "vereinigte-staaten", "Mexico": "mexiko", "Japan": "japan",
+        "Switzerland": "schweiz", "Senegal": "senegal", "Colombia": "kolumbien",
+        "Ecuador": "ecuador", "South Korea": "suedkorea", "Turkey": "tuerkei",
+        "Australia": "australien", "Canada": "kanada", "Norway": "norwegen",
+        "Sweden": "schweden", "Austria": "oesterreich", "Scotland": "schottland",
+        "Iran": "iran", "Saudi Arabia": "saudi-arabien", "Egypt": "aegypten",
+    }
+    
+    MULT_POS = {
+        "Goalkeeper": 1.5, "Centre-Back": 1.3, "Left-Back": 1.1, "Right-Back": 1.1,
+        "Defensive Midfield": 1.1, "Central Midfield": 1.1, "Attacking Midfield": 1.0,
+        "Left Winger": 1.0, "Right Winger": 1.0, "Centre-Forward": 1.0, "Second Striker": 1.0,
+    }
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    
+    resultado = {}
+    
+    for team, slug in list(TM_SLUGS.items())[:10]:  # max 10 para no quemar rate limit
+        try:
+            url = f"https://www.transfermarkt.com/{slug}/kader/verein/0/saison_id/2025/plus/1"
+            r = requests.get(url, headers=headers, timeout=10)
+            if not r.ok:
+                continue
+            soup = BeautifulSoup(r.text, "html.parser")
+            ausentes = []
+            penalty_total = 0
+            
+            # Buscar jugadores con badge de lesión/suspensión
+            rows = soup.select("table.items tbody tr")
+            for row in rows:
+                injury = row.select_one(".verletzungsart, .injured, [title*='injured'], [title*='Injured']")
+                if not injury:
+                    continue
+                nombre_el = row.select_one(".spielprofil_tooltip")
+                pos_el = row.select_one(".pos-text, td.posrela")
+                valor_el = row.select_one(".rechts.hauptlink a")
+                
+                nombre = nombre_el.text.strip() if nombre_el else "?"
+                pos = pos_el.text.strip() if pos_el else ""
+                valor_text = valor_el.text.strip() if valor_el else "0"
+                
+                # Parsear valor (ej: "€85m" -> 85, "€500k" -> 0.5)
+                valor = 0
+                try:
+                    v = valor_text.replace("€","").replace(",",".")
+                    if "m" in v: valor = float(v.replace("m",""))
+                    elif "k" in v: valor = float(v.replace("k","")) / 1000
+                except: pass
+                
+                mult = MULT_POS.get(pos, 1.0)
+                criticidad = 0.8 * (valor/150) + 0.2 * (mult - 1) / 0.5
+                criticidad = max(0, min(1, criticidad))
+                penalty = round(-5 - 75 * criticidad)
+                penalty_total += penalty
+                
+                ausentes.append({
+                    "nombre": nombre,
+                    "posicion": pos,
+                    "valor_m": valor,
+                    "criticidad": round(criticidad, 2),
+                    "penalty_elo": penalty,
+                })
+            
+            if ausentes:
+                resultado[team] = {
+                    "ausentes": ausentes,
+                    "penalty_total": max(-150, penalty_total),
+                }
+            time.sleep(0.5)
+        except Exception as e:
+            resultado[f"_error_{team}"] = str(e)
+    
+    return jsonify(resultado)
+
 @app.route("/clear_cache")
 def clear_cache():
     conn = sqlite3.connect(DB_PATH)

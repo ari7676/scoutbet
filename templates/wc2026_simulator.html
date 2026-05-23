@@ -662,6 +662,7 @@ const API = 'https://scoutbet.onrender.com';
 let eloData = {};
 let fixtures = [];
 let simResults = null;
+let ausenciasData = {}; // penalizaciones por ausencias
 
 // ELO histórico de penales (victorias, n_total)
 const PENALTY_DATA = {
@@ -731,15 +732,24 @@ const ELO_RANK = Object.entries(ELO_RATINGS)
   .sort((a,b) => b[1]-a[1])
   .reduce((acc,[k],i) => { acc[k] = i+1; return acc; }, {});
 
-function getElo(name) {
+function getEloBase(name) {
   if (ELO_RATINGS[name]) return ELO_RATINGS[name];
-  // Fuzzy
   for (const [k,v] of Object.entries(ELO_RATINGS)) {
     if (k.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(k.toLowerCase())) return v;
   }
-  // From API data
   if (eloData[name]) return eloData[name].elo;
   return 1500;
+}
+
+function getElo(name) {
+  const base = getEloBase(name);
+  const aus = ausenciasData[name];
+  if (aus && aus.penalty_total) return base + aus.penalty_total;
+  return base;
+}
+
+function getAusencias(name) {
+  return ausenciasData[name] || null;
 }
 
 function getRank(name) {
@@ -758,8 +768,12 @@ async function init() {
   setText("CARGANDO ELO RATINGS...");
   
   try {
-    const r = await fetch(`${API}/wc_data`);
-    const data = await r.json();
+    const [r1, r2] = await Promise.all([
+      fetch(`${API}/wc_data`),
+      fetch(`${API}/wc_ausencias`)
+    ]);
+    const data = await r1.json();
+    ausenciasData = await r2.json();
     eloData = data.elo || {};
     fixtures = data.fixtures || [];
     
@@ -781,7 +795,6 @@ async function init() {
     
   } catch(e) {
     setText("ERROR: " + e.message);
-    document.getElementById('status-text').textContent = "error de conexión";
   }
 }
 
@@ -865,14 +878,17 @@ function buildGroups() {
       </div>`;
     
     teamList.forEach(team => {
+      const eloBase = getEloBase(team);
       const elo = getElo(team);
       const rank = getRank(team);
       const flag = getFlag(team);
+      const aus = getAusencias(team);
       const eloClass = elo >= 2000 ? 'elo-elite' : elo >= 1800 ? 'elo-high' : elo >= 1650 ? 'elo-mid' : 'elo-low';
+      const injBadge = aus ? `<span style="font-family:var(--mono);font-size:9px;color:var(--red);margin-left:4px">▼${aus.penalty_total}</span>` : '';
       html += `<div class="group-team" onclick="selectTeamMatch('${team}')">
         <span class="team-flag">${flag}</span>
         <span class="team-name">${team}</span>
-        <span class="team-elo ${eloClass}">${elo}</span>
+        <span class="team-elo ${eloClass}">${elo}${injBadge}</span>
         <span class="team-rank">#${rank}</span>
       </div>`;
     });
@@ -975,6 +991,9 @@ function analyzeMatch() {
 
   const maxDistProb = Math.max(...distH.map(d => d.prob), ...distA.map(d => d.prob));
 
+  const ausH = getAusencias(f.home);
+  const ausA = getAusencias(f.away);
+
   let html = `
     <div class="analysis-card">
       <div class="analysis-title">ANÁLISIS ELO · ${f.fecha} · ${f.group || f.stage || ''}</div>
@@ -982,14 +1001,14 @@ function analyzeMatch() {
         <div class="team-block">
           <span class="team-big-flag">${flagH}</span>
           <div class="team-big-name">${f.home}</div>
-          <div class="team-big-elo">ELO ${eloH}${homeBonus > 0 ? ` +${homeBonus}` : ''}</div>
+          <div class="team-big-elo">ELO ${eloH}${homeBonus > 0 ? ` +${homeBonus}` : ''}${ausH ? ` <span style="color:var(--red);font-size:12px">(▼${ausH.penalty_total})</span>` : ''}</div>
           <div class="team-big-rank">#${rankH} mundial</div>
         </div>
         <div class="vs-sep">VS</div>
         <div class="team-block">
           <span class="team-big-flag">${flagA}</span>
           <div class="team-big-name">${f.away}</div>
-          <div class="team-big-elo">ELO ${eloA}</div>
+          <div class="team-big-elo">ELO ${eloA}${ausA ? ` <span style="color:var(--red);font-size:12px">(▼${ausA.penalty_total})</span>` : ''}</div>
           <div class="team-big-rank">#${rankA} mundial</div>
         </div>
       </div>
@@ -1017,6 +1036,18 @@ function analyzeMatch() {
         λ VISITANTE: <span class="highlight">${probs.lambdaB.toFixed(2)}</span> goles esperados &nbsp;·&nbsp;
         Resultado más probable: <span class="highlight">${f.home} ${bestScore.hg}–${bestScore.ag} ${f.away} (${(bestScore.p*100).toFixed(1)}%)</span>
       </div>
+
+      ${(ausH || ausA) ? `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div style="background:rgba(255,61,90,0.06);border:1px solid rgba(255,61,90,0.2);border-radius:5px;padding:12px">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:3px;margin-bottom:8px">⚠ BAJAS ${f.home.toUpperCase()}</div>
+          ${ausH ? ausH.ausentes.map(a => `<div style="font-size:13px;color:var(--text2);margin-bottom:3px">${a.nombre} <span style="font-family:var(--mono);font-size:10px;color:var(--red)">${a.penalty_elo} ELO</span></div>`).join('') : '<div style="font-size:13px;color:var(--muted)">Sin bajas conocidas</div>'}
+        </div>
+        <div style="background:rgba(255,61,90,0.06);border:1px solid rgba(255,61,90,0.2);border-radius:5px;padding:12px">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:3px;margin-bottom:8px">⚠ BAJAS ${f.away.toUpperCase()}</div>
+          ${ausA ? ausA.ausentes.map(a => `<div style="font-size:13px;color:var(--text2);margin-bottom:3px">${a.nombre} <span style="font-family:var(--mono);font-size:10px;color:var(--red)">${a.penalty_elo} ELO</span></div>`).join('') : '<div style="font-size:13px;color:var(--muted)">Sin bajas conocidas</div>'}
+        </div>
+      </div>` : ''}
 
       <div class="goals-dist">
         <div class="goals-card">

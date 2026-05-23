@@ -393,6 +393,130 @@ header {
 .badge-elo.top15 { background: rgba(52,211,153,0.12); color: #34d399; border: 1px solid rgba(52,211,153,0.2); }
 .badge-elo.mid { background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.2); }
 .badge-elo.low { background: rgba(90,94,122,0.15); color: var(--muted); border: 1px solid var(--border); }
+/* METODOLOGÍA */
+.metodo-hero {
+  padding: 48px 0 36px;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 36px;
+}
+.metodo-tag {
+  font-family: var(--mono); font-size: 10px; color: var(--accent);
+  letter-spacing: 4px; margin-bottom: 16px;
+}
+.metodo-h1 {
+  font-family: var(--display); font-size: 52px; letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--text) 0%, var(--text2) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 12px; line-height: 1;
+}
+.metodo-lead {
+  font-size: 16px; color: var(--text2); max-width: 600px; line-height: 1.6;
+}
+
+.metodo-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  margin-bottom: 8px;
+}
+.metodo-card {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 8px;
+  padding: 24px; position: relative; overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.metodo-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.metodo-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.metodo-card-num {
+  font-family: var(--display); font-size: 48px; color: var(--border2);
+  line-height: 1; margin-bottom: 8px; letter-spacing: 2px;
+}
+.metodo-card-title {
+  font-family: var(--display); font-size: 20px; color: var(--accent);
+  letter-spacing: 2px; margin-bottom: 12px;
+}
+.metodo-card-body {
+  font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 16px;
+}
+.metodo-card-body strong { color: var(--text); }
+.metodo-formula {
+  font-family: var(--mono); font-size: 11px; color: var(--accent2);
+  background: rgba(34,211,197,0.06); border: 1px solid rgba(34,211,197,0.15);
+  padding: 8px 12px; border-radius: 4px; margin-bottom: 6px;
+  word-break: break-all;
+}
+.metodo-formula-label {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  letter-spacing: 1px;
+}
+
+.metodo-metrics-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  margin-bottom: 24px;
+}
+.metodo-metric-card {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 6px;
+  padding: 20px; text-align: center;
+}
+.metodo-metric-val {
+  font-family: var(--display); font-size: 36px; color: var(--accent);
+  letter-spacing: 2px; line-height: 1;
+}
+.metodo-metric-label {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 3px; margin-top: 6px;
+}
+.metodo-metric-sub {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  margin-top: 4px;
+}
+
+.metodo-table-wrap {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; overflow: hidden; margin-bottom: 16px;
+}
+.metodo-table-title {
+  font-family: var(--mono); font-size: 10px; color: var(--accent);
+  letter-spacing: 3px; padding: 14px 20px;
+  border-bottom: 1px solid var(--border2);
+  background: var(--surface2);
+}
+.metodo-table { width: 100%; border-collapse: collapse; }
+.metodo-table th {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 3px; padding: 10px 20px; text-align: left;
+  border-bottom: 1px solid var(--border2); background: var(--surface2);
+}
+.metodo-table td {
+  padding: 10px 20px; border-bottom: 1px solid var(--border);
+  font-size: 14px; color: var(--text2);
+}
+.metodo-table tr:last-child td { border-bottom: none; }
+.metodo-table td.good { color: var(--green); font-family: var(--mono); font-weight: 700; }
+.metodo-table td.mid { color: var(--accent); font-family: var(--mono); }
+.metodo-table td.bad { color: var(--red); font-family: var(--mono); }
+.metodo-note {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  line-height: 1.7; padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.metodo-no-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+.metodo-no-item {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 4px;
+  padding: 12px 16px; font-size: 14px; color: var(--text2);
+  font-family: var(--mono); font-size: 12px;
+}
+
+.metodo-footer {
+  margin-top: 40px; padding: 20px 0;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  text-align: center; letter-spacing: 1px;
+}
+.metodo-footer strong { color: var(--text2); }
 </style>
 </head>
 <body>
@@ -429,6 +553,7 @@ header {
   <button class="nav-tab" onclick="switchTab('simulacion')">SIMULACIÓN</button>
   <button class="nav-tab" onclick="switchTab('analisis')">ANÁLISIS PARTIDO</button>
   <button class="nav-tab" onclick="switchTab('penales')">PENALES</button>
+  <button class="nav-tab" onclick="switchTab('metodologia')">METODOLOGÍA</button>
 </div>
 
 <div class="main">
@@ -495,6 +620,141 @@ header {
       Modelo Bayesiano con shrinkage (prior k=10, equivalente a 50%). Basado en 103 shoot-outs históricos (Mundiales, Euros, Copa América, Asian Cup, AFCON desde 1972).
     </p>
     <div class="penalty-grid" id="penalty-grid"></div>
+  </div>
+
+  <!-- TAB METODOLOGÍA -->
+  <div class="tab-content" id="tab-metodologia">
+    <div class="metodo-hero">
+      <div class="metodo-tag">VALIDACIÓN · METODOLOGÍA · HONESTIDAD</div>
+      <h1 class="metodo-h1">Cómo funciona el modelo</h1>
+      <p class="metodo-lead">Monte Carlo + ELO + Poisson. Sin magia negra. Lo que sigue es transparente, no es marketing.</p>
+    </div>
+
+    <div class="metodo-grid">
+
+      <div class="metodo-card">
+        <div class="metodo-card-num">01</div>
+        <div class="metodo-card-title">Ratings ELO</div>
+        <div class="metodo-card-body">
+          Usamos los ratings de <strong>eloratings.net</strong>, no el ranking FIFA. El ELO es un sistema recursivo — igual al de ajedrez — que se actualiza después de cada partido internacional desde 1872 y refleja la forma reciente de forma más fiel que el ranking FIFA. Bélgica fue #1 del FIFA años sin grandes títulos; el ELO nunca la puso ahí.
+        </div>
+        <div class="metodo-formula">We = 1 / (10^(−dr / 400) + 1)</div>
+        <div class="metodo-formula-label">dr = diferencia ELO + 100 si juega de local (USA, México, Canadá en grupos)</div>
+      </div>
+
+      <div class="metodo-card">
+        <div class="metodo-card-num">02</div>
+        <div class="metodo-card-title">Modelo de Goles (Poisson)</div>
+        <div class="metodo-card-body">
+          Los goles de cada equipo se sortean de una distribución Poisson independiente. El parámetro λ depende del gap de ELO entre equipos. Si tu equipo tiene 200 puntos más de ELO, esperás ~0.36 goles más.
+        </div>
+        <div class="metodo-formula">λ = clamp(1.30 + 0.18 × (ELO_a − ELO_b + bonus) / 100, 0.15, 6.0)</div>
+        <div class="metodo-formula-label">BASE = 1.30 · ALPHA = 0.18 · clamp a [0.15, 6.0]</div>
+      </div>
+
+      <div class="metodo-card">
+        <div class="metodo-card-num">03</div>
+        <div class="metodo-card-title">Ajuste de Forma Reciente</div>
+        <div class="metodo-card-body">
+          El ELO base se actualiza lento (K=20). Para captar saltos de nivel del último año sumamos un ajuste proporcional al delta de 12 meses, capeado a ±150. Calibrado sobre los Mundiales 2014/18/22: el óptimo fue α=0.20 con lookback de 1 año (+1.6pp accuracy).
+        </div>
+        <div class="metodo-formula">ELO_eff = ELO + clamp(0.20 × (ELO − ELO_hace_1_año), ±150)</div>
+        <div class="metodo-formula-label">Sweep sobre 192 partidos · α=0.20 · lookback=1y</div>
+      </div>
+
+      <div class="metodo-card">
+        <div class="metodo-card-num">04</div>
+        <div class="metodo-card-title">Ventaja de Local</div>
+        <div class="metodo-card-body">
+          USA, México y Canadá juegan en casa en la fase de grupos. Les sumamos +100 ELO en esos partidos (orden de magnitud documentado en la literatura). El sweep sobre 28 partidos de host en Mundiales 2014/18/22 no encontró evidencia clara de que +100 mejore o empeore las predicciones — los 3 hosts eran o ya-favoritos o demasiado débiles.
+        </div>
+        <div class="metodo-formula">ELO_local += 100 (fase de grupos · solo sedes)</div>
+        <div class="metodo-formula-label">Mantenido por respeto a la literatura hasta tener más datos</div>
+      </div>
+
+      <div class="metodo-card">
+        <div class="metodo-card-num">05</div>
+        <div class="metodo-card-title">Modelo de Penales</div>
+        <div class="metodo-card-body">
+          En eliminatorias, los empates se resuelven con un modelo Bayesiano con shrinkage sobre 103 shoot-outs históricos. El prior es 50% (k=10). Con n=13 shoot-outs en el backtest obtuvimos 53.8% de accuracy vs 50% baseline — no significativo estadísticamente pero filosóficamente más correcto que una moneda al aire.
+        </div>
+        <div class="metodo-formula">rate(team) = (wins + 10 × 0.5) / (n + 10)</div>
+        <div class="metodo-formula-label">P(A gana PK) = rate(A) / (rate(A) + rate(B))</div>
+      </div>
+
+      <div class="metodo-card">
+        <div class="metodo-card-num">06</div>
+        <div class="metodo-card-title">Monte Carlo</div>
+        <div class="metodo-card-body">
+          Corremos N torneos completos independientes (1k a 100k). Cada torneo simula fase de grupos completa, clasifica a 32 equipos (24 primeros + 8 mejores terceros), y corre el bracket de eliminación. Las probabilidades son frecuencias relativas de N simulaciones.
+        </div>
+        <div class="metodo-formula">P(campeón) = torneos_ganados / N</div>
+        <div class="metodo-formula-label">IC 95% con score de Wilson · con 10k sims: ±0.7pp</div>
+      </div>
+
+    </div>
+
+    <div class="metodo-metrics">
+      <div class="section-title" style="margin-top:32px">PERFORMANCE DEL MODELO · BACKTEST 2014–2022</div>
+      <div class="metodo-metrics-grid">
+        <div class="metodo-metric-card">
+          <div class="metodo-metric-val">0.589</div>
+          <div class="metodo-metric-label">BRIER SCORE</div>
+          <div class="metodo-metric-sub">menor = mejor · random 0.667</div>
+        </div>
+        <div class="metodo-metric-card">
+          <div class="metodo-metric-val">0.996</div>
+          <div class="metodo-metric-label">LOG LOSS</div>
+          <div class="metodo-metric-sub">menor = mejor · random 1.099</div>
+        </div>
+        <div class="metodo-metric-card accent2">
+          <div class="metodo-metric-val" style="color:var(--accent2)">56.3%</div>
+          <div class="metodo-metric-label">ACCURACY TOP-1</div>
+          <div class="metodo-metric-sub">192 partidos · random 33%</div>
+        </div>
+        <div class="metodo-metric-card">
+          <div class="metodo-metric-val">192</div>
+          <div class="metodo-metric-label">PARTIDOS BACKTESTED</div>
+          <div class="metodo-metric-sub">3 mundiales · tiempo regular</div>
+        </div>
+      </div>
+
+      <div class="metodo-table-wrap">
+        <div class="metodo-table-title">POR ETAPA</div>
+        <table class="metodo-table">
+          <thead>
+            <tr><th>ETAPA</th><th>N</th><th>BRIER</th><th>LOG LOSS</th><th>ACCURACY</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Fase de grupos</td><td>144</td><td>0.576</td><td>0.983</td><td class="good">59.0%</td></tr>
+            <tr><td>Octavos</td><td>24</td><td>0.623</td><td>1.023</td><td class="mid">50.0%</td></tr>
+            <tr><td>Cuartos</td><td>12</td><td>0.662</td><td>1.079</td><td class="mid">50.0%</td></tr>
+            <tr><td>Semifinales</td><td>6</td><td>0.546</td><td>0.935</td><td class="mid">50.0%</td></tr>
+            <tr><td>Final</td><td>3</td><td>0.679</td><td>1.132</td><td class="bad">33.3%</td></tr>
+          </tbody>
+        </table>
+        <div class="metodo-note">El modelo es más sólido en fase de grupos (más muestras, ELO gap más decisivo) y se degrada en KO tardío donde los rivales tienen ELO parecido y la varianza Poisson domina.</div>
+      </div>
+    </div>
+
+    <div class="metodo-honesty">
+      <div class="section-title" style="margin-top:32px">LO QUE NO MODELA</div>
+      <div class="metodo-no-grid">
+        <div class="metodo-no-item">❌ Cambios de DT</div>
+        <div class="metodo-no-item">❌ Forma del día</div>
+        <div class="metodo-no-item">❌ Lesiones / ausencias</div>
+        <div class="metodo-no-item">❌ Tarjetas acumuladas</div>
+        <div class="metodo-no-item">❌ Fatiga post-prórroga</div>
+        <div class="metodo-no-item">❌ Clima / sede específica</div>
+      </div>
+      <div class="metodo-note" style="margin-top:16px">
+        Deliberadamente NO tunemos el modelo para "arreglar" resultados raros — si el modelo dice algo absurdo es información, no un bug. Los batacazos (Argentina vs Arabia Saudita, Camerún vs Brasil) son parte del juego.
+      </div>
+    </div>
+
+    <div class="metodo-footer">
+      Datos ELO: <strong>eloratings.net</strong> · Fixtures: <strong>football-data.org</strong> · Shoot-outs: 103 registros históricos desde 1972
+    </div>
   </div>
 
 </div>

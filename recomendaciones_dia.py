@@ -1,17 +1,21 @@
 """
 MatchIQ — Backend Flask v5
-- SQLite para guardar predicciones
+- Supabase PostgreSQL para guardar predicciones
 - Verificacion automatica de aciertos
 """
 from flask import Flask, jsonify, render_template, request, redirect, url_for, send_from_directory
 from datetime import datetime, timedelta
 from functools import wraps
-import requests, time, math, os, sqlite3, json
+import requests, time, math, os, json
+import psycopg2
+import psycopg2.extras
 
 app = Flask(__name__)
 
-# Path DB - en Railway se monta volumen en /data
-DB_PATH = os.environ.get("DB_PATH", "matchiq.db")
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+def get_db():
+    return psycopg2.connect(DATABASE_URL, connect_timeout=10)
 
 FD_KEY = "e28d6269df9441fea1b6a19548e982c6"
 FD_URL = "https://api.football-data.org/v4"
@@ -21,12 +25,10 @@ AS_KEY = os.environ.get("AS_KEY", "fb49b7a70ea23977f8e7711c5ed027b1")
 AS_URL = "https://v3.football.api-sports.io"
 AS_HEADERS = {"x-apisports-key": AS_KEY}
 
-# Highlightly API
 HL_KEY = os.environ.get("HL_KEY", "")
 HL_URL = "https://soccer.highlightly.net"
 HL_HEADERS = {"x-rapidapi-key": HL_KEY}
 
-# Mapa de nombres alternativos para búsqueda en Highlightly
 HL_NAME_MAP = {
     "Athletic Club": ["Athletic Bilbao", "Athletic Club Bilbao", "Athletic"],
     "Valencia CF": ["Valencia", "Valencia CF"],
@@ -61,14 +63,13 @@ def hl_get(ep, params=None):
     try:
         r = requests.get(f"{HL_URL}{ep}", headers=HL_HEADERS, params=params, timeout=15)
         if r.status_code == 429:
-            time.sleep(1)  
+            time.sleep(1)
             r = requests.get(f"{HL_URL}{ep}", headers=HL_HEADERS, params=params, timeout=15)
         return r.json() if r.ok else {"error": r.status_code}
     except Exception as e:
         return {"error": str(e)}
 
 def _get_hl_team_id(team_name, league_code):
-    """Busca team ID en Highlightly probando múltiples variantes de nombre."""
     country_map = {"PL":"England","PD":"Spain","SA":"Italy","BL1":"Germany","FL1":"France","BSA":"Brazil","CL":"Europe","PPL":"Portugal","DED":"Netherlands"}
     country = country_map.get(league_code, "")
     names_to_try = [team_name]
@@ -80,7 +81,6 @@ def _get_hl_team_id(team_name, league_code):
     first = clean.split(" ")[0]
     if len(first) >= 4:
         names_to_try.append(first)
-
     for name in names_to_try:
         d = hl_get("/teams", {"name": name, "countryName": country} if country else {"name": name})
         if "error" not in d and d:
@@ -90,7 +90,6 @@ def _get_hl_team_id(team_name, league_code):
     return None
 
 def _avg_stats_from_hl(team_id, liga_code):
-    """Obtiene stats reales de los últimos 5 partidos vía Highlightly."""
     d = hl_get("/last-five-games", {"teamId": team_id})
     if "error" in d or not d:
         return None
@@ -160,15 +159,15 @@ UMBRALES = {
 
 # ── DATABASE ──────────────────────────────────────────────
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("""CREATE TABLE IF NOT EXISTS analisis_cache (
-    match_id INTEGER,
-    liga TEXT,
-    resultado TEXT,
-    creado TEXT,
-    PRIMARY KEY (match_id, liga)
-)""")
+        match_id INTEGER,
+        liga TEXT,
+        resultado TEXT,
+        creado TEXT,
+        PRIMARY KEY (match_id, liga)
+    )""")
     c.execute("""CREATE TABLE IF NOT EXISTS predicciones (
         match_id INTEGER PRIMARY KEY,
         liga TEXT,
@@ -195,9 +194,9 @@ init_db()
 
 def get_cached_analysis(match_id, liga):
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db()
         c = conn.cursor()
-        c.execute("SELECT resultado, creado FROM analisis_cache WHERE match_id=? AND liga=?", (match_id, liga))
+        c.execute("SELECT resultado, creado FROM analisis_cache WHERE match_id=%s AND liga=%s", (match_id, liga))
         row = c.fetchone()
         conn.close()
         if not row: return None
@@ -209,9 +208,12 @@ def get_cached_analysis(match_id, liga):
 
 def save_cached_analysis(match_id, liga, resultado):
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db()
         c = conn.cursor()
-        c.execute("INSERT OR REPLACE INTO analisis_cache (match_id, liga, resultado, creado) VALUES (?,?,?,?)",
+        c.execute("""INSERT INTO analisis_cache (match_id, liga, resultado, creado)
+                     VALUES (%s, %s, %s, %s)
+                     ON CONFLICT (match_id, liga) DO UPDATE
+                     SET resultado=EXCLUDED.resultado, creado=EXCLUDED.creado""",
                   (match_id, liga, json.dumps(resultado, ensure_ascii=False), datetime.utcnow().isoformat()))
         conn.commit()
         conn.close()
@@ -223,14 +225,18 @@ def save_prediction(match_id, liga, fecha, home, away, veredicto):
     comb_text = veredicto.get("combinable", "")
     mp_prob, mp_cuota = _extract_prob_cuota(mp_text)
     comb_prob, comb_cuota = _extract_prob_cuota(comb_text)
-
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db()
         c = conn.cursor()
-        c.execute("""INSERT OR REPLACE INTO predicciones
+        c.execute("""INSERT INTO predicciones
             (match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota,
              combinable, comb_prob, comb_cuota, creado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (match_id) DO UPDATE
+            SET mercado_principal=EXCLUDED.mercado_principal,
+                mp_prob=EXCLUDED.mp_prob, mp_cuota=EXCLUDED.mp_cuota,
+                combinable=EXCLUDED.combinable, comb_prob=EXCLUDED.comb_prob,
+                comb_cuota=EXCLUDED.comb_cuota""",
             (match_id, liga, fecha, home, away, mp_text, mp_prob, mp_cuota,
              comb_text, comb_prob, comb_cuota, datetime.utcnow().isoformat()))
         conn.commit()
@@ -253,20 +259,18 @@ def _extract_prob_cuota(text):
 
 
 def verify_prediction(match_id, home_goals, away_goals):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
-    c.execute("SELECT mercado_principal, combinable, home, away FROM predicciones WHERE match_id=?", (match_id,))
+    c.execute("SELECT mercado_principal, combinable, home, away FROM predicciones WHERE match_id=%s", (match_id,))
     row = c.fetchone()
     if not row:
         conn.close()
         return
-
     mp, comb, home, away = row
     mp_ok = _check_mercado(mp, home_goals, away_goals, home, away)
     comb_ok = _check_mercado(comb, home_goals, away_goals, home, away) if comb else None
-
-    c.execute("""UPDATE predicciones SET resultado_home=?, resultado_away=?,
-        mp_acertado=?, comb_acertado=?, verificado=1 WHERE match_id=?""",
+    c.execute("""UPDATE predicciones SET resultado_home=%s, resultado_away=%s,
+        mp_acertado=%s, comb_acertado=%s, verificado=1 WHERE match_id=%s""",
         (home_goals, away_goals,
          1 if mp_ok else (0 if mp_ok is False else None),
          1 if comb_ok else (0 if comb_ok is False else None),
@@ -620,122 +624,59 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
         ge = round((h_sot + a_sot) * 0.33, 1) if (h_sot + a_sot) > 0 else 2.5
     if not home or not away: return []
     mercados = []
+    home = {**{"corners_pj":"—","tarjetas_amarillas_pj":"—","remates_pj":"—","al_arco_pj":"—","posesion_avg":"—"}, **home}
+    away = {**{"corners_pj":"—","tarjetas_amarillas_pj":"—","remates_pj":"—","al_arco_pj":"—","posesion_avg":"—"}, **away}
 
     if home.get("corners_pj") != "—" and away.get("corners_pj") != "—":
         total_corners = home["corners_pj"] + away["corners_pj"]
         if total_corners >= 10:
             p = min(85, round(50 + (total_corners - 9.5) * 12))
-            mercados.append({
-                "mercado": "Corners Totales Over 9.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
-                "aprobado": p >= 75,
-                "sintesis": f"Promedio combinado de corners: {round(total_corners,1)}/partido. {hn} {home['corners_pj']} y {an} {away['corners_pj']}."
-            })
+            mercados.append({"mercado": "Corners Totales Over 9.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS","aprobado": p >= 75,"sintesis": f"Promedio combinado de corners: {round(total_corners,1)}/partido. {hn} {home['corners_pj']} y {an} {away['corners_pj']}."})
         if total_corners <= 9:
             p = min(85, round(50 + (9.5 - total_corners) * 12))
-            mercados.append({
-                "mercado": "Corners Totales Under 9.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS",
-                "aprobado": p >= 75,
-                "sintesis": f"Promedio combinado bajo: {round(total_corners,1)} corners/partido."
-            })
+            mercados.append({"mercado": "Corners Totales Under 9.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CORNERS","aprobado": p >= 75,"sintesis": f"Promedio combinado bajo: {round(total_corners,1)} corners/partido."})
 
     if home.get("remates_pj") != "—" and away.get("remates_pj") != "—":
         total_shots = home["remates_pj"] + away["remates_pj"]
         if total_shots >= 23:
             p = min(82, round(50 + (total_shots - 22.5) * 8))
-            mercados.append({
-                "mercado": "Remates Totales Over 22.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
-                "aprobado": p >= 75,
-                "sintesis": f"Promedio combinado: {round(total_shots,1)} remates/partido. {hn} {home['remates_pj']} y {an} {away['remates_pj']}."
-            })
+            mercados.append({"mercado": "Remates Totales Over 22.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS","aprobado": p >= 75,"sintesis": f"Promedio combinado: {round(total_shots,1)} remates/partido."})
         if total_shots <= 22:
             p = min(82, round(50 + (22.5 - total_shots) * 8))
-            mercados.append({
-                "mercado": "Remates Totales Under 22.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
-                "aprobado": p >= 75,
-                "sintesis": f"Promedio combinado bajo: {round(total_shots,1)} remates/partido."
-            })
+            mercados.append({"mercado": "Remates Totales Under 22.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS","aprobado": p >= 75,"sintesis": f"Promedio combinado bajo: {round(total_shots,1)} remates/partido."})
         if total_shots >= 26:
             p = min(80, round(45 + (total_shots - 25.5) * 8))
-            mercados.append({
-                "mercado": "Remates Totales Over 25.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
-                "aprobado": p >= 75,
-                "sintesis": f"Equipos ofensivos: {round(total_shots,1)} remates combinados/partido."
-            })
+            mercados.append({"mercado": "Remates Totales Over 25.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS","aprobado": p >= 75,"sintesis": f"Equipos ofensivos: {round(total_shots,1)} remates combinados/partido."})
 
     if home.get("al_arco_pj") != "—" and away.get("al_arco_pj") != "—":
         total_sot = home["al_arco_pj"] + away["al_arco_pj"]
         if total_sot >= 9:
             p = min(82, round(50 + (total_sot - 8.5) * 10))
-            mercados.append({
-                "mercado": "Remates al Arco Over 8.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT",
-                "aprobado": p >= 75,
-                "sintesis": f"Promedio combinado al arco: {round(total_sot,1)}/partido. {hn} {home['al_arco_pj']} y {an} {away['al_arco_pj']}."
-            })
+            mercados.append({"mercado": "Remates al Arco Over 8.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT","aprobado": p >= 75,"sintesis": f"Promedio combinado al arco: {round(total_sot,1)}/partido."})
         if total_sot <= 8:
             p = min(82, round(50 + (8.5 - total_sot) * 10))
-            mercados.append({
-                "mercado": "Remates al Arco Under 8.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT",
-                "aprobado": p >= 75,
-                "sintesis": f"Equipos poco precisos: {round(total_sot,1)} al arco/partido."
-            })
+            mercados.append({"mercado": "Remates al Arco Under 8.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT","aprobado": p >= 75,"sintesis": f"Equipos poco precisos: {round(total_sot,1)} al arco/partido."})
         if total_sot >= 11:
             p = min(80, round(45 + (total_sot - 10.5) * 10))
-            mercados.append({
-                "mercado": "Remates al Arco Over 10.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT",
-                "aprobado": p >= 75,
-                "sintesis": f"Alta precisión combinada: {round(total_sot,1)} al arco/partido."
-            })
+            mercados.append({"mercado": "Remates al Arco Over 10.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SOT","aprobado": p >= 75,"sintesis": f"Alta precisión combinada: {round(total_sot,1)} al arco/partido."})
 
     if home.get("tarjetas_amarillas_pj") != "—" and away.get("tarjetas_amarillas_pj") != "—":
         total_y = home["tarjetas_amarillas_pj"] + away["tarjetas_amarillas_pj"]
         if total_y >= 4:
             p = min(85, round(50 + (total_y - 3.5) * 12))
-            mercados.append({
-                "mercado": "Tarjetas Over 3.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 75,
-                "sintesis": f"Promedio combinado: {round(total_y,1)} amarillas/partido."
-            })
+            mercados.append({"mercado": "Tarjetas Over 3.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS","aprobado": p >= 75,"sintesis": f"Promedio combinado: {round(total_y,1)} amarillas/partido."})
         if total_y <= 3:
             p = min(85, round(50 + (3.5 - total_y) * 12))
-            mercados.append({
-                "mercado": "Tarjetas Under 3.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 75,
-                "sintesis": f"Partido limpio esperado: {round(total_y,1)} amarillas/partido."
-            })
+            mercados.append({"mercado": "Tarjetas Under 3.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS","aprobado": p >= 75,"sintesis": f"Partido limpio esperado: {round(total_y,1)} amarillas/partido."})
         if total_y >= 5:
             p = min(82, round(50 + (total_y - 4.5) * 12))
-            mercados.append({
-                "mercado": "Tarjetas Over 4.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 75,
-                "sintesis": f"Promedio alto: {round(total_y,1)} amarillas/partido. {hn} {home['tarjetas_amarillas_pj']} y {an} {away['tarjetas_amarillas_pj']}."
-            })
+            mercados.append({"mercado": "Tarjetas Over 4.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS","aprobado": p >= 75,"sintesis": f"Promedio alto: {round(total_y,1)} amarillas/partido."})
         if total_y <= 4:
             p = min(82, round(50 + (4.5 - total_y) * 12))
-            mercados.append({
-                "mercado": "Tarjetas Under 4.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 75,
-                "sintesis": f"Pocas amarillas esperadas: {round(total_y,1)}/partido."
-            })
+            mercados.append({"mercado": "Tarjetas Under 4.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS","aprobado": p >= 75,"sintesis": f"Pocas amarillas esperadas: {round(total_y,1)}/partido."})
         if total_y >= 6:
             p = min(80, round(45 + (total_y - 5.5) * 12))
-            mercados.append({
-                "mercado": "Tarjetas Over 5.5",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS",
-                "aprobado": p >= 75,
-                "sintesis": f"Partido caliente esperado: {round(total_y,1)} amarillas/partido."
-            })
+            mercados.append({"mercado": "Tarjetas Over 5.5","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "CARDS","aprobado": p >= 75,"sintesis": f"Partido caliente esperado: {round(total_y,1)} amarillas/partido."})
 
     if ge > 0:
         import math as _m
@@ -750,44 +691,19 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
         p_4plus = max(0, 100 - p_01 - p_23)
 
         if p_01 >= 30:
-            mercados.append({
-                "mercado": "Rango de Goles: 0-1",
-                "prob": p_01, "riesgo": 100-p_01, "cuota": _cuota(p_01), "tipo": "RANGE",
-                "aprobado": p_01 >= 65,
-                "sintesis": f"Con {ge} goles esperados, hay {p_01}% de probabilidad de 0 o 1 gol."
-            })
+            mercados.append({"mercado": "Rango de Goles: 0-1","prob": p_01, "riesgo": 100-p_01, "cuota": _cuota(p_01), "tipo": "RANGE","aprobado": p_01 >= 65,"sintesis": f"Con {ge} goles esperados, hay {p_01}% de probabilidad de 0 o 1 gol."})
         if p_23 >= 30:
-            mercados.append({
-                "mercado": "Rango de Goles: 2-3",
-                "prob": p_23, "riesgo": 100-p_23, "cuota": _cuota(p_23), "tipo": "RANGE",
-                "aprobado": p_23 >= 65,
-                "sintesis": f"Con {ge} goles esperados, el rango 2-3 es el más probable ({p_23}%)."
-            })
+            mercados.append({"mercado": "Rango de Goles: 2-3","prob": p_23, "riesgo": 100-p_23, "cuota": _cuota(p_23), "tipo": "RANGE","aprobado": p_23 >= 65,"sintesis": f"Con {ge} goles esperados, el rango 2-3 es el más probable ({p_23}%)."})
         if p_4plus >= 20:
-            mercados.append({
-                "mercado": "Rango de Goles: 4+",
-                "prob": p_4plus, "riesgo": 100-p_4plus, "cuota": _cuota(p_4plus), "tipo": "RANGE",
-                "aprobado": p_4plus >= 60,
-                "sintesis": f"Partido abierto: {p_4plus}% de probabilidad de 4 o más goles."
-            })
+            mercados.append({"mercado": "Rango de Goles: 4+","prob": p_4plus, "riesgo": 100-p_4plus, "cuota": _cuota(p_4plus), "tipo": "RANGE","aprobado": p_4plus >= 60,"sintesis": f"Partido abierto: {p_4plus}% de probabilidad de 4 o más goles."})
 
     if home.get("posesion_avg") != "—" and away.get("posesion_avg") != "—":
         if home["posesion_avg"] >= 55 and away["posesion_avg"] < home["posesion_avg"]:
             p = min(85, round(home["posesion_avg"] + 10))
-            mercados.append({
-                "mercado": f"Mayor posesión — {hn}",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS",
-                "aprobado": p >= 65,
-                "sintesis": f"{hn} promedia {home['posesion_avg']}% de posesión vs {away['posesion_avg']}% de {an}."
-            })
+            mercados.append({"mercado": f"Mayor posesión — {hn}","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS","aprobado": p >= 65,"sintesis": f"{hn} promedia {home['posesion_avg']}% de posesión."})
         elif away["posesion_avg"] >= 55:
             p = min(85, round(away["posesion_avg"]))
-            mercados.append({
-                "mercado": f"Mayor posesión — {an}",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS",
-                "aprobado": p >= 65,
-                "sintesis": f"{an} promedia {away['posesion_avg']}% de posesión vs {home['posesion_avg']}% de {hn}."
-            })
+            mercados.append({"mercado": f"Mayor posesión — {an}","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "POSS","aprobado": p >= 65,"sintesis": f"{an} promedia {away['posesion_avg']}% de posesión."})
 
     if home.get("remates_pj") != "—" and away.get("remates_pj") != "—":
         diff = abs(home["remates_pj"] - away["remates_pj"])
@@ -796,12 +712,7 @@ def _mercados_avanzados(home, away, hn, an, ge=None):
             mas_v = max(home["remates_pj"], away["remates_pj"])
             men_v = min(home["remates_pj"], away["remates_pj"])
             p = min(80, round(55 + diff * 3))
-            mercados.append({
-                "mercado": f"Más remates — {mas}",
-                "prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS",
-                "aprobado": p >= 65,
-                "sintesis": f"Diferencia clara de remates: {mas_v} vs {men_v}/partido."
-            })
+            mercados.append({"mercado": f"Más remates — {mas}","prob": p, "riesgo": 100-p, "cuota": _cuota(p), "tipo": "SHOTS","aprobado": p >= 65,"sintesis": f"Diferencia clara: {mas_v} vs {men_v}/partido."})
 
     mercados.sort(key=lambda x: x["prob"], reverse=True)
     return mercados
@@ -827,7 +738,7 @@ def partidos(codigo):
 
     hoy = datetime.utcnow()
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("SELECT match_id, mp_acertado, comb_acertado, verificado FROM predicciones")
     preds = {row[0]: {"mp_ok":row[1], "comb_ok":row[2], "verif":row[3]} for row in c.fetchall()}
@@ -919,7 +830,7 @@ def partidos(codigo):
 
 
 def _auto_verify_pending():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("SELECT match_id, liga FROM predicciones WHERE verificado=0")
     pending = c.fetchall()
@@ -1288,7 +1199,7 @@ def analizar_pendientes(codigo):
             return jsonify({"error": data["error"], "procesados": 0})
         fixtures_ids = [m["id"] for m in data.get("matches", [])]
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("SELECT match_id FROM predicciones WHERE verificado=1")
     ya_verif = {row[0] for row in c.fetchall()}
@@ -1319,7 +1230,7 @@ def analizar(codigo, match_id):
 
 
 def _team_stats(as_stats, pos, forma):
-    result={"remates_pj":"—","al_arco_pj":"—","goles_pj":"—","recibidos_pj":"—","posicion":"—","puntos":0}
+    result={"remates_pj":"—","al_arco_pj":"—","corners_pj":"—","tarjetas_amarillas_pj":"—","tarjetas_rojas_pj":"—","goles_pj":"—","recibidos_pj":"—","posicion":"—","puntos":0}
     if pos:
         result["posicion"]=f"#{pos.get('position','—')}"
         result["puntos"]=pos.get("points",0)
@@ -1442,7 +1353,6 @@ def _ref_description(name):
 
 def _search_as(name, lid, season):
     if not name or not lid: return None
-
     clean = name.replace(" FC", "").replace(" CF", "").replace(" AFC", "").replace(" AC", "")\
                 .replace("AC ", "").replace("SS ", "").replace("US ", "").replace("AS ", "")\
                 .replace(" Calcio", "").strip()
@@ -1476,7 +1386,6 @@ def _search_as(name, lid, season):
         for t in d["response"]:
             if name.lower() in t["team"]["name"].lower() or t["team"]["name"].lower() in name.lower():
                 return t["team"]["id"]
-
     return None
 
 def _get_as(name,lid,season):
@@ -1664,12 +1573,10 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
 
     if ge>=2.5:
         p=min(85,round(50+(ge-2.5)*20))
-        s=f"Promedio combinado supera {ge} goles/partido."
-        mercados.append({"mercado":"Goles Totales Over 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=75,"sintesis":s})
+        mercados.append({"mercado":"Goles Totales Over 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=75,"sintesis":f"Promedio combinado supera {ge} goles/partido."})
     if ge<=2.5:
         p=min(85,round(50+(2.5-ge)*20))
-        s=f"Goles esperados: {ge}. Perfil defensivo favorece Under."
-        mercados.append({"mercado":"Goles Totales Under 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=80,"sintesis":s})
+        mercados.append({"mercado":"Goles Totales Under 2.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=80,"sintesis":f"Goles esperados: {ge}."})
     if ge>=1.8:
         p=min(92,round(60+(ge-1.5)*15))
         mercados.append({"mercado":"Goles Totales Over 1.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=80,"sintesis":f"Con {ge} goles esperados."})
@@ -1678,7 +1585,7 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
         mercados.append({"mercado":"Goles Totales Over 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=85,"sintesis":f"Promedio combinado alto: {ge} goles."})
     if ge<=3.0:
         p=min(80,round(40+(3.0-ge)*25))
-        mercados.append({"mercado":"Goles Totales Under 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":f"Goles esperados: {ge}. Tendencia a partidos controlados."})
+        mercados.append({"mercado":"Goles Totales Under 3.5","prob":p,"riesgo":100-p,"cuota":_cuota(p),"tipo":"O/U","aprobado":p>=70,"sintesis":f"Goles esperados: {ge}."})
 
     btts=min(82,max(20,round(hsc*50+asc*50)))
     if btts>=45:
@@ -1700,10 +1607,10 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
 
     hcs_p=min(85,round(hcs_r*100*(1-asc+0.3)))
     if hcs_p>=30:
-        mercados.append({"mercado":f"Clean Sheet — {hn}","prob":hcs_p,"riesgo":100-hcs_p,"cuota":_cuota(hcs_p),"tipo":"CS","aprobado":hcs_p>=80,"sintesis":f"{hn} dejo valla invicta en {round(hcs_r*100)}% de partidos. {an} no marco en {round(afts*100)}%."})
+        mercados.append({"mercado":f"Clean Sheet — {hn}","prob":hcs_p,"riesgo":100-hcs_p,"cuota":_cuota(hcs_p),"tipo":"CS","aprobado":hcs_p>=80,"sintesis":f"{hn} dejo valla invicta en {round(hcs_r*100)}% de partidos."})
     acs_p=min(85,round(acs_r*100*(1-hsc+0.3)))
     if acs_p>=30:
-        mercados.append({"mercado":f"Clean Sheet — {an}","prob":acs_p,"riesgo":100-acs_p,"cuota":_cuota(acs_p),"tipo":"CS","aprobado":acs_p>=80,"sintesis":f"{an} dejo valla invicta en {round(acs_r*100)}% de partidos. {hn} no marco en {round(hfts*100)}%."})
+        mercados.append({"mercado":f"Clean Sheet — {an}","prob":acs_p,"riesgo":100-acs_p,"cuota":_cuota(acs_p),"tipo":"CS","aprobado":acs_p>=80,"sintesis":f"{an} dejo valla invicta en {round(acs_r*100)}% de partidos."})
 
     wtn_h=min(80,round(ph*hcs_r)) if ph>=55 and hcs_r>=0.4 else 0
     if wtn_h>=25:
@@ -1716,9 +1623,9 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     p1o=min(88,round(50+(ght-0.5)*40)) if ght>=0.5 else max(20,round(ght/0.5*40))
     p1u=100-p1o
     if p1o>=50:
-        mercados.append({"mercado":"1er Tiempo — Over 0.5 Goles","prob":p1o,"riesgo":100-p1o,"cuota":_cuota(p1o),"tipo":"HT","aprobado":p1o>=78,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Ritmo ofensivo temprano."})
+        mercados.append({"mercado":"1er Tiempo — Over 0.5 Goles","prob":p1o,"riesgo":100-p1o,"cuota":_cuota(p1o),"tipo":"HT","aprobado":p1o>=78,"sintesis":f"Goles esperados 1T: {round(ght,1)}."})
     if p1u>=40:
-        mercados.append({"mercado":"1er Tiempo — Under 0.5 Goles","prob":p1u,"riesgo":100-p1u,"cuota":_cuota(p1u),"tipo":"HT","aprobado":p1u>=80,"sintesis":f"Goles esperados 1T: {round(ght,1)}. Equipos cautelosos en arranque."})
+        mercados.append({"mercado":"1er Tiempo — Under 0.5 Goles","prob":p1u,"riesgo":100-p1u,"cuota":_cuota(p1u),"tipo":"HT","aprobado":p1u>=80,"sintesis":f"Goles esperados 1T: {round(ght,1)}."})
 
     p00=round(hfts*acs_r*100);pn00=min(95,100-p00)
     if pn00>=70:
@@ -1736,9 +1643,9 @@ def _analisis(md,hp,ap,hh,aa,hf,af,h2h,hn,an,tt):
     if hp and ap: texto+=f"Posiciones: {hn} #{hp.get('position','?')} vs {an} #{ap.get('position','?')}. "
     texto+=f"Goles esperados: {ge}."
     mp=f"{aprobados[0]['mercado']} ({aprobados[0]['prob']}% · cuota @{aprobados[0]['cuota']})" if aprobados else "Ninguno supera el umbral"
-    mp_prob=aprobados[0]['prob'] if aprobados else 0   
+    mp_prob=aprobados[0]['prob'] if aprobados else 0
     comb=""
-    comb_prob=0                                         
+    comb_prob=0
     if len(aprobados)>=2:
         c2=[m for m in aprobados if m["tipo"]!=aprobados[0]["tipo"]]
         if c2:
@@ -1838,7 +1745,7 @@ def _s1x2(team,rival,prob,form,pos,ha,localia,side,ge):
 @app.route("/estadisticas/json")
 def estadisticas_json():
     _auto_verify_pending()
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("""SELECT COUNT(*), SUM(mp_acertado),
                  COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END),
@@ -1869,7 +1776,7 @@ def backtest():
 @app.route("/backtest/json")
 def backtest_json():
     _auto_verify_pending()
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
 
     c.execute("""SELECT mercado_principal, mp_prob, mp_acertado
@@ -1966,7 +1873,7 @@ def backtest_json():
 @app.route("/alertas")
 def alertas():
     ahora = datetime.utcnow()
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("""SELECT match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota
                  FROM predicciones WHERE verificado=0
@@ -1990,7 +1897,7 @@ def alertas():
 
 @app.route("/historial")
 def historial():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("""SELECT match_id, liga, fecha, home, away, mercado_principal, mp_prob, mp_cuota,
                  combinable, comb_prob, resultado_home, resultado_away,
@@ -1998,7 +1905,6 @@ def historial():
                  FROM predicciones
                  ORDER BY fecha DESC LIMIT 200""")
     rows = c.fetchall()
-    # Stats globales
     c.execute("""SELECT COUNT(*),
                  SUM(CASE WHEN mp_acertado=1 THEN 1 ELSE 0 END),
                  COUNT(CASE WHEN verificado=1 AND mp_acertado IS NOT NULL THEN 1 END)
@@ -2031,20 +1937,19 @@ def historial():
 
 @app.route("/auto_analizar")
 def auto_analizar():
-    """Analiza automaticamente todos los partidos de hoy y ayer de todas las ligas."""
     hoy = datetime.utcnow()
     desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
     hasta = (hoy + timedelta(days=1)).strftime("%Y-%m-%d")
-    
-    conn = sqlite3.connect(DB_PATH)
+
+    conn = get_db()
     c = conn.cursor()
     c.execute("SELECT match_id FROM predicciones")
     ya_analizados = {row[0] for row in c.fetchall()}
     conn.close()
-    
+
     procesados = 0
     errores = 0
-    
+
     for codigo, liga in LIGAS.items():
         try:
             source = liga.get("source", "fd")
@@ -2060,7 +1965,7 @@ def auto_analizar():
                     "dateFrom": desde, "dateTo": hasta, "limit": 20
                 })
                 ids = [m["id"] for m in data.get("matches", [])]
-            
+
             for mid in ids:
                 if mid in ya_analizados:
                     continue
@@ -2075,28 +1980,27 @@ def auto_analizar():
                     errores += 1
         except Exception as e:
             print(f"Auto analizar error {codigo}: {e}")
-    
+
     return jsonify({"procesados": procesados, "errores": errores})
 
 
 @app.route("/backfill/<codigo>")
 def backfill(codigo):
-    """Analiza los ultimos 30 dias de partidos finalizados de una liga."""
     liga = LIGAS.get(codigo, {})
     if not liga:
         return jsonify({"error": "Liga no encontrada"})
-    
+
     hoy = datetime.utcnow()
-    desde = (hoy - timedelta (days=7)).strftime("%Y-%m-%d")
+    desde = (hoy - timedelta(days=7)).strftime("%Y-%m-%d")
     hasta = hoy.strftime("%Y-%m-%d")
     source = liga.get("source", "fd")
-    
-    conn = sqlite3.connect(DB_PATH)
+
+    conn = get_db()
     c = conn.cursor()
     c.execute("SELECT match_id FROM predicciones")
     ya_analizados = {row[0] for row in c.fetchall()}
     conn.close()
-    
+
     ids = []
     if source == "as":
         data = as_get("/fixtures", {
@@ -2106,13 +2010,13 @@ def backfill(codigo):
         ids = [fx.get("fixture",{}).get("id") for fx in data.get("response",[]) if fx.get("fixture",{}).get("id")]
     else:
         data = fd_get(f"/competitions/{codigo}/matches", {
-    "dateFrom": desde, "dateTo": hasta, "limit": 100
-})
+            "dateFrom": desde, "dateTo": hasta, "limit": 100
+        })
         ids = [m["id"] for m in data.get("matches", [])]
-    
+
     pendientes = [mid for mid in ids if mid not in ya_analizados]
     procesados = errores = 0
-    
+
     for mid in pendientes:
         try:
             r = _do_analyze(codigo, mid)
@@ -2123,51 +2027,39 @@ def backfill(codigo):
             time.sleep(0.5)
         except Exception as e:
             errores += 1
-    
+
     return jsonify({"procesados": procesados, "errores": errores, "total": len(pendientes)})
 
 @app.route("/test_apis")
 def test_apis():
     resultados = {}
-    
-    # Test ESPN
     try:
         r = requests.get("https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard", timeout=10)
         resultados["espn"] = {"status": r.status_code, "ok": r.ok}
     except Exception as e:
         resultados["espn"] = {"error": str(e)}
-    
-    # Test SofaScore
     try:
-        r = requests.get("https://api.sofascore.com/api/v1/sport/football/events/live", 
+        r = requests.get("https://api.sofascore.com/api/v1/sport/football/events/live",
                         headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
         resultados["sofascore"] = {"status": r.status_code, "ok": r.ok}
     except Exception as e:
         resultados["sofascore"] = {"error": str(e)}
-    
-    # Test ELO ratings
     try:
         r = requests.get("https://www.eloratings.net/World.tsv", timeout=10)
         resultados["eloratings"] = {"status": r.status_code, "ok": r.ok, "preview": r.text[:200]}
     except Exception as e:
         resultados["eloratings"] = {"error": str(e)}
-
-    # Test Transfermarkt
     try:
-        r = requests.get("https://www.transfermarkt.com/", 
+        r = requests.get("https://www.transfermarkt.com/",
                         headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
         resultados["transfermarkt"] = {"status": r.status_code, "ok": r.ok}
     except Exception as e:
         resultados["transfermarkt"] = {"error": str(e)}
-
     return jsonify(resultados)
 
 @app.route("/wc_data")
 def wc_data():
-    """Datos base para el simulador del Mundial: ELO ratings y fixtures."""
     import re
-    
-    # ELO ratings desde eloratings.net
     elo_data = {}
     try:
         r = requests.get("https://www.eloratings.net/World.tsv",
@@ -2187,7 +2079,6 @@ def wc_data():
     except Exception as e:
         elo_data["error"] = str(e)
 
-    # Fixtures del Mundial desde football-data
     fixtures = []
     try:
         d = fd_get("/competitions/WC/matches", {"limit": 100})
@@ -2211,7 +2102,6 @@ def wc_data():
 
 @app.route("/wc_ausencias")
 def wc_ausencias():
-    """Ausencias conocidas del Mundial 2026 con penalización ELO."""
     ausencias = {
         "Uruguay": {
             "ausentes": [
@@ -2262,9 +2152,21 @@ def wc_ausencias():
     }
     return jsonify(ausencias)
 
+@app.route('/wc_fatiga')
+def wc_fatiga():
+    data = {
+        # Actualizar a mano después de cada ronda KO
+        # "Argentina": {"extraTime": True, "round": "Octavos", "opponent": "Ecuador"},
+    }
+    return jsonify(data)
+
+@app.route("/health")
+def health():
+    return jsonify({"ok": True})
+
 @app.route("/clear_cache")
 def clear_cache():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
     c.execute("DELETE FROM analisis_cache")
     conn.commit()

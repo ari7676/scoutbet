@@ -2209,7 +2209,7 @@ def wc_data():
 
     return jsonify({"elo": elo_data, "fixtures": fixtures, "total_fixtures": len(fixtures)})
 
-    @app.route("/wc_ausencias")
+@app.route("/wc_ausencias")
 def wc_ausencias():
     """Scrapea lesionados/suspendidos de selecciones del Mundial desde transfermarkt."""
     from bs4 import BeautifulSoup

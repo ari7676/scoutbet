@@ -2159,6 +2159,50 @@ def test_apis():
 
     return jsonify(resultados)
 
+@app.route("/wc_data")
+def wc_data():
+    """Datos base para el simulador del Mundial: ELO ratings y fixtures."""
+    import re
+    
+    # ELO ratings desde eloratings.net
+    elo_data = {}
+    try:
+        r = requests.get("https://www.eloratings.net/World.tsv", timeout=15)
+        if r.ok:
+            for line in r.text.strip().split("\n")[1:]:
+                parts = line.split("\t")
+                if len(parts) >= 3:
+                    try:
+                        rank = int(parts[0])
+                        nombre = parts[1].strip()
+                        elo = int(parts[2])
+                        elo_data[nombre] = {"rank": rank, "elo": elo}
+                    except: pass
+    except Exception as e:
+        elo_data["error"] = str(e)
+
+    # Fixtures del Mundial desde football-data
+    fixtures = []
+    try:
+        d = fd_get("/competitions/WC/matches", {"limit": 100})
+        for m in d.get("matches", []):
+            if not m["homeTeam"].get("name") or not m["awayTeam"].get("name"):
+                continue
+            fixtures.append({
+                "id": m["id"],
+                "fecha": m.get("utcDate","")[:10],
+                "home": m["homeTeam"]["name"],
+                "away": m["awayTeam"]["name"],
+                "stage": m.get("stage",""),
+                "group": m.get("group",""),
+                "status": m.get("status",""),
+                "score": m.get("score",{}).get("fullTime",{})
+            })
+    except Exception as e:
+        fixtures = [{"error": str(e)}]
+
+    return jsonify({"elo": elo_data, "fixtures": fixtures, "total_fixtures": len(fixtures)})
+
 @app.route("/clear_cache")
 def clear_cache():
     conn = sqlite3.connect(DB_PATH)

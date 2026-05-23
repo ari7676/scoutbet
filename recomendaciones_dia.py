@@ -2173,17 +2173,17 @@ def wc_data():
         r = requests.get("https://www.eloratings.net/World.tsv",
                  headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
                  timeout=15)
-if r.ok:
-    lines = r.content.decode('utf-8', errors='replace').strip().split("\n")
-    for line in lines[1:]:
-        parts = line.strip().split("\t")
-        if len(parts) >= 3:
-            try:
-                rank = int(parts[0].strip())
-                nombre = parts[1].strip()
-                elo = int(float(parts[2].strip()))
-                elo_data[nombre] = {"rank": rank, "elo": elo}
-            except: pass
+        if r.ok:
+            lines = r.content.decode('utf-8', errors='replace').strip().split("\n")
+            for line in lines[1:]:
+                parts = line.strip().split("\t")
+                if len(parts) >= 3:
+                    try:
+                        rank = int(parts[0].strip())
+                        nombre = parts[1].strip()
+                        elo = int(float(parts[2].strip()))
+                        elo_data[nombre] = {"rank": rank, "elo": elo}
+                   except: pass
     except Exception as e:
         elo_data["error"] = str(e)
 

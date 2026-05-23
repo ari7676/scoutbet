@@ -367,6 +367,9 @@ def index():
 def dashboard():
     return render_template("scoutbet_dashboard.html")
 
+@app.route("/mundial")
+def mundial():
+    return render_template("wc2026_simulator.html")
 
 @app.route("/ia_analisis", methods=["POST"])
 def ia_analisis():

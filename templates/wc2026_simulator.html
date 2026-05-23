@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mundial 2026 — Simulador</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050508;
+  --surface: #0d0d14;
+  --surface2: #13131e;
+  --border: #1e1e2e;
+  --accent: #f5c842;
+  --accent2: #4af0c4;
+  --red: #ff4466;
+  --blue: #3d8aff;
+  --text: #e8e8f0;
+  --muted: #6b6b88;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --display: 'Bebas Neue', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+}
+
+/* HEADER */
+header {
+  padding: 24px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  position: relative; z-index: 10;
+}
+.title-block { display: flex; align-items: baseline; gap: 16px; }
+.title-main { font-family: var(--display); font-size: 48px; color: var(--accent); letter-spacing: 3px; line-height: 1; }
+.title-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 4px; }
+.header-right { display: flex; gap: 12px; align-items: center; }
+.btn {
+  padding: 10px 20px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); font-family: var(--mono); font-size: 12px; cursor: pointer;
+  letter-spacing: 1px; transition: all 0.15s; border-radius: 2px;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+.btn.primary:hover { background: #ffd862; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+#status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+#status-dot.ok { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+
+/* NAV TABS */
+.nav-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  position: relative; z-index: 10; padding: 0 40px;
+}
+.nav-tab {
+  padding: 14px 24px; background: none; border: none; cursor: pointer;
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  letter-spacing: 2px; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: all 0.15s;
+}
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* MAIN */
+.main { padding: 32px 40px; position: relative; z-index: 1; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* LOADING */
+.loading-overlay {
+  position: fixed; inset: 0; background: rgba(5,5,8,0.9);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 100; gap: 16px;
+}
+.loading-overlay.hidden { display: none; }
+.loading-text { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 3px; }
+.progress-bar { width: 300px; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+
+/* STATS CARDS */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border); padding: 20px;
+  border-radius: 3px; position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent);
+}
+.stat-val { font-family: var(--display); font-size: 36px; color: var(--accent); letter-spacing: 2px; }
+.stat-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 3px; margin-top: 4px; }
+
+/* GROUPS GRID */
+.groups-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+.group-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 3px; overflow: hidden;
+}
+.group-header {
+  padding: 10px 14px; background: var(--surface2);
+  font-family: var(--display); font-size: 20px; color: var(--accent); letter-spacing: 2px;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.group-team {
+  display: flex; align-items: center; padding: 8px 14px;
+  border-bottom: 1px solid var(--border); gap: 10px;
+  cursor: pointer; transition: background 0.1s;
+}
+.group-team:hover { background: var(--surface2); }
+.group-team:last-child { border-bottom: none; }
+.team-flag { font-size: 18px; width: 24px; text-align: center; }
+.team-name { font-size: 13px; font-weight: 600; flex: 1; }
+.team-elo { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+.team-rank { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.team-win-prob { font-family: var(--mono); font-size: 11px; color: var(--accent2); }
+
+/* CHAMPION TABLE */
+.champion-table { width: 100%; border-collapse: collapse; }
+.champion-table th {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  letter-spacing: 3px; padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--border); background: var(--surface2);
+}
+.champion-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.champion-table tr:hover td { background: var(--surface2); }
+.champion-table .rank-num { font-family: var(--display); font-size: 20px; color: var(--muted); }
+.champion-table .rank-num.top { color: var(--accent); }
+.prob-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; min-width: 60px; }
+.prob-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+.prob-fill.blue { background: var(--blue); }
+.prob-fill.green { background: var(--accent2); }
+.prob-val { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+
+/* MATCH ANALYZER */
+.match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.match-select-card {
+  background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 3px;
+}
+.match-select-card label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; display: block; margin-bottom: 8px; }
+.match-select-card select {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--sans); font-size: 14px; padding: 10px 12px;
+  border-radius: 2px; cursor: pointer;
+}
+.match-select-card select:focus { outline: none; border-color: var(--accent); }
+
+.analysis-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 3px;
+  padding: 24px; margin-bottom: 16px;
+}
+.analysis-title { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 3px; margin-bottom: 16px; }
+
+.vs-block {
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; margin-bottom: 24px;
+}
+.team-block { text-align: center; }
+.team-big-name { font-family: var(--display); font-size: 28px; letter-spacing: 2px; }
+.team-big-elo { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-top: 4px; }
+.team-big-rank { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.vs-sep { font-family: var(--display); font-size: 32px; color: var(--muted); text-align: center; }
+
+.prob-trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.prob-box { background: var(--surface2); border-radius: 3px; padding: 16px; text-align: center; }
+.prob-box-val { font-family: var(--display); font-size: 36px; }
+.prob-box-val.home { color: var(--blue); }
+.prob-box-val.draw { color: var(--muted); }
+.prob-box-val.away { color: var(--red); }
+.prob-box-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-top: 4px; }
+
+.goals-dist { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.goals-card { background: var(--surface2); border-radius: 3px; padding: 14px; }
+.goals-card-title { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 10px; }
+.score-bars { display: flex; flex-direction: column; gap: 4px; }
+.score-row { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; }
+.score-label { width: 20px; color: var(--muted); }
+.score-bar { flex: 1; height: 12px; background: var(--border); border-radius: 1px; overflow: hidden; }
+.score-bar-fill { height: 100%; background: var(--accent); border-radius: 1px; transition: width 0.5s; }
+.score-pct { width: 36px; text-align: right; color: var(--accent2); }
+
+/* MERCADOS */
+.mercados-wc { display: flex; flex-direction: column; gap: 8px; }
+.mercado-wc {
+  background: var(--surface2); border-radius: 3px; padding: 12px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-left: 3px solid var(--border);
+}
+.mercado-wc.aprobado { border-left-color: var(--accent); }
+.mercado-wc-name { font-size: 14px; font-weight: 600; }
+.mercado-wc-right { display: flex; gap: 16px; align-items: center; }
+.mercado-wc-prob { font-family: var(--mono); font-size: 14px; color: var(--accent); }
+.mercado-wc-cuota { font-family: var(--mono); font-size: 12px; color: var(--accent2); }
+
+/* SECTION TITLE */
+.section-title {
+  font-family: var(--display); font-size: 22px; letter-spacing: 3px;
+  color: var(--text); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* SIM CONTROLS */
+.sim-controls {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 3px;
+  padding: 20px; margin-bottom: 24px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.sim-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+.sim-select {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 12px;
+  padding: 8px 12px; border-radius: 2px; cursor: pointer;
+}
+.ic-badge {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  background: var(--surface2); padding: 2px 6px; border-radius: 2px;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* PENALTY TABLE */
+.penalty-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+.penalty-card {
+  background: var(--surface2); border-radius: 3px; padding: 12px;
+  text-align: center;
+}
+.penalty-team { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.penalty-rate { font-family: var(--display); font-size: 24px; color: var(--accent2); }
+
+/* SPINNER */
+.spinner {
+  width: 32px; height: 32px; border: 2px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty { font-family: var(--mono); font-size: 13px; color: var(--muted); padding: 40px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">CARGANDO DATOS...</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<header>
+  <div class="title-block">
+    <div class="title-main">MUNDIAL 2026</div>
+    <div class="title-sub">SIMULADOR · MODELO ELO + MONTE CARLO</div>
+  </div>
+  <div class="header-right">
+    <div id="status-dot"></div>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="status-text">conectando...</span>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('grupos')">GRUPOS</button>
+  <button class="nav-tab" onclick="switchTab('simulacion')">SIMULACIÓN</button>
+  <button class="nav-tab" onclick="switchTab('analisis')">ANÁLISIS PARTIDO</button>
+  <button class="nav-tab" onclick="switchTab('penales')">PENALES</button>
+</div>
+
+<div class="main">
+
+  <!-- TAB GRUPOS -->
+  <div class="tab-content active" id="tab-grupos">
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card"><div class="stat-val">48</div><div class="stat-label">EQUIPOS</div></div>
+      <div class="stat-card"><div class="stat-val">104</div><div class="stat-label">PARTIDOS</div></div>
+      <div class="stat-card"><div class="stat-val">12</div><div class="stat-label">GRUPOS</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-sims">—</div><div class="stat-label">SIMULACIONES</div></div>
+    </div>
+    <div class="section-title">GRUPOS Y RATINGS ELO</div>
+    <div class="groups-grid" id="groups-grid">
+      <div class="empty">Cargando grupos...</div>
+    </div>
+  </div>
+
+  <!-- TAB SIMULACION -->
+  <div class="tab-content" id="tab-simulacion">
+    <div class="sim-controls">
+      <span class="sim-label">SIMULACIONES</span>
+      <select class="sim-select" id="n-sims">
+        <option value="1000">1,000 (rápido)</option>
+        <option value="10000" selected>10,000</option>
+        <option value="50000">50,000</option>
+        <option value="100000">100,000 (preciso)</option>
+      </select>
+      <button class="btn primary" onclick="runSimulation()" id="sim-btn">▶ SIMULAR TORNEO</button>
+      <span class="ic-badge" id="ic-info">IC 95%: ±— pp</span>
+    </div>
+    <div id="sim-results">
+      <div class="empty">Ejecutá la simulación para ver probabilidades</div>
+    </div>
+  </div>
+
+  <!-- TAB ANALISIS -->
+  <div class="tab-content" id="tab-analisis">
+    <div class="match-grid">
+      <div class="match-select-card">
+        <label>PARTIDO</label>
+        <select id="match-select" onchange="analyzeMatch()">
+          <option value="">— Seleccioná un partido —</option>
+        </select>
+      </div>
+      <div class="match-select-card">
+        <label>VENTAJA LOCAL</label>
+        <select id="home-bonus-select" onchange="analyzeMatch()">
+          <option value="0">Sin ventaja local</option>
+          <option value="100">+100 ELO (sede)</option>
+          <option value="50">+50 ELO (parcial)</option>
+        </select>
+      </div>
+    </div>
+    <div id="analysis-result">
+      <div class="empty">Seleccioná un partido para analizarlo</div>
+    </div>
+  </div>
+
+  <!-- TAB PENALES -->
+  <div class="tab-content" id="tab-penales">
+    <div class="section-title">TASAS HISTÓRICAS DE PENALES</div>
+    <p style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:20px">
+      Modelo Bayesiano con shrinkage (prior k=10, equivalente a 50%). Basado en 103 shoot-outs históricos (Mundiales, Euros, Copa América, Asian Cup, AFCON desde 1972).
+    </p>
+    <div class="penalty-grid" id="penalty-grid"></div>
+  </div>
+
+</div>
+
+<script>
+const API = 'https://scoutbet.onrender.com';
+
+// ── DATOS GLOBALES ──────────────────────────────
+let eloData = {};
+let fixtures = [];
+let simResults = null;
+
+// ELO histórico de penales (victorias, n_total)
+const PENALTY_DATA = {
+  "Argentina": {w:8,n:13}, "Alemania": {w:6,n:9}, "Alemania Occ.": {w:4,n:6},
+  "Brasil": {w:5,n:9}, "Francia": {w:4,n:7}, "Portugal": {w:3,n:5},
+  "España": {w:3,n:6}, "Italia": {w:3,n:7}, "Países Bajos": {w:2,n:5},
+  "Inglaterra": {w:2,n:5}, "Uruguay": {w:2,n:4}, "Croacia": {w:3,n:4},
+  "Suiza": {w:1,n:2}, "México": {w:0,n:2}, "Colombia": {w:1,n:2},
+  "Chile": {w:1,n:2}, "Senegal": {w:0,n:1}, "Japón": {w:0,n:2},
+  "Ghana": {w:0,n:1}, "Costa Rica": {w:1,n:2},
+};
+
+// Flags por nombre de selección
+const FLAGS = {
+  "Argentina":"🇦🇷","Brazil":"🇧🇷","France":"🇫🇷","England":"🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+  "Spain":"🇪🇸","Germany":"🇩🇪","Portugal":"🇵🇹","Netherlands":"🇳🇱",
+  "Belgium":"🇧🇪","Italy":"🇮🇹","Uruguay":"🇺🇾","Croatia":"🇭🇷",
+  "United States":"🇺🇸","Mexico":"🇲🇽","Canada":"🇨🇦","Morocco":"🇲🇦",
+  "Senegal":"🇸🇳","Japan":"🇯🇵","South Korea":"🇰🇷","Australia":"🇦🇺",
+  "Denmark":"🇩🇰","Switzerland":"🇨🇭","Poland":"🇵🇱","Serbia":"🇷🇸",
+  "Colombia":"🇨🇴","Ecuador":"🇪🇨","Chile":"🇨🇱","Peru":"🇵🇪",
+  "Nigeria":"🇳🇬","Egypt":"🇪🇬","Ivory Coast":"🇨🇮","Cameroon":"🇨🇲",
+  "Ghana":"🇬🇭","Algeria":"🇩🇿","Tunisia":"🇹🇳","South Africa":"🇿🇦",
+  "Iran":"🇮🇷","Saudi Arabia":"🇸🇦","Qatar":"🇶🇦","Iraq":"🇮🇶",
+  "Ukraine":"🇺🇦","Austria":"🇦🇹","Sweden":"🇸🇪","Norway":"🇳🇴",
+  "Slovakia":"🇸🇰","Czech Republic":"🇨🇿","Turkey":"🇹🇷","Hungary":"🇭🇺",
+  "Wales":"🏴󠁧󠁢󠁷󠁬󠁳󠁿","Scotland":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","New Zealand":"🇳🇿","Bolivia":"🇧🇴",
+  "Paraguay":"🇵🇾","Venezuela":"🇻🇪","Panama":"🇵🇦","Costa Rica":"🇨🇷",
+  "Honduras":"🇭🇳","Jamaica":"🇯🇲","Haiti":"🇭🇹","Curaçao":"🇨🇼",
+  "Cuba":"🇨🇺","Guatemala":"🇬🇹","El Salvador":"🇸🇻","Trinidad and Tobago":"🇹🇹",
+  "Congo DR":"🇨🇩","Zambia":"🇿🇲","Tanzania":"🇹🇿","Mozambique":"🇲🇿",
+  "Bosnia-Herzegovina":"🇧🇦","Georgia":"🇬🇪","Slovenia":"🇸🇮","Romania":"🇷🇴",
+  "Albania":"🇦🇱","Finland":"🇫🇮","Greece":"🇬🇷","Jordan":"🇯🇴",
+  "Uzbekistan":"🇺🇿","Indonesia":"🇮🇩","Thailand":"🇹🇭","China":"🇨🇳",
+  "Uganda":"🇺🇬","Cape Verde Islands":"🇨🇻",
+};
+
+function getFlag(name) {
+  return FLAGS[name] || "🏳";
+}
+
+// ── INIT ────────────────────────────────────────
+async function init() {
+  setProgress(10);
+  setText("CARGANDO ELO RATINGS...");
+  
+  try {
+    const r = await fetch(`${API}/wc_data`);
+    const data = await r.json();
+    eloData = data.elo || {};
+    fixtures = data.fixtures || [];
+    
+    setProgress(60);
+    setText("PROCESANDO GRUPOS...");
+    
+    document.getElementById('status-dot').className = 'ok';
+    document.getElementById('status-text').textContent = `${fixtures.length} partidos · ${Object.keys(eloData).length} ratings ELO`;
+    
+    buildGroups();
+    buildMatchSelect();
+    buildPenaltyGrid();
+    
+    setProgress(100);
+    setTimeout(() => {
+      document.getElementById('loading').classList.add('hidden');
+    }, 300);
+    
+  } catch(e) {
+    setText("ERROR: " + e.message);
+    document.getElementById('status-text').textContent = "error de conexión";
+  }
+}
+
+function setProgress(p) { document.getElementById('progress-fill').style.width = p + '%'; }
+function setText(t) { document.getElementById('loading-text').textContent = t; }
+
+// ── ELO LOOKUP ──────────────────────────────────
+function getElo(name) {
+  if (eloData[name]) return eloData[name].elo;
+  // Fuzzy match
+  for (const [k,v] of Object.entries(eloData)) {
+    if (k.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(k.toLowerCase())) {
+      return v.elo;
+    }
+  }
+  return 1500; // default
+}
+
+function getRank(name) {
+  if (eloData[name]) return eloData[name].rank;
+  for (const [k,v] of Object.entries(eloData)) {
+    if (k.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(k.toLowerCase())) {
+      return v.rank;
+    }
+  }
+  return 99;
+}
+
+// ── MODELO ELO ──────────────────────────────────
+function eloWinProb(eloA, eloB, homeBonus = 0) {
+  const dr = eloA - eloB + homeBonus;
+  return 1 / (Math.pow(10, -dr / 400) + 1);
+}
+
+function poissonLambda(eloTeam, eloOpp, homeBonus = 0) {
+  const gap = (eloTeam - eloOpp + homeBonus) / 100;
+  return Math.min(6.0, Math.max(0.15, 1.30 + 0.18 * gap));
+}
+
+function poissonProb(lambda, k) {
+  let p = Math.exp(-lambda);
+  for (let i = 0; i < k; i++) p *= lambda / (i + 1);
+  return p;
+}
+
+function samplePoisson(lambda) {
+  // Knuth algorithm
+  const L = Math.exp(-lambda);
+  let k = 0, p = 1;
+  do { k++; p *= Math.random(); } while (p > L);
+  return k - 1;
+}
+
+function matchProbs(eloA, eloB, homeBonus = 0) {
+  const la = poissonLambda(eloA, eloB, homeBonus);
+  const lb = poissonLambda(eloB, eloA);
+  let pWin = 0, pDraw = 0, pLoss = 0;
+  const maxG = 10;
+  for (let i = 0; i <= maxG; i++) {
+    for (let j = 0; j <= maxG; j++) {
+      const p = poissonProb(la, i) * poissonProb(lb, j);
+      if (i > j) pWin += p;
+      else if (i === j) pDraw += p;
+      else pLoss += p;
+    }
+  }
+  return { pWin, pDraw, pLoss, lambdaA: la, lambdaB: lb };
+}
+
+function goalDist(lambda) {
+  const dist = [];
+  for (let k = 0; k <= 6; k++) {
+    dist.push({ goals: k, prob: poissonProb(lambda, k) });
+  }
+  return dist;
+}
+
+// ── GRUPOS ──────────────────────────────────────
+function buildGroups() {
+  // Extraer grupos únicos de fixtures
+  const groups = {};
+  const teams = {};
+  
+  fixtures.forEach(f => {
+    if (f.group && f.home && f.away) {
+      if (!groups[f.group]) groups[f.group] = new Set();
+      groups[f.group].add(f.home);
+      groups[f.group].add(f.away);
+    }
+  });
+
+  const html_parts = [];
+  const sortedGroups = Object.keys(groups).sort();
+  
+  sortedGroups.forEach(group => {
+    const teamList = Array.from(groups[group]);
+    teamList.sort((a, b) => getElo(b) - getElo(a));
+    
+    let html = `<div class="group-card">
+      <div class="group-header">
+        <span>${group.replace('GROUP_', 'GRUPO ')}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${teamList.length} eq.</span>
+      </div>`;
+    
+    teamList.forEach(team => {
+      const elo = getElo(team);
+      const rank = getRank(team);
+      const flag = getFlag(team);
+      html += `<div class="group-team" onclick="selectTeamMatch('${team}')">
+        <span class="team-flag">${flag}</span>
+        <span class="team-name">${team}</span>
+        <span class="team-elo">${elo}</span>
+        <span class="team-rank">#${rank}</span>
+      </div>`;
+    });
+    
+    html += `</div>`;
+    html_parts.push(html);
+  });
+  
+  document.getElementById('groups-grid').innerHTML = html_parts.join('');
+}
+
+function selectTeamMatch(team) {
+  switchTab('analisis');
+  // Pre-seleccionar el primer partido del equipo
+  const sel = document.getElementById('match-select');
+  for (let opt of sel.options) {
+    if (opt.text.includes(team)) {
+      sel.value = opt.value;
+      analyzeMatch();
+      return;
+    }
+  }
+}
+
+// ── MATCH SELECT ────────────────────────────────
+function buildMatchSelect() {
+  const sel = document.getElementById('match-select');
+  
+  // Agrupar por fase
+  const byStage = {};
+  fixtures.forEach((f, i) => {
+    if (!f.home || !f.away) return;
+    const stage = f.group ? `Grupo ${f.group.replace('GROUP_', '')}` : (f.stage || 'Eliminatoria');
+    if (!byStage[stage]) byStage[stage] = [];
+    byStage[stage].push({...f, idx: i});
+  });
+  
+  Object.keys(byStage).sort().forEach(stage => {
+    const og = document.createElement('optgroup');
+    og.label = stage;
+    byStage[stage].forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.idx;
+      opt.textContent = `${f.fecha} · ${f.home} vs ${f.away}`;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+}
+
+// ── ANÁLISIS DE PARTIDO ──────────────────────────
+function analyzeMatch() {
+  const idx = document.getElementById('match-select').value;
+  if (idx === '') return;
+  
+  const f = fixtures[parseInt(idx)];
+  if (!f) return;
+  
+  const homeBonus = parseInt(document.getElementById('home-bonus-select').value);
+  const eloH = getElo(f.home);
+  const eloA = getElo(f.away);
+  const rankH = getRank(f.home);
+  const rankA = getRank(f.away);
+  const flagH = getFlag(f.home);
+  const flagA = getFlag(f.away);
+  
+  const probs = matchProbs(eloH, eloA, homeBonus);
+  const distH = goalDist(probs.lambdaA);
+  const distA = goalDist(probs.lambdaB);
+  
+  // Score más probable
+  let bestScore = {hg: 0, ag: 0, p: 0};
+  for (let i = 0; i <= 5; i++) {
+    for (let j = 0; j <= 5; j++) {
+      const p = poissonProb(probs.lambdaA, i) * poissonProb(probs.lambdaB, j);
+      if (p > bestScore.p) bestScore = {hg: i, ag: j, p};
+    }
+  }
+
+  // Mercados
+  const pWin = Math.round(probs.pWin * 100);
+  const pDraw = Math.round(probs.pDraw * 100);
+  const pLoss = Math.round(probs.pLoss * 100);
+  const pOver = 1 - poissonProb(probs.lambdaA + probs.lambdaB, 0) - poissonProb(probs.lambdaA + probs.lambdaB, 1) - poissonProb(probs.lambdaA + probs.lambdaB, 2);
+  const pBTTS = (1 - poissonProb(probs.lambdaA, 0)) * (1 - poissonProb(probs.lambdaB, 0));
+  const pDC1X = probs.pWin + probs.pDraw;
+  const pDCX2 = probs.pDraw + probs.pLoss;
+
+  const cuota = p => p > 0 ? (100 / (p * 100) * 0.95).toFixed(2) : '—';
+
+  const mercados = [
+    { name: `Victoria ${f.home}`, prob: pWin, cuota: cuota(pWin/100), aprobado: pWin >= 55 },
+    { name: `Empate`, prob: pDraw, cuota: cuota(pDraw/100), aprobado: false },
+    { name: `Victoria ${f.away}`, prob: pLoss, cuota: cuota(pLoss/100), aprobado: pLoss >= 55 },
+    { name: `Doble Chance ${f.home} o Empate`, prob: Math.round(pDC1X*100), cuota: cuota(pDC1X), aprobado: pDC1X >= 0.75 },
+    { name: `Doble Chance ${f.away} o Empate`, prob: Math.round(pDCX2*100), cuota: cuota(pDCX2), aprobado: pDCX2 >= 0.75 },
+    { name: `Over 2.5 Goles`, prob: Math.round(pOver*100), cuota: cuota(pOver), aprobado: pOver >= 0.65 },
+    { name: `BTTS — Ambos Anotan`, prob: Math.round(pBTTS*100), cuota: cuota(pBTTS), aprobado: pBTTS >= 0.65 },
+  ].sort((a,b) => b.prob - a.prob);
+
+  const maxDistProb = Math.max(...distH.map(d => d.prob), ...distA.map(d => d.prob));
+
+  let html = `
+    <div class="analysis-card">
+      <div class="analysis-title">ANÁLISIS ELO · ${f.fecha} · ${f.group || f.stage || ''}</div>
+      <div class="vs-block">
+        <div class="team-block">
+          <div style="font-size:32px">${flagH}</div>
+          <div class="team-big-name">${f.home}</div>
+          <div class="team-big-elo">ELO ${eloH}${homeBonus > 0 ? ` (+${homeBonus})` : ''}</div>
+          <div class="team-big-rank">#${rankH} mundial</div>
+        </div>
+        <div class="vs-sep">VS</div>
+        <div class="team-block">
+          <div style="font-size:32px">${flagA}</div>
+          <div class="team-big-name">${f.away}</div>
+          <div class="team-big-elo">ELO ${eloA}</div>
+          <div class="team-big-rank">#${rankA} mundial</div>
+        </div>
+      </div>
+      
+      <div class="prob-trio">
+        <div class="prob-box">
+          <div class="prob-box-val home">${pWin}%</div>
+          <div class="prob-box-label">VICTORIA LOCAL</div>
+          <div class="prob-box-label" style="color:var(--accent2)">@${cuota(pWin/100)}</div>
+        </div>
+        <div class="prob-box">
+          <div class="prob-box-val draw">${pDraw}%</div>
+          <div class="prob-box-label">EMPATE</div>
+          <div class="prob-box-label" style="color:var(--accent2)">@${cuota(pDraw/100)}</div>
+        </div>
+        <div class="prob-box">
+          <div class="prob-box-val away">${pLoss}%</div>
+          <div class="prob-box-label">VICTORIA VISITANTE</div>
+          <div class="prob-box-label" style="color:var(--accent2)">@${cuota(pLoss/100)}</div>
+        </div>
+      </div>
+      
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:16px;text-align:center">
+        λ LOCAL: ${probs.lambdaA.toFixed(2)} goles esperados · λ VISITANTE: ${probs.lambdaB.toFixed(2)} goles esperados · 
+        Resultado más probable: <span style="color:var(--accent)">${f.home} ${bestScore.hg}–${bestScore.ag} ${f.away} (${(bestScore.p*100).toFixed(1)}%)</span>
+      </div>
+
+      <div class="goals-dist">
+        <div class="goals-card">
+          <div class="goals-card-title">DISTRIBUCIÓN GOLES — ${f.home.toUpperCase()}</div>
+          <div class="score-bars">
+            ${distH.map(d => `
+              <div class="score-row">
+                <span class="score-label">${d.goals}</span>
+                <div class="score-bar"><div class="score-bar-fill" style="width:${d.prob/maxDistProb*100}%"></div></div>
+                <span class="score-pct">${(d.prob*100).toFixed(1)}%</span>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="goals-card">
+          <div class="goals-card-title">DISTRIBUCIÓN GOLES — ${f.away.toUpperCase()}</div>
+          <div class="score-bars">
+            ${distA.map(d => `
+              <div class="score-row">
+                <span class="score-label">${d.goals}</span>
+                <div class="score-bar"><div class="score-bar-fill" style="width:${d.prob/maxDistProb*100}%"></div></div>
+                <span class="score-pct">${(d.prob*100).toFixed(1)}%</span>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">MERCADOS RECOMENDADOS</div>
+    <div class="mercados-wc">
+      ${mercados.map(m => `
+        <div class="mercado-wc ${m.aprobado ? 'aprobado' : ''}">
+          <span class="mercado-wc-name">${m.name}</span>
+          <div class="mercado-wc-right">
+            <span class="mercado-wc-prob">${m.prob}%</span>
+            <span class="mercado-wc-cuota">@${m.cuota}</span>
+            ${m.aprobado ? '<span style="color:var(--accent);font-family:var(--mono);font-size:11px">✓ APROBADO</span>' : ''}
+          </div>
+        </div>`).join('')}
+    </div>`;
+  
+  document.getElementById('analysis-result').innerHTML = html;
+}
+
+// ── SIMULACIÓN MONTE CARLO ──────────────────────
+async function runSimulation() {
+  const N = parseInt(document.getElementById('n-sims').value);
+  const btn = document.getElementById('sim-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ SIMULANDO...';
+  
+  document.getElementById('sim-results').innerHTML = '<div class="empty"><div class="spinner" style="margin:0 auto"></div></div>';
+  
+  // Dar tiempo al browser para renderizar
+  await new Promise(r => setTimeout(r, 50));
+  
+  // Extraer equipos únicos y sus grupos
+  const groups = {};
+  fixtures.forEach(f => {
+    if (f.group && f.home && f.away) {
+      if (!groups[f.group]) groups[f.group] = new Set();
+      groups[f.group].add(f.home);
+      groups[f.group].add(f.away);
+    }
+  });
+  
+  // Contar victorias por equipo
+  const champion = {}, finalist = {}, semifinal = {}, quarterFinal = {}, r16 = {};
+  const allTeams = new Set();
+  Object.values(groups).forEach(g => g.forEach(t => allTeams.add(t)));
+  allTeams.forEach(t => { champion[t] = 0; finalist[t] = 0; semifinal[t] = 0; quarterFinal[t] = 0; r16[t] = 0; });
+
+  // Xoshiro128** PRNG
+  let s = [Date.now(), 1234567, 89101112, 13141516];
+  function xoshiro() {
+    const r = Math.imul(s[1] << 5 | s[1] >>> 27, 5);
+    const t = s[1] << 9;
+    s[2] ^= s[0]; s[3] ^= s[1]; s[1] ^= s[2]; s[0] ^= s[3];
+    s[2] ^= t; s[3] = s[3] << 11 | s[3] >>> 21;
+    return (r >>> 0) / 4294967296;
+  }
+
+  function simPoisson(lambda) {
+    const L = Math.exp(-lambda);
+    let k = 0, p = 1;
+    do { k++; p *= xoshiro(); } while (p > L);
+    return k - 1;
+  }
+
+  function simMatch(teamA, teamB, homeBonus = 0, knockout = false) {
+    const eloA = getElo(teamA), eloB = getElo(teamB);
+    const la = poissonLambda(eloA, eloB, homeBonus);
+    const lb = poissonLambda(eloB, eloA);
+    let ga = simPoisson(la), gb = simPoisson(lb);
+    if (knockout && ga === gb) {
+      // Extra time + penales
+      ga += simPoisson(la * 0.3);
+      gb += simPoisson(lb * 0.3);
+      if (ga === gb) {
+        // Penales - modelo bayesiano
+        const rateA = penaltyRate(teamA), rateB = penaltyRate(teamB);
+        const pA = rateA / (rateA + rateB);
+        return xoshiro() < pA ? { winner: teamA, loser: teamB } : { winner: teamB, loser: teamA };
+      }
+    }
+    return ga > gb ? { winner: teamA, loser: teamB } : ga < gb ? { winner: teamB, loser: teamA } : { winner: null, draw: true, teamA, teamB };
+  }
+
+  function simGroupStage(groupTeams, groupFixtures) {
+    const pts = {}, gf = {}, ga = {};
+    groupTeams.forEach(t => { pts[t] = 0; gf[t] = 0; ga[t] = 0; });
+    
+    groupFixtures.forEach(f => {
+      const eloH = getElo(f.home), eloA = getElo(f.away);
+      const la = poissonLambda(eloH, eloA);
+      const lb = poissonLambda(eloA, eloH);
+      const gh = simPoisson(la), ga_ = simPoisson(lb);
+      gf[f.home] += gh; ga[f.home] += ga_;
+      gf[f.away] += ga_; ga[f.away] += gh;
+      if (gh > ga_) { pts[f.home] += 3; }
+      else if (gh < ga_) { pts[f.away] += 3; }
+      else { pts[f.home]++; pts[f.away]++; }
+    });
+    
+    return groupTeams.sort((a, b) => pts[b] - pts[a] || (gf[b]-ga[b]) - (gf[a]-ga[a]));
+  }
+
+  for (let sim = 0; sim < N; sim++) {
+    // Fase de grupos
+    const qualified = {}; // grupo -> [1ro, 2do, 3ro]
+    
+    for (const [group, teamSet] of Object.entries(groups)) {
+      const groupTeams = Array.from(teamSet);
+      const groupFixtures = fixtures.filter(f => f.group === group && f.home && f.away);
+      const ranked = simGroupStage(groupTeams, groupFixtures);
+      qualified[group] = ranked;
+      if (ranked[0]) r16[ranked[0]]++;
+      if (ranked[1]) r16[ranked[1]]++;
+    }
+    
+    // Simplificamos el bracket: tomamos los mejores clasificados
+    // En un Mundial de 48 equipos: 12 grupos, 2 pasan + 8 mejores 3ros = 32 equipos en R32
+    let advancers = [];
+    for (const group of Object.keys(qualified).sort()) {
+      if (qualified[group][0]) advancers.push(qualified[group][0]);
+      if (qualified[group][1]) advancers.push(qualified[group][1]);
+    }
+    // Agregar mejores 8 terceros (simplificado: por ELO)
+    const thirds = Object.values(qualified).map(g => g[2]).filter(Boolean);
+    thirds.sort((a,b) => getElo(b) - getElo(a));
+    advancers = advancers.concat(thirds.slice(0, 8));
+    
+    // Knockout rounds
+    let round = [...advancers];
+    
+    while (round.length > 1) {
+      const next = [];
+      for (let i = 0; i < round.length; i += 2) {
+        if (!round[i+1]) { next.push(round[i]); continue; }
+        const result = simMatch(round[i], round[i+1], 0, true);
+        const winner = result.winner || (xoshiro() < 0.5 ? result.teamA : result.teamB);
+        next.push(winner);
+        
+        if (round.length === 16) quarterFinal[round[i]]++, quarterFinal[round[i+1]]++;
+        if (round.length === 8) semifinal[round[i]]++, semifinal[round[i+1]]++;
+        if (round.length === 4) finalist[round[i]]++, finalist[round[i+1]]++;
+      }
+      round = next;
+    }
+    if (round[0]) champion[round[0]]++;
+  }
+  
+  // Calcular Wilson IC
+  const z = 1.96;
+  function wilsonIC(p, n) {
+    const center = (p + z*z/(2*n)) / (1 + z*z/n);
+    const half = z * Math.sqrt(p*(1-p)/n + z*z/(4*n*n)) / (1 + z*z/n);
+    return { lo: Math.max(0, center-half)*100, hi: Math.min(1, center+half)*100 };
+  }
+
+  // Ordenar por probabilidad de campeón
+  const results = Array.from(allTeams).map(team => ({
+    team,
+    champion: champion[team] / N,
+    finalist: finalist[team] / N,
+    semifinal: semifinal[team] / N,
+    quarterFinal: quarterFinal[team] / N,
+    r16: r16[team] / N,
+    elo: getElo(team),
+    ic: wilsonIC(champion[team] / N, N)
+  })).sort((a,b) => b.champion - a.champion);
+
+  simResults = results;
+  document.getElementById('stat-sims').textContent = N.toLocaleString();
+  
+  // IC info
+  const topP = results[0]?.champion || 0.1;
+  const ic = wilsonIC(topP, N);
+  document.getElementById('ic-info').textContent = `IC 95%: ±${((ic.hi-ic.lo)/2).toFixed(2)}pp`;
+  
+  renderSimResults(results, N);
+  
+  btn.disabled = false;
+  btn.textContent = '▶ SIMULAR TORNEO';
+}
+
+function penaltyRate(team) {
+  // Normalizar nombre
+  const names = {
+    "Argentina":"Argentina","Germany":"Alemania","Brazil":"Brasil",
+    "France":"Francia","Portugal":"Portugal","Spain":"España",
+    "Italy":"Italia","Netherlands":"Países Bajos","England":"Inglaterra",
+    "Uruguay":"Uruguay","Croatia":"Croacia","Switzerland":"Suiza",
+    "Mexico":"México","Colombia":"Colombia","Chile":"Chile",
+    "Senegal":"Senegal","Japan":"Japón","Ghana":"Ghana","Costa Rica":"Costa Rica"
+  };
+  const key = names[team] || team;
+  const d = PENALTY_DATA[key];
+  const k = 10; // prior strength
+  if (d) return (d.w + k * 0.5) / (d.n + k);
+  return 0.5; // default
+}
+
+function renderSimResults(results, N) {
+  const top20 = results.slice(0, 20);
+  const maxChamp = top20[0]?.champion || 0.01;
+  
+  let html = `
+    <div class="section-title">PROBABILIDADES — ${N.toLocaleString()} SIMULACIONES</div>
+    <table class="champion-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>SELECCIÓN</th>
+          <th>ELO</th>
+          <th>CAMPEÓN</th>
+          <th>FINALISTA</th>
+          <th>SEMIFINAL</th>
+          <th>CUARTOS</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${top20.map((r, i) => `
+          <tr>
+            <td><span class="rank-num ${i<3?'top':''}">${i+1}</span></td>
+            <td><strong>${getFlag(r.team)} ${r.team}</strong></td>
+            <td><span style="font-family:var(--mono);font-size:12px;color:var(--muted)">${r.elo}</span></td>
+            <td>
+              <span class="prob-val">${(r.champion*100).toFixed(1)}%</span>
+              <div class="prob-bar"><div class="prob-fill" style="width:${r.champion/maxChamp*100}%"></div></div>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">[${r.ic.lo.toFixed(1)}–${r.ic.hi.toFixed(1)}]</span>
+            </td>
+            <td>
+              <span style="font-family:var(--mono);font-size:12px;color:var(--accent2)">${(r.finalist*100).toFixed(1)}%</span>
+              <div class="prob-bar"><div class="prob-fill blue" style="width:${r.finalist/maxChamp*100}%"></div></div>
+            </td>
+            <td>
+              <span style="font-family:var(--mono);font-size:12px;color:var(--text)">${(r.semifinal*100).toFixed(1)}%</span>
+              <div class="prob-bar"><div class="prob-fill green" style="width:${r.semifinal/maxChamp*100}%"></div></div>
+            </td>
+            <td>
+              <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">${(r.quarterFinal*100).toFixed(1)}%</span>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+  
+  document.getElementById('sim-results').innerHTML = html;
+}
+
+// ── PENALES ──────────────────────────────────────
+function buildPenaltyGrid() {
+  const teams = Object.entries(PENALTY_DATA).map(([name, d]) => {
+    const k = 10;
+    const rate = (d.w + k * 0.5) / (d.n + k);
+    return { name, rate, w: d.w, n: d.n };
+  }).sort((a,b) => b.rate - a.rate);
+
+  document.getElementById('penalty-grid').innerHTML = teams.map(t => `
+    <div class="penalty-card">
+      <div class="penalty-team">${t.name}</div>
+      <div class="penalty-rate">${(t.rate*100).toFixed(0)}%</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px">
+        ${t.w}/${t.n} shoot-outs
+      </div>
+    </div>`).join('');
+}
+
+// ── TABS ─────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── START ────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

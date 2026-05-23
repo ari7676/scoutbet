@@ -176,7 +176,7 @@ header {
 .ic-range { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
 
 /* MATCH ANALYZER */
-.match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .match-select-card {
   background: var(--surface); border: 1px solid var(--border2); padding: 16px 18px; border-radius: 6px;
 }
@@ -191,6 +191,88 @@ header {
 }
 .match-select-card select:focus { border-color: var(--accent); }
 
+/* ── MODIFIERS ─────────────────────────────────── */
+.modifiers-section {
+  margin-bottom: 20px;
+}
+.modifiers-label {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  letter-spacing: 3px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.modifiers-label::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
+
+.modifiers-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.modifier-toggle {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 6px;
+  padding: 13px 14px; cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: space-between;
+  user-select: none;
+}
+.modifier-toggle:hover { background: var(--surface2); }
+.modifier-toggle.active { border-color: var(--accent); background: rgba(240,180,41,0.05); }
+.modifier-toggle.auto-active { border-color: var(--accent2); background: rgba(34,211,197,0.05); }
+.modifier-toggle.inactive-dimmed { opacity: 0.45; cursor: default; }
+
+.modifier-icon { font-size: 16px; margin-right: 8px; flex-shrink: 0; }
+.modifier-info { flex: 1; min-width: 0; }
+.modifier-name { font-size: 13px; font-weight: 600; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.modifier-status { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+.modifier-toggle.active .modifier-status { color: var(--accent); }
+.modifier-toggle.auto-active .modifier-status { color: var(--accent2); }
+
+.modifier-indicator {
+  width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; margin-left: 8px;
+  background: var(--border2); display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; color: var(--muted); transition: all 0.15s;
+}
+.modifier-toggle.active .modifier-indicator {
+  background: var(--accent); color: #000; font-weight: 700;
+}
+.modifier-toggle.auto-active .modifier-indicator {
+  background: var(--accent2); color: #000; font-weight: 700;
+}
+
+.auto-badge {
+  display: inline-block; font-family: var(--mono); font-size: 8px; color: var(--accent2);
+  background: rgba(34,211,197,0.12); border: 1px solid rgba(34,211,197,0.25);
+  padding: 1px 5px; border-radius: 2px; letter-spacing: 1px; vertical-align: middle; margin-left: 4px;
+}
+
+.modifier-subopts {
+  display: none; margin-top: 8px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
+  padding: 10px 12px;
+}
+.modifier-subopts.visible { display: block; }
+.subopts-label {
+  font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.subopts-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.subopt-btn {
+  padding: 6px 12px; background: var(--surface3); border: 1px solid var(--border2);
+  color: var(--text2); font-family: var(--mono); font-size: 11px; border-radius: 4px;
+  cursor: pointer; transition: all 0.12s;
+}
+.subopt-btn:hover { border-color: var(--accent); color: var(--accent); }
+.subopt-btn.selected { background: rgba(240,180,41,0.1); border-color: var(--accent); color: var(--accent); }
+
+/* MODIFIER IMPACT BADGE */
+.mod-impact-row {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.mod-impact-chip {
+  font-family: var(--mono); font-size: 10px; padding: 4px 10px; border-radius: 3px;
+  display: flex; align-items: center; gap: 5px;
+}
+.mod-impact-chip.elo-pen { color: var(--red); background: rgba(255,61,90,0.08); border: 1px solid rgba(255,61,90,0.2); }
+.mod-impact-chip.lambda-pen { color: var(--purple); background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.2); }
+.mod-impact-chip.auto { color: var(--accent2); background: rgba(34,211,197,0.06); border: 1px solid rgba(34,211,197,0.2); }
+
+/* ANALYSIS CARD */
 .analysis-card {
   background: var(--surface); border: 1px solid var(--border2); border-radius: 8px;
   padding: 24px; margin-bottom: 16px;
@@ -354,6 +436,8 @@ header {
 
 .metodo-no-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .metodo-no-item { background: var(--surface); border: 1px solid var(--border2); border-radius: 4px; padding: 12px 14px; font-family: var(--mono); font-size: 13px; color: var(--text2); }
+/* items que ya están modelados */
+.metodo-no-item.modelado { border-color: rgba(34,211,197,0.3); color: var(--accent2); background: rgba(34,211,197,0.04); }
 
 .metodo-footer { margin-top: 36px; padding: 18px 0; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: center; }
 .metodo-footer strong { color: var(--text2); }
@@ -368,7 +452,7 @@ header {
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty { font-family: var(--mono); font-size: 13px; color: var(--muted); padding: 40px; text-align: center; letter-spacing: 2px; }
 
-/* ── MOBILE RESPONSIVE ─────────────────────────── */
+/* ── MOBILE ─────────────────────────────────────── */
 @media (max-width: 768px) {
   header { padding: 12px 16px; }
   .title-main { font-size: 28px; letter-spacing: 2px; }
@@ -394,6 +478,7 @@ header {
   .champion-table td:nth-child(6) { display: none; }
 
   .match-grid { grid-template-columns: 1fr; gap: 10px; }
+  .modifiers-row { grid-template-columns: 1fr; gap: 8px; }
   .vs-block { grid-template-columns: 1fr 40px 1fr; padding: 12px; }
   .team-big-flag { font-size: 28px; }
   .team-big-name { font-size: 18px; }
@@ -412,7 +497,6 @@ header {
   .sim-controls { flex-direction: column; align-items: flex-start; gap: 10px; }
   .btn-simulate { width: 100%; text-align: center; }
 }
-
 </style>
 </head>
 <body>
@@ -445,11 +529,11 @@ header {
 </header>
 
 <div class="nav-tabs">
-  <button class="nav-tab active" onclick="switchTab('grupos')">GRUPOS</button>
-  <button class="nav-tab" onclick="switchTab('simulacion')">SIMULACIÓN</button>
-  <button class="nav-tab" onclick="switchTab('analisis')">ANÁLISIS PARTIDO</button>
-  <button class="nav-tab" onclick="switchTab('penales')">PENALES</button>
-  <button class="nav-tab" onclick="switchTab('metodologia')">METODOLOGÍA</button>
+  <button class="nav-tab active" onclick="switchTab('grupos', event)">GRUPOS</button>
+  <button class="nav-tab" onclick="switchTab('simulacion', event)">SIMULACIÓN</button>
+  <button class="nav-tab" onclick="switchTab('analisis', event)">ANÁLISIS PARTIDO</button>
+  <button class="nav-tab" onclick="switchTab('penales', event)">PENALES</button>
+  <button class="nav-tab" onclick="switchTab('metodologia', event)">METODOLOGÍA</button>
 </div>
 
 <div class="main">
@@ -504,6 +588,77 @@ header {
         </select>
       </div>
     </div>
+
+    <!-- ── MODIFICADORES CONTEXTUALES ─────────────── -->
+    <div class="modifiers-section" id="modifiers-section" style="display:none">
+      <div class="modifiers-label">MODIFICADORES CONTEXTUALES</div>
+      <div class="modifiers-row">
+
+        <!-- Tarjetas acumuladas -->
+        <div>
+          <div class="modifier-toggle" id="mod-tarjetas" onclick="toggleModifier('tarjetas')">
+            <span class="modifier-icon">🟨</span>
+            <div class="modifier-info">
+              <div class="modifier-name">Tarjetas acumuladas</div>
+              <div class="modifier-status" id="mod-tarjetas-status">Inactivo</div>
+            </div>
+            <div class="modifier-indicator">✕</div>
+          </div>
+          <div class="modifier-subopts" id="subopts-tarjetas">
+            <div class="subopts-label">¿QUIÉN TIENE BAJAS POR TARJETAS?</div>
+            <div class="subopts-btns">
+              <button class="subopt-btn" id="tarj-home" onclick="setTarjetasTarget('home')">Local (−50 ELO)</button>
+              <button class="subopt-btn" id="tarj-away" onclick="setTarjetasTarget('away')">Visitante (−50 ELO)</button>
+              <button class="subopt-btn" id="tarj-both" onclick="setTarjetasTarget('both')">Ambos (−30 c/u)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fatiga post-prórroga -->
+        <div>
+          <div class="modifier-toggle" id="mod-fatiga" onclick="toggleModifier('fatiga')">
+            <span class="modifier-icon">⚡</span>
+            <div class="modifier-info">
+              <div class="modifier-name">Fatiga post-prórroga</div>
+              <div class="modifier-status" id="mod-fatiga-status">Verificando...</div>
+            </div>
+            <div class="modifier-indicator">✕</div>
+          </div>
+          <!-- sub-opts de fatiga (target): solo visible si fue activado manualmente sin auto-detect -->
+          <div class="modifier-subopts" id="subopts-fatiga">
+            <div class="subopts-label">¿QUIÉN JUGÓ PRÓRROGA?</div>
+            <div class="subopts-btns">
+              <button class="subopt-btn" id="fatiga-home" onclick="setFatigaTarget('home')">Local (−40 ELO)</button>
+              <button class="subopt-btn" id="fatiga-away" onclick="setFatigaTarget('away')">Visitante (−40 ELO)</button>
+              <button class="subopt-btn" id="fatiga-both" onclick="setFatigaTarget('both')">Ambos (−40 c/u)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clima / sede -->
+        <div>
+          <div class="modifier-toggle" id="mod-clima" onclick="toggleModifier('clima')">
+            <span class="modifier-icon">🌡</span>
+            <div class="modifier-info">
+              <div class="modifier-name">Clima / sede</div>
+              <div class="modifier-status" id="mod-clima-status">Inactivo</div>
+            </div>
+            <div class="modifier-indicator">✕</div>
+          </div>
+          <div class="modifier-subopts" id="subopts-clima">
+            <div class="subopts-label">CONDICIÓN DE SEDE</div>
+            <div class="subopts-btns">
+              <button class="subopt-btn" id="clima-heat" onclick="setClima('heat')">🔥 Calor extremo (Miami/Dallas) −12% λ top-ELO</button>
+              <button class="subopt-btn" id="clima-altitude" onclick="setClima('altitude')">⛰ Altitud (K.City/Denver) −10% λ top-ELO</button>
+              <button class="subopt-btn" id="clima-cold" onclick="setClima('cold')">❄ Frío (Vancouver/NY) −8% λ low-ELO</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- ── / MODIFICADORES ─────────────────────────── -->
+
     <div id="analysis-result">
       <div class="empty">Seleccioná un partido para analizarlo</div>
     </div>
@@ -532,7 +687,7 @@ header {
         <div class="metodo-card-num">01</div>
         <div class="metodo-card-title">Ratings ELO</div>
         <div class="metodo-card-body">
-          Usamos los ratings de <strong>eloratings.net</strong>, no el ranking FIFA. El ELO es un sistema recursivo — igual al de ajedrez — que se actualiza después de cada partido internacional desde 1872 y refleja la forma reciente de forma más fiel que el ranking FIFA. Bélgica fue #1 del FIFA años sin grandes títulos; el ELO nunca la puso ahí.
+          Usamos los ratings de <strong>eloratings.net</strong>, no el ranking FIFA. El ELO es un sistema recursivo que se actualiza después de cada partido internacional desde 1872 y refleja la forma reciente de forma más fiel que el ranking FIFA.
         </div>
         <div class="metodo-formula">We = 1 / (10^(−dr / 400) + 1)</div>
         <div class="metodo-formula-label">dr = diferencia ELO + 100 si juega de local (USA, México, Canadá en grupos)</div>
@@ -542,7 +697,7 @@ header {
         <div class="metodo-card-num">02</div>
         <div class="metodo-card-title">Modelo de Goles (Poisson)</div>
         <div class="metodo-card-body">
-          Los goles de cada equipo se sortean de una distribución Poisson independiente. El parámetro λ depende del gap de ELO entre equipos. Si tu equipo tiene 200 puntos más de ELO, esperás ~0.36 goles más.
+          Los goles de cada equipo se sortean de una distribución Poisson independiente. El parámetro λ depende del gap de ELO entre equipos.
         </div>
         <div class="metodo-formula">λ = clamp(1.30 + 0.18 × (ELO_a − ELO_b + bonus) / 100, 0.15, 6.0)</div>
         <div class="metodo-formula-label">BASE = 1.30 · ALPHA = 0.18 · clamp a [0.15, 6.0]</div>
@@ -550,29 +705,29 @@ header {
 
       <div class="metodo-card">
         <div class="metodo-card-num">03</div>
-        <div class="metodo-card-title">Ajuste de Forma Reciente</div>
+        <div class="metodo-card-title">Modificadores contextuales</div>
         <div class="metodo-card-body">
-          El ELO base se actualiza lento (K=20). Para captar saltos de nivel del último año sumamos un ajuste proporcional al delta de 12 meses, capeado a ±150. Calibrado sobre los Mundiales 2014/18/22: el óptimo fue α=0.20 con lookback de 1 año (+1.6pp accuracy).
+          Tres ajustes opcionales sobre el ELO efectivo: <strong>tarjetas acumuladas</strong> (−50 ELO al equipo con baja), <strong>fatiga post-prórroga</strong> (−40 ELO, auto-detectado desde backend), <strong>clima/sede</strong> (−8–12% en λ al equipo más perjudicado).
         </div>
-        <div class="metodo-formula">ELO_eff = ELO + clamp(0.20 × (ELO − ELO_hace_1_año), ±150)</div>
-        <div class="metodo-formula-label">Sweep sobre 192 partidos · α=0.20 · lookback=1y</div>
+        <div class="metodo-formula">ELO_eff = ELO_base + penalidad_ausencias + penalidad_tarjetas + penalidad_fatiga</div>
+        <div class="metodo-formula-label">λ_eff = λ_poisson × modificador_clima</div>
       </div>
 
       <div class="metodo-card">
         <div class="metodo-card-num">04</div>
         <div class="metodo-card-title">Ventaja de Local</div>
         <div class="metodo-card-body">
-          USA, México y Canadá juegan en casa en la fase de grupos. Les sumamos +100 ELO en esos partidos (orden de magnitud documentado en la literatura). El sweep sobre 28 partidos de host en Mundiales 2014/18/22 no encontró evidencia clara de que +100 mejore o empeore las predicciones — los 3 hosts eran o ya-favoritos o demasiado débiles.
+          USA, México y Canadá juegan en casa en la fase de grupos. Les sumamos +100 ELO en esos partidos. El sweep sobre 28 partidos de host en Mundiales 2014/18/22 no encontró evidencia clara de mejora, pero se mantiene por respeto a la literatura.
         </div>
         <div class="metodo-formula">ELO_local += 100 (fase de grupos · solo sedes)</div>
-        <div class="metodo-formula-label">Mantenido por respeto a la literatura hasta tener más datos</div>
+        <div class="metodo-formula-label">Mantenido hasta tener más datos</div>
       </div>
 
       <div class="metodo-card">
         <div class="metodo-card-num">05</div>
         <div class="metodo-card-title">Modelo de Penales</div>
         <div class="metodo-card-body">
-          En eliminatorias, los empates se resuelven con un modelo Bayesiano con shrinkage sobre 103 shoot-outs históricos. El prior es 50% (k=10). Con n=13 shoot-outs en el backtest obtuvimos 53.8% de accuracy vs 50% baseline — no significativo estadísticamente pero filosóficamente más correcto que una moneda al aire.
+          En eliminatorias, los empates se resuelven con un modelo Bayesiano con shrinkage sobre 103 shoot-outs históricos. El prior es 50% (k=10).
         </div>
         <div class="metodo-formula">rate(team) = (wins + 10 × 0.5) / (n + 10)</div>
         <div class="metodo-formula-label">P(A gana PK) = rate(A) / (rate(A) + rate(B))</div>
@@ -582,7 +737,7 @@ header {
         <div class="metodo-card-num">06</div>
         <div class="metodo-card-title">Monte Carlo</div>
         <div class="metodo-card-body">
-          Corremos N torneos completos independientes (1k a 100k). Cada torneo simula fase de grupos completa, clasifica a 32 equipos (24 primeros + 8 mejores terceros), y corre el bracket de eliminación. Las probabilidades son frecuencias relativas de N simulaciones.
+          Corremos N torneos completos independientes (1k a 100k). Cada torneo simula fase de grupos completa, clasifica 32 equipos y corre el bracket de eliminación. Las probabilidades son frecuencias relativas.
         </div>
         <div class="metodo-formula">P(campeón) = torneos_ganados / N</div>
         <div class="metodo-formula-label">IC 95% con score de Wilson · con 10k sims: ±0.7pp</div>
@@ -603,7 +758,7 @@ header {
           <div class="metodo-metric-label">LOG LOSS</div>
           <div class="metodo-metric-sub">menor = mejor · random 1.099</div>
         </div>
-        <div class="metodo-metric-card accent2">
+        <div class="metodo-metric-card">
           <div class="metodo-metric-val" style="color:var(--accent2)">56.3%</div>
           <div class="metodo-metric-label">ACCURACY TOP-1</div>
           <div class="metodo-metric-sub">192 partidos · random 33%</div>
@@ -629,7 +784,7 @@ header {
             <tr><td>Final</td><td>3</td><td>0.679</td><td>1.132</td><td class="bad">33.3%</td></tr>
           </tbody>
         </table>
-        <div class="metodo-note">El modelo es más sólido en fase de grupos (más muestras, ELO gap más decisivo) y se degrada en KO tardío donde los rivales tienen ELO parecido y la varianza Poisson domina.</div>
+        <div class="metodo-note">El modelo es más sólido en fase de grupos y se degrada en KO tardío donde los rivales tienen ELO parecido y la varianza Poisson domina.</div>
       </div>
     </div>
 
@@ -638,13 +793,13 @@ header {
       <div class="metodo-no-grid">
         <div class="metodo-no-item">❌ Cambios de DT</div>
         <div class="metodo-no-item">❌ Forma del día</div>
-        <div class="metodo-no-item">❌ Lesiones / ausencias</div>
-        <div class="metodo-no-item">❌ Tarjetas acumuladas</div>
-        <div class="metodo-no-item">❌ Fatiga post-prórroga</div>
-        <div class="metodo-no-item">❌ Clima / sede específica</div>
+        <div class="metodo-no-item modelado">✓ Lesiones / ausencias</div>
+        <div class="metodo-no-item modelado">✓ Tarjetas acumuladas</div>
+        <div class="metodo-no-item modelado">✓ Fatiga post-prórroga</div>
+        <div class="metodo-no-item modelado">✓ Clima / sede específica</div>
       </div>
       <div class="metodo-note" style="margin-top:16px">
-        Deliberadamente NO tunemos el modelo para "arreglar" resultados raros — si el modelo dice algo absurdo es información, no un bug. Los batacazos (Argentina vs Arabia Saudita, Camerún vs Brasil) son parte del juego.
+        Los modificadores contextuales son ajustes manuales/híbridos — no están calibrados sobre datos históricos suficientes. Se usan como "override informado", no como parte del modelo core.
       </div>
     </div>
 
@@ -658,13 +813,23 @@ header {
 <script>
 const API = 'https://scoutbet.onrender.com';
 
-// ── DATOS GLOBALES ──────────────────────────────
+// ── GLOBALS ──────────────────────────────────────
 let eloData = {};
 let fixtures = [];
 let simResults = null;
-let ausenciasData = {}; // penalizaciones por ausencias
+let ausenciasData = {};
+let fatigaData = {};
+// Estructura esperada de fatigaData:
+// { "Argentina": { extraTime: true, round: "R16", opponent: "Australia" }, ... }
 
-// ELO histórico de penales (victorias, n_total)
+// ── MODIFICADORES STATE ──────────────────────────
+let modifiers = {
+  tarjetas: { active: false, target: null },           // target: 'home' | 'away' | 'both'
+  fatiga:   { active: false, target: null, auto: false }, // auto: detectado por backend
+  clima:    { active: false, type: null }              // type: 'heat' | 'altitude' | 'cold'
+};
+
+// ── PENALTY DATA ─────────────────────────────────
 const PENALTY_DATA = {
   "Argentina": {w:8,n:13}, "Alemania": {w:6,n:9}, "Alemania Occ.": {w:4,n:6},
   "Brasil": {w:5,n:9}, "Francia": {w:4,n:7}, "Portugal": {w:3,n:5},
@@ -675,7 +840,6 @@ const PENALTY_DATA = {
   "Ghana": {w:0,n:1}, "Costa Rica": {w:1,n:2},
 };
 
-// Flags por nombre de selección
 const FLAGS = {
   "Argentina":"🇦🇷","Brazil":"🇧🇷","France":"🇫🇷","England":"🏴󠁧󠁢󠁥󠁮󠁧󠁿",
   "Spain":"🇪🇸","Germany":"🇩🇪","Portugal":"🇵🇹","Netherlands":"🇳🇱",
@@ -700,12 +864,8 @@ const FLAGS = {
   "Uganda":"🇺🇬","Cape Verde Islands":"🇨🇻",
 };
 
-function getFlag(name) {
-  return FLAGS[name] || "🏳";
-}
+function getFlag(name) { return FLAGS[name] || "🏳"; }
 
-// ── ELO LOOKUP ──────────────────────────────────
-// ELO ratings hardcodeados (eloratings.net, mayo 2026)
 const ELO_RATINGS = {
   "Spain": 2105, "Argentina": 2092, "France": 2058, "England": 2025,
   "Brazil": 2014, "Portugal": 1995, "Netherlands": 1982, "Germany": 1971,
@@ -722,10 +882,10 @@ const ELO_RATINGS = {
   "Peru": 1612, "New Zealand": 1498, "Haiti": 1441, "Scotland": 1721,
   "Bosnia-Herzegovina": 1645, "Qatar": 1468, "Curaçao": 1432,
   "Cape Verde Islands": 1521, "Iraq": 1538, "Jordan": 1485,
-  "Uzbekistan": 1512, "Congo DR": 1495, "Ghana": 1558, "Croatia": 1891,
-  "Georgia": 1588, "Slovakia": 1621, "Romania": 1598, "Albania": 1542,
-  "Finland": 1574, "Greece": 1561, "Slovenia": 1595, "Czech Republic": 1632,
-  "Czechia": 1632,
+  "Uzbekistan": 1512, "Congo DR": 1495, "Georgia": 1588,
+  "Slovakia": 1621, "Romania": 1598, "Albania": 1542,
+  "Finland": 1574, "Greece": 1561, "Slovenia": 1595,
+  "Czech Republic": 1632, "Czechia": 1632,
 };
 
 const ELO_RANK = Object.entries(ELO_RATINGS)
@@ -748,10 +908,7 @@ function getElo(name) {
   return base;
 }
 
-function getAusencias(name) {
-  return ausenciasData[name] || null;
-}
-
+function getAusencias(name) { return ausenciasData[name] || null; }
 function getRank(name) {
   if (ELO_RANK[name]) return ELO_RANK[name];
   for (const [k,v] of Object.entries(ELO_RANK)) {
@@ -761,38 +918,35 @@ function getRank(name) {
   return 50;
 }
 
-
-// ── INIT ────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────
 async function init() {
   setProgress(10);
   setText("CARGANDO ELO RATINGS...");
-  
   try {
-    const [r1, r2] = await Promise.all([
+    const [r1, r2, r3] = await Promise.all([
       fetch(`${API}/wc_data`),
-      fetch(`${API}/wc_ausencias`)
+      fetch(`${API}/wc_ausencias`),
+      fetch(`${API}/wc_fatiga`).catch(() => ({ json: () => ({}) }))
     ]);
     const data = await r1.json();
     ausenciasData = await r2.json();
+    fatigaData = await r3.json();
     eloData = data.elo || {};
     fixtures = data.fixtures || [];
-    
+
     setProgress(60);
     setText("PROCESANDO GRUPOS...");
-    
+
     document.getElementById('status-dot').className = 'ok';
     document.getElementById('stat-fixtures-h').textContent = fixtures.length;
     document.getElementById('stat-elo-h').textContent = Object.keys(ELO_RATINGS).length;
-    
+
     buildGroups();
     buildMatchSelect();
     buildPenaltyGrid();
-    
+
     setProgress(100);
-    setTimeout(() => {
-      document.getElementById('loading').classList.add('hidden');
-    }, 300);
-    
+    setTimeout(() => document.getElementById('loading').classList.add('hidden'), 300);
   } catch(e) {
     setText("ERROR: " + e.message);
   }
@@ -801,7 +955,7 @@ async function init() {
 function setProgress(p) { document.getElementById('progress-fill').style.width = p + '%'; }
 function setText(t) { document.getElementById('loading-text').textContent = t; }
 
-// ── MODELO ELO ──────────────────────────────────
+// ── MODELO ELO ───────────────────────────────────
 function eloWinProb(eloA, eloB, homeBonus = 0) {
   const dr = eloA - eloB + homeBonus;
   return 1 / (Math.pow(10, -dr / 400) + 1);
@@ -819,16 +973,15 @@ function poissonProb(lambda, k) {
 }
 
 function samplePoisson(lambda) {
-  // Knuth algorithm
   const L = Math.exp(-lambda);
   let k = 0, p = 1;
   do { k++; p *= Math.random(); } while (p > L);
   return k - 1;
 }
 
-function matchProbs(eloA, eloB, homeBonus = 0) {
-  const la = poissonLambda(eloA, eloB, homeBonus);
-  const lb = poissonLambda(eloB, eloA);
+function matchProbs(eloA, eloB, homeBonus = 0, lModA = 1.0, lModB = 1.0) {
+  const la = poissonLambda(eloA, eloB, homeBonus) * lModA;
+  const lb = poissonLambda(eloB, eloA) * lModB;
   let pWin = 0, pDraw = 0, pLoss = 0;
   const maxG = 10;
   for (let i = 0; i <= maxG; i++) {
@@ -844,18 +997,196 @@ function matchProbs(eloA, eloB, homeBonus = 0) {
 
 function goalDist(lambda) {
   const dist = [];
-  for (let k = 0; k <= 6; k++) {
-    dist.push({ goals: k, prob: poissonProb(lambda, k) });
-  }
+  for (let k = 0; k <= 6; k++) dist.push({ goals: k, prob: poissonProb(lambda, k) });
   return dist;
 }
 
-// ── GRUPOS ──────────────────────────────────────
+// ── MODIFIER LOGIC ───────────────────────────────
+
+/**
+ * Calcula los ajustes de ELO y lambda según los modificadores activos.
+ * @returns { eloModH, eloModA, lModH, lModA, chips[] }
+ */
+function computeModifierEffects(homeTeam, awayTeam, eloHBase, eloABase) {
+  let eloModH = 0, eloModA = 0;
+  let lModH = 1.0, lModA = 1.0;
+  const chips = [];
+
+  // Tarjetas
+  if (modifiers.tarjetas.active && modifiers.tarjetas.target) {
+    const pen = modifiers.tarjetas.target === 'both' ? -30 : -50;
+    if (modifiers.tarjetas.target === 'home' || modifiers.tarjetas.target === 'both') {
+      eloModH += pen;
+      chips.push({ label: `🟨 ${homeTeam} ${pen} ELO (tarjetas)`, cls: 'elo-pen' });
+    }
+    if (modifiers.tarjetas.target === 'away' || modifiers.tarjetas.target === 'both') {
+      eloModA += pen;
+      chips.push({ label: `🟨 ${awayTeam} ${pen} ELO (tarjetas)`, cls: 'elo-pen' });
+    }
+  }
+
+  // Fatiga
+  if (modifiers.fatiga.active && modifiers.fatiga.target) {
+    const pen = -40;
+    if (modifiers.fatiga.target === 'home' || modifiers.fatiga.target === 'both') {
+      eloModH += pen;
+      chips.push({ label: `⚡ ${homeTeam} −40 ELO (fatiga)${modifiers.fatiga.auto ? ' AUTO' : ''}`, cls: modifiers.fatiga.auto ? 'auto' : 'elo-pen' });
+    }
+    if (modifiers.fatiga.target === 'away' || modifiers.fatiga.target === 'both') {
+      eloModA += pen;
+      chips.push({ label: `⚡ ${awayTeam} −40 ELO (fatiga)${modifiers.fatiga.auto ? ' AUTO' : ''}`, cls: modifiers.fatiga.auto ? 'auto' : 'elo-pen' });
+    }
+  }
+
+  // Clima
+  if (modifiers.clima.active && modifiers.clima.type) {
+    const higherEloIsHome = eloHBase >= eloABase;
+    if (modifiers.clima.type === 'heat') {
+      // Calor extremo penaliza al equipo de mayor ELO (suele ser europeo / adaptado al frío)
+      if (higherEloIsHome) { lModH = 0.88; chips.push({ label: `🔥 ${homeTeam} λ ×0.88 (calor)`, cls: 'lambda-pen' }); }
+      else { lModA = 0.88; chips.push({ label: `🔥 ${awayTeam} λ ×0.88 (calor)`, cls: 'lambda-pen' }); }
+    } else if (modifiers.clima.type === 'altitude') {
+      if (higherEloIsHome) { lModH = 0.90; chips.push({ label: `⛰ ${homeTeam} λ ×0.90 (altitud)`, cls: 'lambda-pen' }); }
+      else { lModA = 0.90; chips.push({ label: `⛰ ${awayTeam} λ ×0.90 (altitud)`, cls: 'lambda-pen' }); }
+    } else if (modifiers.clima.type === 'cold') {
+      // Frío penaliza al equipo de menor ELO (suelen ser equipos de zonas cálidas)
+      if (!higherEloIsHome) { lModH = 0.92; chips.push({ label: `❄ ${homeTeam} λ ×0.92 (frío)`, cls: 'lambda-pen' }); }
+      else { lModA = 0.92; chips.push({ label: `❄ ${awayTeam} λ ×0.92 (frío)`, cls: 'lambda-pen' }); }
+    }
+  }
+
+  return { eloModH, eloModA, lModH, lModA, chips };
+}
+
+function toggleModifier(name) {
+  const nowActive = !modifiers[name].active;
+  modifiers[name].active = nowActive;
+
+  const el = document.getElementById('mod-' + name);
+  const ind = el.querySelector('.modifier-indicator');
+
+  if (name === 'fatiga' && modifiers.fatiga.auto && !nowActive) {
+    // Si era auto-detected, al desactivar limpiamos el auto
+    modifiers.fatiga.auto = false;
+    modifiers.fatiga.target = null;
+  }
+
+  const isAuto = (name === 'fatiga' && modifiers.fatiga.auto && nowActive);
+  el.classList.toggle('active', nowActive && !isAuto);
+  el.classList.toggle('auto-active', isAuto);
+  ind.textContent = nowActive ? '✓' : '✕';
+
+  // Sub-opciones
+  if (name === 'tarjetas') {
+    const so = document.getElementById('subopts-tarjetas');
+    so.classList.toggle('visible', nowActive);
+    if (!nowActive) { modifiers.tarjetas.target = null; resetSuboptBtns('tarj'); }
+  }
+  if (name === 'fatiga') {
+    const so = document.getElementById('subopts-fatiga');
+    // Solo mostrar sub-opts manuales si NO es auto-detected
+    so.classList.toggle('visible', nowActive && !modifiers.fatiga.auto);
+    if (!nowActive) { modifiers.fatiga.target = null; resetSuboptBtns('fatiga'); }
+  }
+  if (name === 'clima') {
+    const so = document.getElementById('subopts-clima');
+    so.classList.toggle('visible', nowActive);
+    if (!nowActive) { modifiers.clima.type = null; resetSuboptBtns('clima'); }
+  }
+
+  analyzeMatch();
+}
+
+function resetSuboptBtns(prefix) {
+  document.querySelectorAll(`[id^="${prefix}-"].subopt-btn`).forEach(b => b.classList.remove('selected'));
+}
+
+function setTarjetasTarget(target) {
+  modifiers.tarjetas.target = target;
+  resetSuboptBtns('tarj');
+  document.getElementById('tarj-' + target).classList.add('selected');
+  updateModifierStatus('tarjetas');
+  analyzeMatch();
+}
+
+function setFatigaTarget(target) {
+  modifiers.fatiga.target = target;
+  resetSuboptBtns('fatiga');
+  document.getElementById('fatiga-' + target).classList.add('selected');
+  updateModifierStatus('fatiga');
+  analyzeMatch();
+}
+
+function setClima(type) {
+  modifiers.clima.type = type;
+  resetSuboptBtns('clima');
+  document.getElementById('clima-' + type).classList.add('selected');
+  updateModifierStatus('clima');
+  analyzeMatch();
+}
+
+function updateModifierStatus(name) {
+  const el = document.getElementById('mod-' + name + '-status');
+  if (name === 'tarjetas') {
+    if (!modifiers.tarjetas.active) { el.textContent = 'Inactivo'; return; }
+    const labels = { home: 'Local −50 ELO', away: 'Visitante −50 ELO', both: 'Ambos −30 ELO c/u' };
+    el.textContent = modifiers.tarjetas.target ? labels[modifiers.tarjetas.target] : 'Seleccioná quién tiene bajas';
+  }
+  if (name === 'clima') {
+    if (!modifiers.clima.active) { el.textContent = 'Inactivo'; return; }
+    const labels = { heat: 'Calor — λ ×0.88 top-ELO', altitude: 'Altitud — λ ×0.90 top-ELO', cold: 'Frío — λ ×0.92 low-ELO' };
+    el.textContent = modifiers.clima.type ? labels[modifiers.clima.type] : 'Seleccioná condición';
+  }
+}
+
+/**
+ * Auto-detecta fatiga para un partido de eliminatoria.
+ * Necesita que fatigaData esté cargado desde /wc_fatiga.
+ */
+function autoDetectFatiga(homeTeam, awayTeam) {
+  const fatigaH = fatigaData[homeTeam];
+  const fatigaA = fatigaData[awayTeam];
+
+  const hTired = fatigaH?.extraTime === true;
+  const aTired = fatigaA?.extraTime === true;
+
+  if (!hTired && !aTired) {
+    // No hay fatiga detectada
+    if (modifiers.fatiga.auto) {
+      // Limpiar detección previa
+      modifiers.fatiga.active = false;
+      modifiers.fatiga.auto = false;
+      modifiers.fatiga.target = null;
+      const el = document.getElementById('mod-fatiga');
+      el.classList.remove('active', 'auto-active');
+      el.querySelector('.modifier-indicator').textContent = '✕';
+      document.getElementById('subopts-fatiga').classList.remove('visible');
+    }
+    document.getElementById('mod-fatiga-status').textContent = 'Sin prórroga detectada — toggle manual';
+    return;
+  }
+
+  // Hay fatiga detectada
+  let target = hTired && aTired ? 'both' : hTired ? 'home' : 'away';
+  modifiers.fatiga.active = true;
+  modifiers.fatiga.auto = true;
+  modifiers.fatiga.target = target;
+
+  const el = document.getElementById('mod-fatiga');
+  el.classList.remove('active');
+  el.classList.add('auto-active');
+  el.querySelector('.modifier-indicator').textContent = '✓';
+  document.getElementById('subopts-fatiga').classList.remove('visible'); // sin sub-opts si es auto
+
+  const targetNames = { home: homeTeam, away: awayTeam, both: 'Ambos' };
+  const roundInfo = fatigaH?.round || fatigaA?.round || '';
+  document.getElementById('mod-fatiga-status').innerHTML =
+    `${targetNames[target]} jugó prórroga (${roundInfo}) <span class="auto-badge">AUTO</span>`;
+}
+
+// ── GRUPOS ───────────────────────────────────────
 function buildGroups() {
-  // Extraer grupos únicos de fixtures
   const groups = {};
-  const teams = {};
-  
   fixtures.forEach(f => {
     if (f.group && f.home && f.away) {
       if (!groups[f.group]) groups[f.group] = new Set();
@@ -865,20 +1196,17 @@ function buildGroups() {
   });
 
   const html_parts = [];
-  const sortedGroups = Object.keys(groups).sort();
-  
-  sortedGroups.forEach(group => {
+  Object.keys(groups).sort().forEach(group => {
     const teamList = Array.from(groups[group]);
     teamList.sort((a, b) => getElo(b) - getElo(a));
-    
+
     let html = `<div class="group-card">
       <div class="group-header">
         <span>${group.replace('GROUP_', 'GRUPO ')}</span>
         <span class="group-header-badge">${teamList.length} EQ</span>
       </div>`;
-    
+
     teamList.forEach(team => {
-      const eloBase = getEloBase(team);
       const elo = getElo(team);
       const rank = getRank(team);
       const flag = getFlag(team);
@@ -892,17 +1220,16 @@ function buildGroups() {
         <span class="team-rank">#${rank}</span>
       </div>`;
     });
-    
+
     html += `</div>`;
     html_parts.push(html);
   });
-  
+
   document.getElementById('groups-grid').innerHTML = html_parts.join('');
 }
 
 function selectTeamMatch(team) {
-  switchTab('analisis');
-  // Pre-seleccionar el primer partido del equipo
+  switchTab('analisis', { target: document.querySelector('.nav-tab:nth-child(3)') });
   const sel = document.getElementById('match-select');
   for (let opt of sel.options) {
     if (opt.text.includes(team)) {
@@ -913,11 +1240,9 @@ function selectTeamMatch(team) {
   }
 }
 
-// ── MATCH SELECT ────────────────────────────────
+// ── MATCH SELECT ─────────────────────────────────
 function buildMatchSelect() {
   const sel = document.getElementById('match-select');
-  
-  // Agrupar por fase
   const byStage = {};
   fixtures.forEach((f, i) => {
     if (!f.home || !f.away) return;
@@ -925,7 +1250,6 @@ function buildMatchSelect() {
     if (!byStage[stage]) byStage[stage] = [];
     byStage[stage].push({...f, idx: i});
   });
-  
   Object.keys(byStage).sort().forEach(stage => {
     const og = document.createElement('optgroup');
     og.label = stage;
@@ -943,23 +1267,51 @@ function buildMatchSelect() {
 function analyzeMatch() {
   const idx = document.getElementById('match-select').value;
   if (idx === '') return;
-  
   const f = fixtures[parseInt(idx)];
   if (!f) return;
-  
+
+  // Mostrar sección de modificadores
+  document.getElementById('modifiers-section').style.display = 'block';
+
+  // Auto-detect fatiga (solo fase eliminatoria)
+  if (!f.group) {
+    autoDetectFatiga(f.home, f.away);
+  } else {
+    // Fase de grupos: no aplica fatiga
+    document.getElementById('mod-fatiga-status').textContent = 'N/A — fase de grupos';
+    document.getElementById('mod-fatiga').classList.add('inactive-dimmed');
+    if (modifiers.fatiga.auto) {
+      modifiers.fatiga.active = false;
+      modifiers.fatiga.auto = false;
+      modifiers.fatiga.target = null;
+      const el = document.getElementById('mod-fatiga');
+      el.classList.remove('active', 'auto-active');
+      el.querySelector('.modifier-indicator').textContent = '✕';
+    }
+  }
+
+  // Actualizar estado textual de los otros modifiers
+  updateModifierStatus('tarjetas');
+  updateModifierStatus('clima');
+
   const homeBonus = parseInt(document.getElementById('home-bonus-select').value);
-  const eloH = getElo(f.home);
-  const eloA = getElo(f.away);
+  const eloHBase = getElo(f.home);
+  const eloABase = getElo(f.away);
+
+  // Calcular efectos de modificadores
+  const { eloModH, eloModA, lModH, lModA, chips } = computeModifierEffects(f.home, f.away, eloHBase, eloABase);
+
+  const eloH = eloHBase + eloModH;
+  const eloA = eloABase + eloModA;
   const rankH = getRank(f.home);
   const rankA = getRank(f.away);
   const flagH = getFlag(f.home);
   const flagA = getFlag(f.away);
-  
-  const probs = matchProbs(eloH, eloA, homeBonus);
+
+  const probs = matchProbs(eloH, eloA, homeBonus, lModH, lModA);
   const distH = goalDist(probs.lambdaA);
   const distA = goalDist(probs.lambdaB);
-  
-  // Score más probable
+
   let bestScore = {hg: 0, ag: 0, p: 0};
   for (let i = 0; i <= 5; i++) {
     for (let j = 0; j <= 5; j++) {
@@ -968,11 +1320,12 @@ function analyzeMatch() {
     }
   }
 
-  // Mercados
   const pWin = Math.round(probs.pWin * 100);
   const pDraw = Math.round(probs.pDraw * 100);
   const pLoss = Math.round(probs.pLoss * 100);
-  const pOver = 1 - poissonProb(probs.lambdaA + probs.lambdaB, 0) - poissonProb(probs.lambdaA + probs.lambdaB, 1) - poissonProb(probs.lambdaA + probs.lambdaB, 2);
+  const pOver = 1 - poissonProb(probs.lambdaA + probs.lambdaB, 0)
+                  - poissonProb(probs.lambdaA + probs.lambdaB, 1)
+                  - poissonProb(probs.lambdaA + probs.lambdaB, 2);
   const pBTTS = (1 - poissonProb(probs.lambdaA, 0)) * (1 - poissonProb(probs.lambdaB, 0));
   const pDC1X = probs.pWin + probs.pDraw;
   const pDCX2 = probs.pDraw + probs.pLoss;
@@ -990,29 +1343,43 @@ function analyzeMatch() {
   ].sort((a,b) => b.prob - a.prob);
 
   const maxDistProb = Math.max(...distH.map(d => d.prob), ...distA.map(d => d.prob));
-
   const ausH = getAusencias(f.home);
   const ausA = getAusencias(f.away);
+
+  // Chips de impacto de modificadores activos
+  const chipsHtml = chips.length ? `
+    <div class="mod-impact-row">
+      ${chips.map(c => `<div class="mod-impact-chip ${c.cls}">${c.label}</div>`).join('')}
+    </div>` : '';
+
+  // Mostrar ELO original vs efectivo si hay modificadores activos
+  const eloHDisplay = eloModH !== 0
+    ? `${eloH}<span style="color:var(--muted);font-size:11px"> (base ${eloHBase}${homeBonus > 0 ? `+${homeBonus}` : ''})</span>`
+    : `${eloH}${homeBonus > 0 ? ` +${homeBonus}` : ''}`;
+  const eloADisplay = eloModA !== 0
+    ? `${eloA}<span style="color:var(--muted);font-size:11px"> (base ${eloABase})</span>`
+    : `${eloA}`;
 
   let html = `
     <div class="analysis-card">
       <div class="analysis-title">ANÁLISIS ELO · ${f.fecha} · ${f.group || f.stage || ''}</div>
+      ${chipsHtml}
       <div class="vs-block">
         <div class="team-block">
           <span class="team-big-flag">${flagH}</span>
           <div class="team-big-name">${f.home}</div>
-          <div class="team-big-elo">ELO ${eloH}${homeBonus > 0 ? ` +${homeBonus}` : ''}${ausH ? ` <span style="color:var(--red);font-size:12px">(▼${ausH.penalty_total})</span>` : ''}</div>
+          <div class="team-big-elo">ELO ${eloHDisplay}${ausH ? ` <span style="color:var(--red);font-size:12px">(▼${ausH.penalty_total})</span>` : ''}</div>
           <div class="team-big-rank">#${rankH} mundial</div>
         </div>
         <div class="vs-sep">VS</div>
         <div class="team-block">
           <span class="team-big-flag">${flagA}</span>
           <div class="team-big-name">${f.away}</div>
-          <div class="team-big-elo">ELO ${eloA}${ausA ? ` <span style="color:var(--red);font-size:12px">(▼${ausA.penalty_total})</span>` : ''}</div>
+          <div class="team-big-elo">ELO ${eloADisplay}${ausA ? ` <span style="color:var(--red);font-size:12px">(▼${ausA.penalty_total})</span>` : ''}</div>
           <div class="team-big-rank">#${rankA} mundial</div>
         </div>
       </div>
-      
+
       <div class="prob-trio">
         <div class="prob-box home">
           <div class="prob-box-val home">${pWin}%</div>
@@ -1030,10 +1397,10 @@ function analyzeMatch() {
           <div class="prob-box-cuota">@${cuota(pLoss/100)}</div>
         </div>
       </div>
-      
+
       <div class="goals-meta">
-        λ LOCAL: <span class="highlight">${probs.lambdaA.toFixed(2)}</span> goles esperados &nbsp;·&nbsp; 
-        λ VISITANTE: <span class="highlight">${probs.lambdaB.toFixed(2)}</span> goles esperados &nbsp;·&nbsp;
+        λ LOCAL: <span class="highlight">${probs.lambdaA.toFixed(2)}</span> &nbsp;·&nbsp;
+        λ VISITANTE: <span class="highlight">${probs.lambdaB.toFixed(2)}</span> &nbsp;·&nbsp;
         Resultado más probable: <span class="highlight">${f.home} ${bestScore.hg}–${bestScore.ag} ${f.away} (${(bestScore.p*100).toFixed(1)}%)</span>
       </div>
 
@@ -1087,23 +1454,19 @@ function analyzeMatch() {
           </div>
         </div>`).join('')}
     </div>`;
-  
+
   document.getElementById('analysis-result').innerHTML = html;
 }
 
-// ── SIMULACIÓN MONTE CARLO ──────────────────────
+// ── SIMULACIÓN MONTE CARLO ────────────────────────
 async function runSimulation() {
   const N = parseInt(document.getElementById('n-sims').value);
   const btn = document.getElementById('sim-btn');
   btn.disabled = true;
   btn.textContent = '⏳ SIMULANDO...';
-  
   document.getElementById('sim-results').innerHTML = '<div class="empty"><div class="spinner" style="margin:0 auto"></div></div>';
-  
-  // Dar tiempo al browser para renderizar
   await new Promise(r => setTimeout(r, 50));
-  
-  // Extraer equipos únicos y sus grupos
+
   const groups = {};
   fixtures.forEach(f => {
     if (f.group && f.home && f.away) {
@@ -1112,14 +1475,12 @@ async function runSimulation() {
       groups[f.group].add(f.away);
     }
   });
-  
-  // Contar victorias por equipo
+
   const champion = {}, finalist = {}, semifinal = {}, quarterFinal = {}, r16 = {};
   const allTeams = new Set();
   Object.values(groups).forEach(g => g.forEach(t => allTeams.add(t)));
   allTeams.forEach(t => { champion[t] = 0; finalist[t] = 0; semifinal[t] = 0; quarterFinal[t] = 0; r16[t] = 0; });
 
-  // Xoshiro128** PRNG
   let s = [Date.now(), 1234567, 89101112, 13141516];
   function xoshiro() {
     const r = Math.imul(s[1] << 5 | s[1] >>> 27, 5);
@@ -1142,11 +1503,8 @@ async function runSimulation() {
     const lb = poissonLambda(eloB, eloA);
     let ga = simPoisson(la), gb = simPoisson(lb);
     if (knockout && ga === gb) {
-      // Extra time + penales
-      ga += simPoisson(la * 0.3);
-      gb += simPoisson(lb * 0.3);
+      ga += simPoisson(la * 0.3); gb += simPoisson(lb * 0.3);
       if (ga === gb) {
-        // Penales - modelo bayesiano
         const rateA = penaltyRate(teamA), rateB = penaltyRate(teamB);
         const pA = rateA / (rateA + rateB);
         return xoshiro() < pA ? { winner: teamA, loser: teamB } : { winner: teamB, loser: teamA };
@@ -1158,26 +1516,22 @@ async function runSimulation() {
   function simGroupStage(groupTeams, groupFixtures) {
     const pts = {}, gf = {}, ga = {};
     groupTeams.forEach(t => { pts[t] = 0; gf[t] = 0; ga[t] = 0; });
-    
     groupFixtures.forEach(f => {
-      const eloH = getElo(f.home), eloA = getElo(f.away);
-      const la = poissonLambda(eloH, eloA);
-      const lb = poissonLambda(eloA, eloH);
+      const eloH = getElo(f.home), eloA_ = getElo(f.away);
+      const la = poissonLambda(eloH, eloA_);
+      const lb = poissonLambda(eloA_, eloH);
       const gh = simPoisson(la), ga_ = simPoisson(lb);
       gf[f.home] += gh; ga[f.home] += ga_;
       gf[f.away] += ga_; ga[f.away] += gh;
-      if (gh > ga_) { pts[f.home] += 3; }
-      else if (gh < ga_) { pts[f.away] += 3; }
+      if (gh > ga_) pts[f.home] += 3;
+      else if (gh < ga_) pts[f.away] += 3;
       else { pts[f.home]++; pts[f.away]++; }
     });
-    
     return groupTeams.sort((a, b) => pts[b] - pts[a] || (gf[b]-ga[b]) - (gf[a]-ga[a]));
   }
 
   for (let sim = 0; sim < N; sim++) {
-    // Fase de grupos
-    const qualified = {}; // grupo -> [1ro, 2do, 3ro]
-    
+    const qualified = {};
     for (const [group, teamSet] of Object.entries(groups)) {
       const groupTeams = Array.from(teamSet);
       const groupFixtures = fixtures.filter(f => f.group === group && f.home && f.away);
@@ -1186,22 +1540,16 @@ async function runSimulation() {
       if (ranked[0]) r16[ranked[0]]++;
       if (ranked[1]) r16[ranked[1]]++;
     }
-    
-    // Simplificamos el bracket: tomamos los mejores clasificados
-    // En un Mundial de 48 equipos: 12 grupos, 2 pasan + 8 mejores 3ros = 32 equipos en R32
     let advancers = [];
     for (const group of Object.keys(qualified).sort()) {
       if (qualified[group][0]) advancers.push(qualified[group][0]);
       if (qualified[group][1]) advancers.push(qualified[group][1]);
     }
-    // Agregar mejores 8 terceros (simplificado: por ELO)
     const thirds = Object.values(qualified).map(g => g[2]).filter(Boolean);
     thirds.sort((a,b) => getElo(b) - getElo(a));
     advancers = advancers.concat(thirds.slice(0, 8));
-    
-    // Knockout rounds
+
     let round = [...advancers];
-    
     while (round.length > 1) {
       const next = [];
       for (let i = 0; i < round.length; i += 2) {
@@ -1209,17 +1557,15 @@ async function runSimulation() {
         const result = simMatch(round[i], round[i+1], 0, true);
         const winner = result.winner || (xoshiro() < 0.5 ? result.teamA : result.teamB);
         next.push(winner);
-        
-        if (round.length === 16) quarterFinal[round[i]]++, quarterFinal[round[i+1]]++;
-        if (round.length === 8) semifinal[round[i]]++, semifinal[round[i+1]]++;
-        if (round.length === 4) finalist[round[i]]++, finalist[round[i+1]]++;
+        if (round.length === 16) { quarterFinal[round[i]]++; quarterFinal[round[i+1]]++; }
+        if (round.length === 8) { semifinal[round[i]]++; semifinal[round[i+1]]++; }
+        if (round.length === 4) { finalist[round[i]]++; finalist[round[i+1]]++; }
       }
       round = next;
     }
     if (round[0]) champion[round[0]]++;
   }
-  
-  // Calcular Wilson IC
+
   const z = 1.96;
   function wilsonIC(p, n) {
     const center = (p + z*z/(2*n)) / (1 + z*z/n);
@@ -1227,73 +1573,53 @@ async function runSimulation() {
     return { lo: Math.max(0, center-half)*100, hi: Math.min(1, center+half)*100 };
   }
 
-  // Ordenar por probabilidad de campeón
   const results = Array.from(allTeams).map(team => ({
-    team,
-    champion: champion[team] / N,
-    finalist: finalist[team] / N,
-    semifinal: semifinal[team] / N,
-    quarterFinal: quarterFinal[team] / N,
-    r16: r16[team] / N,
-    elo: getElo(team),
-    ic: wilsonIC(champion[team] / N, N)
+    team, champion: champion[team] / N, finalist: finalist[team] / N,
+    semifinal: semifinal[team] / N, quarterFinal: quarterFinal[team] / N,
+    r16: r16[team] / N, elo: getElo(team), ic: wilsonIC(champion[team] / N, N)
   })).sort((a,b) => b.champion - a.champion);
 
   simResults = results;
   document.getElementById('stat-sims').textContent = N.toLocaleString();
-  
-  // IC info
+
   const topP = results[0]?.champion || 0.1;
   const ic = wilsonIC(topP, N);
   document.getElementById('ic-info').textContent = `IC 95%: ±${((ic.hi-ic.lo)/2).toFixed(2)}pp`;
-  
+
   renderSimResults(results, N);
-  
   btn.disabled = false;
   btn.textContent = '▶ SIMULAR TORNEO';
 }
 
 function penaltyRate(team) {
-  // Normalizar nombre
   const names = {
-    "Argentina":"Argentina","Germany":"Alemania","Brazil":"Brasil",
-    "France":"Francia","Portugal":"Portugal","Spain":"España",
-    "Italy":"Italia","Netherlands":"Países Bajos","England":"Inglaterra",
-    "Uruguay":"Uruguay","Croatia":"Croacia","Switzerland":"Suiza",
-    "Mexico":"México","Colombia":"Colombia","Chile":"Chile",
-    "Senegal":"Senegal","Japan":"Japón","Ghana":"Ghana","Costa Rica":"Costa Rica"
+    "Argentina":"Argentina","Germany":"Alemania","Brazil":"Brasil","France":"Francia",
+    "Portugal":"Portugal","Spain":"España","Italy":"Italia","Netherlands":"Países Bajos",
+    "England":"Inglaterra","Uruguay":"Uruguay","Croatia":"Croacia","Switzerland":"Suiza",
+    "Mexico":"México","Colombia":"Colombia","Chile":"Chile","Senegal":"Senegal",
+    "Japan":"Japón","Ghana":"Ghana","Costa Rica":"Costa Rica"
   };
   const key = names[team] || team;
   const d = PENALTY_DATA[key];
-  const k = 10; // prior strength
+  const k = 10;
   if (d) return (d.w + k * 0.5) / (d.n + k);
-  return 0.5; // default
+  return 0.5;
 }
 
 function renderSimResults(results, N) {
   const top20 = results.slice(0, 20);
   const maxChamp = top20[0]?.champion || 0.01;
-  
   let html = `
     <div class="section-title">PROBABILIDADES — ${N.toLocaleString()} SIMULACIONES</div>
     <table class="champion-table">
       <thead>
-        <tr>
-          <th>#</th>
-          <th>SELECCIÓN</th>
-          <th>ELO</th>
-          <th>CAMPEÓN</th>
-          <th>FINALISTA</th>
-          <th>SEMIFINAL</th>
-          <th>CUARTOS</th>
-        </tr>
+        <tr><th>#</th><th>SELECCIÓN</th><th>ELO</th><th>CAMPEÓN</th><th>FINALISTA</th><th>SEMIFINAL</th><th>CUARTOS</th></tr>
       </thead>
       <tbody>
         ${top20.map((r, i) => {
           const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
           const eloClass = r.elo >= 2000 ? 'elo-elite' : r.elo >= 1800 ? 'elo-high' : r.elo >= 1650 ? 'elo-mid' : 'elo-low';
-          return `
-          <tr>
+          return `<tr>
             <td><span class="rank-num ${rankClass}">${i+1}</span></td>
             <td><strong style="font-size:15px">${getFlag(r.team)} ${r.team}</strong></td>
             <td><span class="team-elo ${eloClass}" style="font-size:13px">${r.elo}</span></td>
@@ -1302,25 +1628,19 @@ function renderSimResults(results, N) {
               <div class="prob-bar"><div class="prob-fill" style="width:${r.champion/maxChamp*100}%"></div></div>
               <div class="ic-range">[${r.ic.lo.toFixed(1)}–${r.ic.hi.toFixed(1)}]</div>
             </td>
-            <td>
-              <span style="font-family:var(--mono);font-size:13px;color:var(--blue)">${(r.finalist*100).toFixed(1)}%</span>
-              <div class="prob-bar"><div class="prob-fill blue" style="width:${r.finalist/maxChamp*100}%"></div></div>
-            </td>
-            <td>
-              <span style="font-family:var(--mono);font-size:13px;color:var(--accent2)">${(r.semifinal*100).toFixed(1)}%</span>
-              <div class="prob-bar"><div class="prob-fill green" style="width:${r.semifinal/maxChamp*100}%"></div></div>
-            </td>
-            <td>
-              <span style="font-family:var(--mono);font-size:12px;color:var(--text2)">${(r.quarterFinal*100).toFixed(1)}%</span>
-            </td>
-          </tr>`}).join('')}
+            <td><span style="font-family:var(--mono);font-size:13px;color:var(--blue)">${(r.finalist*100).toFixed(1)}%</span>
+              <div class="prob-bar"><div class="prob-fill blue" style="width:${r.finalist/maxChamp*100}%"></div></div></td>
+            <td><span style="font-family:var(--mono);font-size:13px;color:var(--accent2)">${(r.semifinal*100).toFixed(1)}%</span>
+              <div class="prob-bar"><div class="prob-fill green" style="width:${r.semifinal/maxChamp*100}%"></div></div></td>
+            <td><span style="font-family:var(--mono);font-size:12px;color:var(--text2)">${(r.quarterFinal*100).toFixed(1)}%</span></td>
+          </tr>`;
+        }).join('')}
       </tbody>
     </table>`;
-  
   document.getElementById('sim-results').innerHTML = html;
 }
 
-// ── PENALES ──────────────────────────────────────
+// ── PENALES ───────────────────────────────────────
 function buildPenaltyGrid() {
   const penaltyFlags = {
     "Argentina":"🇦🇷","Alemania":"🇩🇪","Alemania Occ.":"🇩🇪","Brasil":"🇧🇷",
@@ -1345,15 +1665,15 @@ function buildPenaltyGrid() {
     </div>`).join('');
 }
 
-// ── TABS ─────────────────────────────────────────
-function switchTab(name) {
+// ── TABS ──────────────────────────────────────────
+function switchTab(name, evt) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  if (evt && evt.target) evt.target.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
 }
 
-// ── START ────────────────────────────────────────
+// ── START ─────────────────────────────────────────
 init();
 </script>
 </body>

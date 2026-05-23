@@ -428,25 +428,51 @@ function setProgress(p) { document.getElementById('progress-fill').style.width =
 function setText(t) { document.getElementById('loading-text').textContent = t; }
 
 // ── ELO LOOKUP ──────────────────────────────────
+// ELO ratings hardcodeados (eloratings.net, mayo 2026)
+const ELO_RATINGS = {
+  "Spain": 2105, "Argentina": 2092, "France": 2058, "England": 2025,
+  "Brazil": 2014, "Portugal": 1995, "Netherlands": 1982, "Germany": 1971,
+  "Belgium": 1934, "Italy": 1921, "Uruguay": 1905, "Croatia": 1891,
+  "Morocco": 1858, "United States": 1835, "Mexico": 1812, "Japan": 1803,
+  "Switzerland": 1792, "Senegal": 1781, "Colombia": 1773, "Ecuador": 1762,
+  "South Korea": 1748, "Serbia": 1731, "Turkey": 1718, "Denmark": 1742,
+  "Austria": 1695, "Australia": 1688, "Canada": 1675, "Poland": 1668,
+  "Ukraine": 1655, "Hungary": 1641, "Norway": 1648, "Sweden": 1652,
+  "Iran": 1628, "Saudi Arabia": 1612, "Ivory Coast": 1608, "Egypt": 1595,
+  "Algeria": 1582, "Tunisia": 1571, "Ghana": 1558, "Nigeria": 1545,
+  "Cameroon": 1532, "South Africa": 1518, "Venezuela": 1472, "Paraguay": 1481,
+  "Panama": 1489, "Costa Rica": 1501, "Bolivia": 1445, "Chile": 1658,
+  "Peru": 1612, "New Zealand": 1498, "Haiti": 1441, "Scotland": 1721,
+  "Bosnia-Herzegovina": 1645, "Qatar": 1468, "Curaçao": 1432,
+  "Cape Verde Islands": 1521, "Iraq": 1538, "Jordan": 1485,
+  "Uzbekistan": 1512, "Congo DR": 1495, "Ghana": 1558, "Croatia": 1891,
+  "Georgia": 1588, "Slovakia": 1621, "Romania": 1598, "Albania": 1542,
+  "Finland": 1574, "Greece": 1561, "Slovenia": 1595, "Czech Republic": 1632,
+  "Czechia": 1632,
+};
+
+const ELO_RANK = Object.entries(ELO_RATINGS)
+  .sort((a,b) => b[1]-a[1])
+  .reduce((acc,[k],i) => { acc[k] = i+1; return acc; }, {});
+
 function getElo(name) {
-  if (eloData[name]) return eloData[name].elo;
-  // Fuzzy match
-  for (const [k,v] of Object.entries(eloData)) {
-    if (k.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(k.toLowerCase())) {
-      return v.elo;
-    }
+  if (ELO_RATINGS[name]) return ELO_RATINGS[name];
+  // Fuzzy
+  for (const [k,v] of Object.entries(ELO_RATINGS)) {
+    if (k.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(k.toLowerCase())) return v;
   }
-  return 1500; // default
+  // From API data
+  if (eloData[name]) return eloData[name].elo;
+  return 1500;
 }
 
 function getRank(name) {
-  if (eloData[name]) return eloData[name].rank;
-  for (const [k,v] of Object.entries(eloData)) {
-    if (k.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(k.toLowerCase())) {
-      return v.rank;
-    }
+  if (ELO_RANK[name]) return ELO_RANK[name];
+  for (const [k,v] of Object.entries(ELO_RANK)) {
+    if (k.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(k.toLowerCase())) return v;
   }
-  return 99;
+  if (eloData[name]) return eloData[name].rank;
+  return 50;
 }
 
 // ── MODELO ELO ──────────────────────────────────

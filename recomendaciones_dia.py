@@ -2183,7 +2183,7 @@ def wc_data():
                         nombre = parts[1].strip()
                         elo = int(float(parts[2].strip()))
                         elo_data[nombre] = {"rank": rank, "elo": elo}
-                   except: pass
+                    except: pass
     except Exception as e:
         elo_data["error"] = str(e)
 

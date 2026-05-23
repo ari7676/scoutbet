@@ -2123,6 +2123,42 @@ def backfill(codigo):
     
     return jsonify({"procesados": procesados, "errores": errores, "total": len(pendientes)})
 
+@app.route("/test_apis")
+def test_apis():
+    resultados = {}
+    
+    # Test ESPN
+    try:
+        r = requests.get("https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard", timeout=10)
+        resultados["espn"] = {"status": r.status_code, "ok": r.ok}
+    except Exception as e:
+        resultados["espn"] = {"error": str(e)}
+    
+    # Test SofaScore
+    try:
+        r = requests.get("https://api.sofascore.com/api/v1/sport/football/events/live", 
+                        headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+        resultados["sofascore"] = {"status": r.status_code, "ok": r.ok}
+    except Exception as e:
+        resultados["sofascore"] = {"error": str(e)}
+    
+    # Test ELO ratings
+    try:
+        r = requests.get("https://www.eloratings.net/World.tsv", timeout=10)
+        resultados["eloratings"] = {"status": r.status_code, "ok": r.ok, "preview": r.text[:200]}
+    except Exception as e:
+        resultados["eloratings"] = {"error": str(e)}
+
+    # Test Transfermarkt
+    try:
+        r = requests.get("https://www.transfermarkt.com/", 
+                        headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+        resultados["transfermarkt"] = {"status": r.status_code, "ok": r.ok}
+    except Exception as e:
+        resultados["transfermarkt"] = {"error": str(e)}
+
+    return jsonify(resultados)
+
 @app.route("/clear_cache")
 def clear_cache():
     conn = sqlite3.connect(DB_PATH)

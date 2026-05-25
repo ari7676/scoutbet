@@ -353,6 +353,29 @@ def as_get(ep, params=None):
         return d
     except Exception as e: return {"error":str(e)}
 
+    ESPN_SLUGS = {
+    "PL": "eng.1", "PD": "esp.1", "SA": "ita.1",
+    "BL1": "ger.1", "FL1": "fra.1", "DED": "ned.1",
+    "PPL": "por.1", "ELC": "eng.2", "BSA": "bra.1",
+    "AARG": "arg.1", "CL": "uefa.champions",
+}
+ESPN_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer"
+
+def espn_get(slug, ep, params=None):
+    ck = f"espn:{slug}:{ep}:{params or ''}"
+    now = time.time()
+    if ck in _cache and now - _cache[ck][1] < 60: return _cache[ck][0]
+    try:
+        r = requests.get(f"{ESPN_URL}/{slug}/{ep}", params=params,
+                        headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+        if r.ok:
+            d = r.json()
+            _cache[ck] = (d, now)
+            return d
+        return {"error": r.status_code}
+    except Exception as e:
+        return {"error": str(e)}
+
 
 # PWA routes
 @app.route("/sw.js")
@@ -498,6 +521,10 @@ def analisis_avanzado(codigo, match_id):
             away_avg = _avg_stats_from_hl(a_hl_id, codigo)
 
     if not home_avg:
+        home_avg = _avg_stats_from_espn(hn, codigo)
+    if not away_avg:
+        away_avg = _avg_stats_from_espn(an, codigo)
+    if not home_avg:
         home_avg = _avg_stats_from_fd(home_id_fd, codigo, season)
     if not away_avg:
         away_avg = _avg_stats_from_fd(away_id_fd, codigo, season)
@@ -534,6 +561,44 @@ def _avg_stats_from_fd(team_id, liga_code, season):
 
         if not matches:
             return None
+        
+        def _avg_stats_from_espn(team_name, liga_code):
+    slug = ESPN_SLUGS.get(liga_code)
+    if not slug: return None
+    try:
+        teams_data = espn_get(slug, "teams")
+        if "error" in teams_data: return None
+        teams = teams_data.get("sports", [{}])[0].get("leagues", [{}])[0].get("teams", [])
+        team_id = None
+        clean = team_name.lower().replace(" fc","").replace(" cf","").strip()
+        for t in teams:
+            tn = t.get("team", {}).get("displayName", "").lower()
+            if clean in tn or tn in clean:
+                team_id = t.get("team", {}).get("id")
+                break
+        if not team_id: return None
+        stats_data = espn_get(slug, f"teams/{team_id}/statistics")
+        if "error" in stats_data: return None
+        splits = stats_data.get("results", {}).get("splits", {}).get("categories", [])
+        result = {}
+        for cat in splits:
+            for stat in cat.get("stats", []):
+                name = stat.get("name", "")
+                val = stat.get("value")
+                if name == "avgShotsPerGame": result["remates_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgShotsOnTargetPerGame": result["al_arco_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgCornersPerGame": result["corners_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgYellowCardsPerGame": result["tarjetas_amarillas_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgFoulsPerGame": result["faltas_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgPossessionPct": result["posesion_avg"] = round(float(val), 1) if val else "—"
+        if result:
+            result.setdefault("tarjetas_rojas_pj", "—")
+            result["source"] = "espn"
+            return result
+        return None
+    except Exception as e:
+        print(f"ESPN stats error: {e}")
+        return None
 
         shots_total = []; shots_on = []; corners = []; yellow = []; red = []
 
@@ -825,6 +890,32 @@ def partidos(codigo):
                 "comb_acertado": pred["comb_ok"] if pred else None,
                 "tiene_prediccion": pred is not None,
             })
+
+    # Enriquecer con scores en vivo de ESPN
+    slug = ESPN_SLUGS.get(codigo)
+    if slug:
+        try:
+            espn_data = espn_get(slug, "scoreboard")
+            espn_scores = {}
+            for ev in espn_data.get("events", []):
+                comp = ev.get("competitions", [{}])[0]
+                competitors = comp.get("competitors", [])
+                state = ev.get("status", {}).get("type", {}).get("state", "pre")
+                clock = ev.get("status", {}).get("displayClock", "")
+                home_c = next((c for c in competitors if c.get("homeAway") == "home"), {})
+                away_c = next((c for c in competitors if c.get("homeAway") == "away"), {})
+                hn_e = home_c.get("team", {}).get("displayName", "").lower()
+                an_e = away_c.get("team", {}).get("displayName", "").lower()
+                espn_scores[(hn_e, an_e)] = {
+                    "live_state": state,
+                    "live_clock": clock,
+                    "live_score": f"{home_c.get('score','0')}-{away_c.get('score','0')}" if state == "in" else None,
+                }
+            for m in matches:
+                key = (m["home"].lower(), m["away"].lower())
+                if key in espn_scores:
+                    m.update(espn_scores[key])
+        except: pass
 
     return jsonify({"response": matches, "total": len(matches)})
 
@@ -2159,6 +2250,42 @@ def wc_fatiga():
         # "Argentina": {"extraTime": True, "round": "Octavos", "opponent": "Ecuador"},
     }
     return jsonify(data)
+
+@app.route("/live_scores")
+def live_scores():
+    """Scores en vivo de todas las ligas vía ESPN."""
+    results = {}
+    for codigo, slug in ESPN_SLUGS.items():
+        try:
+            data = espn_get(slug, "scoreboard")
+            if "error" in data: continue
+            events = data.get("events", [])
+            liga_scores = []
+            for ev in events:
+                comp = ev.get("competitions", [{}])[0]
+                competitors = comp.get("competitors", [])
+                status = ev.get("status", {})
+                state = status.get("type", {}).get("state", "pre")  # pre, in, post
+                clock = status.get("displayClock", "")
+                period = status.get("period", 0)
+                home = next((c for c in competitors if c.get("homeAway") == "home"), {})
+                away = next((c for c in competitors if c.get("homeAway") == "away"), {})
+                liga_scores.append({
+                    "id": ev.get("id"),
+                    "home": home.get("team", {}).get("displayName", ""),
+                    "away": away.get("team", {}).get("displayName", ""),
+                    "home_score": home.get("score", "0"),
+                    "away_score": away.get("score", "0"),
+                    "state": state,
+                    "clock": clock,
+                    "period": period,
+                    "fecha": ev.get("date", "")[:10],
+                })
+            if liga_scores:
+                results[codigo] = liga_scores
+        except Exception as e:
+            results[codigo] = {"error": str(e)}
+    return jsonify(results)
 
 @app.route("/health")
 def health():

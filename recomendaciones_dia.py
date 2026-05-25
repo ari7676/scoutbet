@@ -2235,6 +2235,59 @@ def wc_data():
 @app.route("/wc_ausencias")
 def wc_ausencias():
     ausencias = {
+        "Brazil": {
+            "ausentes": [
+                {"nombre": "Rodrygo", "posicion": "Right Winger", "valor_m": 120, "criticidad": 0.65, "penalty_elo": -52},
+                {"nombre": "Éder Militão", "posicion": "Centre-Back", "valor_m": 50, "criticidad": 0.40, "penalty_elo": -35},
+                {"nombre": "Estêvão", "posicion": "Right Winger", "valor_m": 60, "criticidad": 0.42, "penalty_elo": -37},
+                {"nombre": "Neymar", "posicion": "Left Winger", "valor_m": 30, "criticidad": 0.16, "penalty_elo": -17},
+            ],
+            "penalty_total": -141
+        },
+        "Netherlands": {
+            "ausentes": [
+                {"nombre": "Xavi Simons", "posicion": "Attacking Midfield", "valor_m": 80, "criticidad": 0.58, "penalty_elo": -48},
+                {"nombre": "Matthijs de Ligt", "posicion": "Centre-Back", "valor_m": 35, "criticidad": 0.32, "penalty_elo": -29},
+            ],
+            "penalty_total": -77
+        },
+        "France": {
+            "ausentes": [
+                {"nombre": "Hugo Ekitiké", "posicion": "Centre-Forward", "valor_m": 60, "criticidad": 0.38, "penalty_elo": -33},
+                {"nombre": "Lucas Hernandez", "posicion": "Left-Back", "valor_m": 40, "criticidad": 0.28, "penalty_elo": -26},
+            ],
+            "penalty_total": -59
+        },
+        "Germany": {
+            "ausentes": [
+                {"nombre": "Serge Gnabry", "posicion": "Right Winger", "valor_m": 25, "criticidad": 0.28, "penalty_elo": -25},
+            ],
+            "penalty_total": -25
+        },
+        "Spain": {
+            "ausentes": [
+                {"nombre": "Fermín López", "posicion": "Central Midfield", "valor_m": 50, "criticidad": 0.38, "penalty_elo": -33},
+                {"nombre": "Samu Omorodion", "posicion": "Centre-Forward", "valor_m": 30, "criticidad": 0.22, "penalty_elo": -20},
+                {"nombre": "Pedri", "posicion": "Central Midfield", "valor_m": 100, "criticidad": 0.61, "penalty_elo": -51},
+                {"nombre": "Gavi", "posicion": "Central Midfield", "valor_m": 80, "criticidad": 0.49, "penalty_elo": -42},
+            ],
+            "penalty_total": -146
+        },
+        "England": {
+            "ausentes": [
+                {"nombre": "Ben White", "posicion": "Right-Back", "valor_m": 45, "criticidad": 0.30, "penalty_elo": -27},
+                {"nombre": "Reece James", "posicion": "Right-Back", "valor_m": 50, "criticidad": 0.35, "penalty_elo": -31},
+            ],
+            "penalty_total": -58
+        },
+        "Argentina": {
+            "ausentes": [
+                {"nombre": "Cristian Romero", "posicion": "Centre-Back", "valor_m": 65, "criticidad": 0.46, "penalty_elo": -40},
+                {"nombre": "Juan Foyth", "posicion": "Right-Back", "valor_m": 30, "criticidad": 0.25, "penalty_elo": -23},
+                {"nombre": "Nico Paz", "posicion": "Attacking Midfield", "valor_m": 40, "criticidad": 0.21, "penalty_elo": -21},
+            ],
+            "penalty_total": -84
+        },
         "Uruguay": {
             "ausentes": [
                 {"nombre": "Fede Valverde", "posicion": "Central Midfield", "valor_m": 120, "criticidad": 0.71, "penalty_elo": -58},
@@ -2242,44 +2295,24 @@ def wc_ausencias():
             ],
             "penalty_total": -96
         },
-        "Spain": {
-            "ausentes": [
-                {"nombre": "Pedri", "posicion": "Central Midfield", "valor_m": 100, "criticidad": 0.61, "penalty_elo": -51},
-                {"nombre": "Gavi", "posicion": "Central Midfield", "valor_m": 80, "criticidad": 0.49, "penalty_elo": -42},
-            ],
-            "penalty_total": -90
-        },
         "Ecuador": {
             "ausentes": [
                 {"nombre": "Piero Hincapié", "posicion": "Centre-Back", "valor_m": 45, "criticidad": 0.37, "penalty_elo": -33},
                 {"nombre": "Angelo Preciado", "posicion": "Right-Back", "valor_m": 15, "criticidad": 0.17, "penalty_elo": -18},
             ],
-            "penalty_total": -81
+            "penalty_total": -51
         },
-        "Argentina": {
+        "Mexico": {
             "ausentes": [
-                {"nombre": "Cristian Romero", "posicion": "Centre-Back", "valor_m": 65, "criticidad": 0.46, "penalty_elo": -40},
-                {"nombre": "Nico Paz", "posicion": "Attacking Midfield", "valor_m": 40, "criticidad": 0.21, "penalty_elo": -21},
+                {"nombre": "Luis Ángel Malagón", "posicion": "Goalkeeper", "valor_m": 15, "criticidad": 0.35, "penalty_elo": -30},
             ],
-            "penalty_total": -75
+            "penalty_total": -30
         },
-        "France": {
+        "United States": {
             "ausentes": [
-                {"nombre": "Lucas Hernandez", "posicion": "Left-Back", "valor_m": 40, "criticidad": 0.28, "penalty_elo": -26},
+                {"nombre": "Cameron Carter-Vickers", "posicion": "Centre-Back", "valor_m": 20, "criticidad": 0.25, "penalty_elo": -22},
             ],
-            "penalty_total": -26
-        },
-        "England": {
-            "ausentes": [
-                {"nombre": "Reece James", "posicion": "Right-Back", "valor_m": 50, "criticidad": 0.35, "penalty_elo": -31},
-            ],
-            "penalty_total": -31
-        },
-        "Brazil": {
-            "ausentes": [
-                {"nombre": "Neymar", "posicion": "Left Winger", "valor_m": 30, "criticidad": 0.16, "penalty_elo": -17},
-            ],
-            "penalty_total": -17
+            "penalty_total": -22
         },
     }
     return jsonify(ausencias)

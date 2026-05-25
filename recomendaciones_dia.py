@@ -562,7 +562,7 @@ def _avg_stats_from_fd(team_id, liga_code, season):
         if not matches:
             return None
         
-        def _avg_stats_from_espn(team_name, liga_code):
+def _avg_stats_from_espn(team_name, liga_code):
     slug = ESPN_SLUGS.get(liga_code)
     if not slug: return None
     try:

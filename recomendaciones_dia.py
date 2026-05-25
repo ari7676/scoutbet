@@ -561,13 +561,45 @@ def _avg_stats_from_fd(team_id, liga_code, season):
 
         if not matches:
             return None
+
+            shots_total = []; shots_on = []; corners = []; yellow = []; red = []
+
+        for m in matches:
+            sc = m.get("score", {}).get("fullTime", {})
+            hg = sc.get("home") or 0
+            ag = sc.get("away") or 0
+            is_home = m.get("homeTeam", {}).get("id") == team_id
+            team_g = hg if is_home else ag
+
+            shots_total.append(max(8, round(team_g * 5.5 + 7)))
+            shots_on.append(max(2, round(team_g * 2.5 + 2)))
+            corners.append(max(2, round(team_g * 1.8 + 3.5)))
+            yellow.append(round(1.8 + (0.3 if not is_home else 0)))
+            red.append(0.05)
+
+        def avg(lst): return round(sum(lst)/len(lst), 1) if lst else "—"
+
+        return {
+            "remates_pj": avg(shots_total),
+            "al_arco_pj": avg(shots_on),
+            "corners_pj": avg(corners),
+            "tarjetas_amarillas_pj": avg(yellow),
+            "tarjetas_rojas_pj": avg(red),
+            "posesion_avg": "—",
+            "faltas_pj": "—",
+            "source": "estimated"
+        }
+    except Exception as e:
+        return None
         
 def _avg_stats_from_espn(team_name, liga_code):
     slug = ESPN_SLUGS.get(liga_code)
-    if not slug: return None
+    if not slug: 
+        return None
     try:
         teams_data = espn_get(slug, "teams")
-        if "error" in teams_data: return None
+        if "error" in teams_data: 
+            return None
         teams = teams_data.get("sports", [{}])[0].get("leagues", [{}])[0].get("teams", [])
         team_id = None
         clean = team_name.lower().replace(" fc","").replace(" cf","").strip()
@@ -576,21 +608,29 @@ def _avg_stats_from_espn(team_name, liga_code):
             if clean in tn or tn in clean:
                 team_id = t.get("team", {}).get("id")
                 break
-        if not team_id: return None
+        if not team_id: 
+            return None
         stats_data = espn_get(slug, f"teams/{team_id}/statistics")
-        if "error" in stats_data: return None
+        if "error" in stats_data: 
+            return None
         splits = stats_data.get("results", {}).get("splits", {}).get("categories", [])
         result = {}
         for cat in splits:
             for stat in cat.get("stats", []):
                 name = stat.get("name", "")
                 val = stat.get("value")
-                if name == "avgShotsPerGame": result["remates_pj"] = round(float(val), 1) if val else "—"
-                elif name == "avgShotsOnTargetPerGame": result["al_arco_pj"] = round(float(val), 1) if val else "—"
-                elif name == "avgCornersPerGame": result["corners_pj"] = round(float(val), 1) if val else "—"
-                elif name == "avgYellowCardsPerGame": result["tarjetas_amarillas_pj"] = round(float(val), 1) if val else "—"
-                elif name == "avgFoulsPerGame": result["faltas_pj"] = round(float(val), 1) if val else "—"
-                elif name == "avgPossessionPct": result["posesion_avg"] = round(float(val), 1) if val else "—"
+                if name == "avgShotsPerGame": 
+                    result["remates_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgShotsOnTargetPerGame": 
+                    result["al_arco_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgCornersPerGame": 
+                    result["corners_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgYellowCardsPerGame": 
+                    result["tarjetas_amarillas_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgFoulsPerGame": 
+                    result["faltas_pj"] = round(float(val), 1) if val else "—"
+                elif name == "avgPossessionPct": 
+                    result["posesion_avg"] = round(float(val), 1) if val else "—"
         if result:
             result.setdefault("tarjetas_rojas_pj", "—")
             result["source"] = "espn"

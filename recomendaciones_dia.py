@@ -2286,9 +2286,24 @@ def wc_ausencias():
 
 @app.route('/wc_fatiga')
 def wc_fatiga():
+    """
+    Actualizar manualmente después de cada partido KO que vaya a prórroga.
+    Formato: "Nombre exacto del equipo (inglés)": {"extraTime": True/False, "round": "Octavos/Cuartos/Semis/Final", "opponent": "rival"}
+    Solo poner equipos que JUGARON prórroga en su último partido.
+    """
     data = {
-        # Actualizar a mano después de cada ronda KO
-        # "Argentina": {"extraTime": True, "round": "Octavos", "opponent": "Ecuador"},
+        # OCTAVOS (actualizar después de cada partido)
+        # "Argentina": {"extraTime": True, "round": "Octavos", "opponent": "Australia"},
+        # "France": {"extraTime": True, "round": "Octavos", "opponent": "Poland"},
+        
+        # CUARTOS
+        # "England": {"extraTime": True, "round": "Cuartos", "opponent": "France"},
+        
+        # SEMIS
+        # "Brazil": {"extraTime": True, "round": "Semis", "opponent": "Argentina"},
+        
+        # FINAL
+        # "Spain": {"extraTime": True, "round": "Final", "opponent": "Germany"},
     }
     return jsonify(data)
 

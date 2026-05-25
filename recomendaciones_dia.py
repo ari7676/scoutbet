@@ -2294,9 +2294,15 @@ def wc_fatiga():
 
 @app.route("/live_scores")
 def live_scores():
-    """Scores en vivo de todas las ligas vía ESPN."""
+    """Scores en vivo de todas las ligas via ESPN."""
+    _ESPN_SLUGS = {
+        "PL": "eng.1", "PD": "esp.1", "SA": "ita.1",
+        "BL1": "ger.1", "FL1": "fra.1", "DED": "ned.1",
+        "PPL": "por.1", "ELC": "eng.2", "BSA": "bra.1",
+        "AARG": "arg.1", "CL": "uefa.champions",
+    }
     results = {}
-    for codigo, slug in ESPN_SLUGS.items():
+    for codigo, slug in _ESPN_SLUGS.items():
         try:
             data = espn_get(slug, "scoreboard")
             if "error" in data: continue
@@ -2306,7 +2312,7 @@ def live_scores():
                 comp = ev.get("competitions", [{}])[0]
                 competitors = comp.get("competitors", [])
                 status = ev.get("status", {})
-                state = status.get("type", {}).get("state", "pre")  # pre, in, post
+                state = status.get("type", {}).get("state", "pre")
                 clock = status.get("displayClock", "")
                 period = status.get("period", 0)
                 home = next((c for c in competitors if c.get("homeAway") == "home"), {})

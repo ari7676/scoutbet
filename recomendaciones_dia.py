@@ -1,4 +1,4 @@
-"""
+# -*- coding: utf-8 -*-
 MatchIQ — Backend Flask v5
 - Supabase PostgreSQL para guardar predicciones
 - Verificacion automatica de aciertos

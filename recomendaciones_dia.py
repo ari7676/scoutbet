@@ -2627,6 +2627,35 @@ def live_scores():
             results[codigo] = {"error": str(e)}
     return jsonify(results)
 
+
+@app.route("/debug_elo/<team>")
+def debug_elo(team):
+    import unicodedata
+    def normalize(s):
+        s = unicodedata.normalize('NFD', s.lower())
+        return ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+    elo_data = {}
+    try:
+        r = requests.get("https://www.eloratings.net/World.tsv",
+                 headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
+        if r.ok:
+            lines = r.content.decode('utf-8', errors='replace').strip().split("\n")
+            for line in lines[1:]:
+                parts = line.strip().split("\t")
+                if len(parts) >= 3:
+                    try:
+                        elo_data[parts[1].strip()] = {"rank": int(parts[0]), "elo": int(float(parts[2]))}
+                    except: pass
+    except Exception as e:
+        return jsonify({"error": str(e)})
+    norm_team = normalize(team)
+    matches = []
+    for k, v in elo_data.items():
+        kn = normalize(k)
+        if norm_team in kn or kn in norm_team:
+            matches.append({"elo_name": k, "norm": kn, "data": v})
+    return jsonify({"query": team, "normalized": norm_team, "matches": matches, "total_elo": len(elo_data)})
+
 @app.route("/health")
 def health():
     return jsonify({"ok": True})

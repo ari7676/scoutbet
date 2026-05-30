@@ -1476,14 +1476,49 @@ def analizar_intl(espn_id):
         print(f"ELO fetch error: {e}")
 
     # Buscar ELO de cada selección (fuzzy match)
+    # Alias ESPN -> eloratings
+    ALIAS_MAP = {
+        "curacao": "curacao", "curazao": "curacao",
+        "south korea": "korea republic", "korea": "korea republic",
+        "north korea": "korea dpr",
+        "usa": "usa", "united states": "usa", "us": "usa",
+        "iran": "ir iran", "ir iran": "ir iran",
+        "ivory coast": "cote d'ivoire", "cote d ivoire": "cote d'ivoire",
+        "cape verde": "cape verde islands",
+        "czech republic": "czechia", "czechia": "czechia",
+        "trinidad and tobago": "trinidad and tobago",
+        "bosnia-herzegovina": "bosnia-herzegovina",
+        "bosnia and herzegovina": "bosnia-herzegovina",
+        "north macedonia": "north macedonia",
+        "republic of ireland": "ireland",
+        "congo dr": "dr congo", "democratic republic of congo": "dr congo",
+        "congo": "congo", "republic of congo": "congo",
+        "guinea bissau": "guinea-bissau",
+        "st. kitts and nevis": "saint kitts and nevis",
+        "antigua and barbuda": "antigua and barbuda",
+        "u.s. virgin islands": "us virgin islands",
+    }
+
+    def normalize(s):
+        import unicodedata
+        s = unicodedata.normalize('NFD', s.lower())
+        return ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+
     def find_elo(nombre):
         if nombre in elo_data:
             return elo_data[nombre]
-        nombre_lower = nombre.lower()
+        # Busqueda exacta normalizada
+        norm = normalize(nombre)
+        alias = ALIAS_MAP.get(norm, norm)
         for k, v in elo_data.items():
-            if k.lower() == nombre_lower or k.lower() in nombre_lower or nombre_lower in k.lower():
+            if normalize(k) == alias or normalize(k) == norm:
                 return v
-        return {"rank": 50, "elo": 1700}
+        # Busqueda parcial normalizada
+        for k, v in elo_data.items():
+            kn = normalize(k)
+            if kn in norm or norm in kn:
+                return v
+        return {"rank": 80, "elo": 1600}
 
     home_elo = find_elo(hn)
     away_elo = find_elo(an)

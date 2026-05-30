@@ -1458,8 +1458,26 @@ def analizar_intl(espn_id):
     an = away_c.get("team", {}).get("displayName", "")
     fecha = partido.get("date", "")
 
-    # ELO estatico (mayo 2026) - fuente: eloratings.net
-    elo_data = {
+    # ELO en tiempo real de eloratings.net (mismo que wc_data)
+    elo_data = {}
+    try:
+        r = requests.get("https://www.eloratings.net/World.tsv",
+                 headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+                 timeout=15)
+        if r.ok:
+            lines = r.content.decode('utf-8', errors='replace').strip().split("\n")
+            for line in lines[1:]:
+                parts = line.strip().split("\t")
+                if len(parts) >= 3:
+                    try:
+                        nombre = parts[1].strip()
+                        elo_data[nombre.lower()] = {"rank": int(parts[0]), "elo": int(float(parts[2])), "nombre": nombre}
+                    except: pass
+    except Exception as e:
+        print(f"ELO fetch error: {e}")
+    # Fallback estatico si falla el fetch
+    if not elo_data:
+        elo_data = {
         "spain": {"rank": 1, "elo": 2088}, "france": {"rank": 2, "elo": 2005},
         "england": {"rank": 3, "elo": 1994}, "brazil": {"rank": 4, "elo": 1983},
         "argentina": {"rank": 5, "elo": 1975}, "portugal": {"rank": 6, "elo": 1960},
@@ -1504,7 +1522,7 @@ def analizar_intl(espn_id):
         "kosovo": {"rank": 78, "elo": 1545}, "finland": {"rank": 79, "elo": 1662},
         "bulgaria": {"rank": 80, "elo": 1598}, "israel": {"rank": 81, "elo": 1642},
         "new zealand": {"rank": 82, "elo": 1620},
-    }
+    }  # fin fallback
 
     # Buscar ELO de cada selección (fuzzy match)
     # Alias ESPN -> eloratings
@@ -1567,11 +1585,25 @@ def analizar_intl(espn_id):
     p_draw = 100 - p_home - p_away
 
     # Goles esperados basados en ELO relativo
-    avg_goals = 2.5
+    # Amistosos promedian ~2.4 goles, ajustado por diferencia ELO
+    import math
+    avg_goals = 2.4
     elo_factor = (elo_h - elo_a) / 400
-    xg_home = round(avg_goals / 2 * (1 + elo_factor * 0.6), 2)
-    xg_away = round(avg_goals / 2 * (1 - elo_factor * 0.6), 2)
+    xg_home = round(max(0.5, avg_goals / 2 * (1 + elo_factor * 0.5)), 2)
+    xg_away = round(max(0.5, avg_goals / 2 * (1 - elo_factor * 0.5)), 2)
     xg_total = xg_home + xg_away
+
+    # Poisson: P(X <= k) = sum e^-lambda * lambda^i / i!
+    def poisson_prob(lam, k):
+        return sum(math.exp(-lam) * (lam**i) / math.factorial(i) for i in range(k+1))
+
+    # Over/Under 2.5 via Poisson en cada equipo
+    def p_total_over(threshold, xg_h, xg_a):
+        p_under = 0
+        for h in range(int(threshold) + 1):
+            for a in range(int(threshold) + 1 - h):
+                p_under += (math.exp(-xg_h) * xg_h**h / math.factorial(h)) *                            (math.exp(-xg_a) * xg_a**a / math.factorial(a))
+        return round((1 - p_under) * 100)
 
     # Mercados
     mercados = []
@@ -1598,16 +1630,14 @@ def analizar_intl(espn_id):
         add_mercado(f"DC {hn} (1X)", dc_h, "DC")
     else:
         add_mercado(f"DC {an} (X2)", dc_a, "DC")
-    # Over/Under
-    p_over25 = round(min(95, max(5, (1 - ((2.5 / xg_total) ** xg_total * 2.718 ** (-xg_total) * (1 + 2.5/xg_total))) * 100)))
+    # Over/Under 2.5 via Poisson
+    p_over25 = p_total_over(2, xg_home, xg_away)
     p_under25 = 100 - p_over25
     add_mercado("Over 2.5 goles", p_over25, "OU")
     add_mercado("Under 2.5 goles", p_under25, "OU")
-    # BTTS
-    p_btts = round((1 - (xg_home / (xg_home + 1))) * 0 + min(85, max(30, int((xg_home * xg_away) / (xg_home * xg_away + 0.5) * 100))))
-    # Simplified BTTS
-    p_h_scores = round(min(90, max(20, 100 - 100 * (xg_home ** 0) * (2.718 ** (-xg_home)))))
-    p_a_scores = round(min(90, max(20, 100 - 100 * (xg_away ** 0) * (2.718 ** (-xg_away)))))
+    # BTTS via Poisson
+    p_h_scores = round((1 - math.exp(-xg_home)) * 100)
+    p_a_scores = round((1 - math.exp(-xg_away)) * 100)
     p_btts = round(p_h_scores * p_a_scores / 100)
     add_mercado("Ambos anotan (BTTS)", p_btts, "BTTS")
 

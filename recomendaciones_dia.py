@@ -1574,23 +1574,28 @@ def analizar_intl(espn_id):
     elo_h = home_elo["elo"]
     elo_a = away_elo["elo"]
 
-    # Modelo ELO → probabilidades (fórmula estándar)
-    # Ventaja local no aplica en amistosos neutrales → reducida
-    elo_diff = (elo_h - elo_a) + 50  # +50 leve ventaja "local" en amistosos
-    p_home_raw = 1 / (1 + 10 ** (-elo_diff / 400))
-    # Ajustar para incluir empate (modelo de Davidson)
-    draw_factor = 0.22  # amistosos tienen ~22% empates
+    # Mismo modelo que wc2026_simulator.html
+    import math
+
+    # eloWinProb identico al simulador del Mundial
+    def elo_win_prob(elo_a, elo_b, home_bonus=0):
+        dr = elo_a - elo_b + home_bonus
+        return 1 / (math.pow(10, -dr / 400) + 1)
+
+    # poissonLambda identico al simulador del Mundial
+    def poisson_lambda(elo_team, elo_opp, home_bonus=0):
+        gap = (elo_team - elo_opp + home_bonus) / 100
+        return min(6.0, max(0.15, 1.30 + 0.18 * gap))
+
+    # Amistosos: sin ventaja local (home_bonus=0)
+    p_home_raw = elo_win_prob(elo_h, elo_a, 0)
+    draw_factor = 0.22
     p_home = round(p_home_raw * (1 - draw_factor) * 100)
     p_away = round((1 - p_home_raw) * (1 - draw_factor) * 100)
     p_draw = 100 - p_home - p_away
 
-    # Goles esperados basados en ELO relativo
-    # Amistosos promedian ~2.4 goles, ajustado por diferencia ELO
-    import math
-    avg_goals = 2.4
-    elo_factor = (elo_h - elo_a) / 400
-    xg_home = round(max(0.5, avg_goals / 2 * (1 + elo_factor * 0.5)), 2)
-    xg_away = round(max(0.5, avg_goals / 2 * (1 - elo_factor * 0.5)), 2)
+    xg_home = round(poisson_lambda(elo_h, elo_a, 0), 2)
+    xg_away = round(poisson_lambda(elo_a, elo_h, 0), 2)
     xg_total = xg_home + xg_away
 
     # Poisson: P(X <= k) = sum e^-lambda * lambda^i / i!

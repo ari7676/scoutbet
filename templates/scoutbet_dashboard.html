@@ -745,6 +745,42 @@ function renderVeredicto(d) {
       </div>`;
   }
 
+  // Bajas confirmadas
+  const bajas = d.bajas;
+  if (bajas && (bajas.home?.length > 0 || bajas.away?.length > 0)) {
+    const renderBajas = (lista, equipo) => {
+      if (!lista || lista.length === 0) return '';
+      return lista.map(b => {
+        const color = b.impacto === 'alto' ? '#ff4444' : b.impacto === 'medio' ? '#ffaa00' : 'var(--muted)';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)">
+          <span style="color:${color};font-size:13px">⚡</span>
+          <div>
+            <div style="font-size:12px;font-weight:600">${b.nombre}</div>
+            <div style="font-size:10px;color:var(--muted)">${b.posicion} · ${b.motivo} · Impacto <span style="color:${color}">${b.impacto.toUpperCase()}</span></div>
+          </div>
+        </div>`;
+      }).join('');
+    };
+    html += `<div class="section-title" style="margin-bottom:8px">⚠ BAJAS CONFIRMADAS</div>
+      <div class="stats-grid">`;
+    if (bajas.home?.length > 0) {
+      html += `<div class="stat-block">
+        <div class="stat-team">${d.match?.home?.substring(0,16).toUpperCase()}</div>
+        ${renderBajas(bajas.home)}
+      </div>`;
+    }
+    if (bajas.away?.length > 0) {
+      html += `<div class="stat-block">
+        <div class="stat-team">${d.match?.away?.substring(0,16).toUpperCase()}</div>
+        ${renderBajas(bajas.away)}
+      </div>`;
+    }
+    html += `</div>`;
+    if (bajas.fuente) {
+      html += `<div style="font-size:10px;color:var(--muted);margin-top:4px">Fuente: ${bajas.fuente}</div>`;
+    }
+  }
+
   // Resumen
   if (d.resumen) {
     html += `<div class="resumen-box">${d.resumen}</div>`;

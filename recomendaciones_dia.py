@@ -1140,6 +1140,14 @@ def _do_analyze_as(codigo, match_id, liga):
     resultado["stats_avanzadas"] = _adv(hs, aws, hn, an)
     resultado["stats_equipo"] = {"home": _team_stats(hs, hp_compat, hf), "away": _team_stats(aws, ap_compat, af)}
     resultado["resumen"] = _resumen(hn, an, hf, af, hp_compat, ap_compat, hh_compat, aa_compat, h2h, arbitro_name, arb_perfil, resultado, md_compat)
+    # Bajas confirmadas via Claude web search
+    try:
+        bajas = _buscar_bajas(hn, an, fixture.get("date", ""))
+        resultado["bajas"] = bajas
+        resultado["resumen"] = _agregar_bajas_resumen(resultado["resumen"], bajas, hn, an)
+    except Exception as e:
+        print(f"Bajas error: {e}")
+        resultado["bajas"] = {"home": [], "away": []}
 
     estado = md_compat.get("status", "")
     if estado == "NS":
@@ -1337,6 +1345,14 @@ def _do_analyze_fd(codigo, match_id):
     resultado["stats_avanzadas"]=_adv(hs,aws,hn,an)
     resultado["stats_equipo"]={"home":_team_stats(hs,hp,hf),"away":_team_stats(aws,ap,af)}
     resultado["resumen"]=_resumen(hn,an,hf,af,hp,ap,hh,aa,h2h,arbitro_name,arb_perfil,resultado,md)
+    # Bajas confirmadas via Claude web search
+    try:
+        bajas = _buscar_bajas(hn, an, md.get("utcDate", ""))
+        resultado["bajas"] = bajas
+        resultado["resumen"] = _agregar_bajas_resumen(resultado["resumen"], bajas, hn, an)
+    except Exception as e:
+        print(f"Bajas error: {e}")
+        resultado["bajas"] = {"home": [], "away": []}
 
     estado = md.get("status", "")
     if estado in ("SCHEDULED", "TIMED"):
@@ -1793,6 +1809,81 @@ def _ref_description(name):
         return f"Estilo: {r['estilo']} · Tarjetas: {r['tarjetas']}. {r['desc']}"
     return f"Sin perfil detallado disponible para {name}."
 
+
+
+
+def _agregar_bajas_resumen(resumen, bajas, hn, an):
+    """Agrega info de bajas al resumen narrativo."""
+    partes = []
+    home_bajas = bajas.get("home", [])
+    away_bajas = bajas.get("away", [])
+    altos_home = [b for b in home_bajas if b.get("impacto") == "alto"]
+    altos_away = [b for b in away_bajas if b.get("impacto") == "alto"]
+    if altos_home:
+        nombres = ", ".join(b["nombre"] for b in altos_home)
+        partes.append(f"⚠ Bajas importantes en {hn}: {nombres}.")
+    if altos_away:
+        nombres = ", ".join(b["nombre"] for b in altos_away)
+        partes.append(f"⚠ Bajas importantes en {an}: {nombres}.")
+    if partes:
+        return resumen + " " + " ".join(partes)
+    return resumen
+
+def _buscar_bajas(hn, an, fecha=""):
+    """Busca bajas confirmadas usando Claude con web search."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return {"home": [], "away": [], "fuente": "sin_api_key"}
+    
+    ck = f"bajas:{hn}:{an}:{fecha[:10] if fecha else ''}"
+    now_t = time.time()
+    if ck in _cache and now_t - _cache[ck][1] < 21600:
+        return _cache[ck][0]
+    
+    prompt = f"""Buscá las bajas confirmadas para el partido {hn} vs {an}{' del ' + fecha[:10] if fecha else ''}.
+Respondé SOLO con JSON, sin texto adicional, sin markdown:
+{{
+  "home": [
+    {{"nombre": "Nombre Jugador", "posicion": "Posición", "motivo": "lesion/suspension/otro", "impacto": "alto/medio/bajo"}}
+  ],
+  "away": [],
+  "fuente": "nombre del sitio consultado"
+}}
+Solo incluí jugadores con baja CONFIRMADA. Si no hay bajas confirmadas, devolvé listas vacías. Máximo 4 por equipo."""
+
+    try:
+        r = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json"
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 600,
+                "tools": [{"type": "web_search_20250305", "name": "web_search"}],
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=30
+        )
+        if r.ok:
+            data = r.json()
+            texto = ""
+            for block in data.get("content", []):
+                if block.get("type") == "text":
+                    texto += block.get("text", "")
+            # Limpiar y parsear JSON
+            texto = texto.strip()
+            if "```" in texto:
+                texto = texto.split("```")[1].replace("json", "").strip()
+            result = json.loads(texto)
+            _cache[ck] = (result, now_t)
+            return result
+    except Exception as e:
+        print(f"Bajas fetch error: {e}")
+    
+    return {"home": [], "away": [], "fuente": "error"}
 
 def _search_as(name, lid, season):
     if not name or not lid: return None

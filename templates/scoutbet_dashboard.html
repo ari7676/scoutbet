@@ -344,6 +344,7 @@
     <button class="league-btn" onclick="loadLeague('CL')">🏆 Champions League</button>
     <button class="league-btn" onclick="loadLeague('BSA')">🇧🇷 Brasileirão</button>
     <button class="league-btn" onclick="loadLeague('WC')">🌍 Copa del Mundo</button>
+    <button class="league-btn" onclick="loadLeague('INTL')">🤝 Amistosos Int'l</button>
     <div class="sidebar-title" style="margin-top:16px">HERRAMIENTAS</div>
     <button class="league-btn" onclick="showBetOfDay()">⚡ Apuesta del día</button>
     <button class="league-btn" onclick="showHistorial()">📋 Historial</button>
@@ -498,7 +499,7 @@ function renderMatches(matches) {
       const score = m.match_score ? m.match_score : '';
 
       html += `
-        <div class="match-row" onclick="openAnalysis('${currentLeague}', ${m.id}, this)"
+        <div class="match-row" onclick="openAnalysis('${currentLeague}', '${m.id}', this)"
              data-id="${m.id}" id="mr-${m.id}">
           <div class="match-time">${time}</div>
           <div class="match-teams">${m.home} <span class="vs">vs</span> ${m.away}</div>
@@ -546,6 +547,49 @@ async function openAnalysis(liga, matchId, row) {
     const r = await fetch(`${API}/analizar/${liga}/${matchId}`);
     analysisData = await r.json();
     if (analysisData.error) throw new Error(analysisData.error);
+
+    // INTL: estructura diferente (ELO-based)
+    if (liga === 'INTL') {
+      document.getElementById('panel-title').textContent =
+        `${analysisData.home} vs ${analysisData.away}`;
+      // Adaptar estructura para renderVeredicto
+      analysisData.match = { home: analysisData.home, away: analysisData.away, fecha: analysisData.fecha };
+      analysisData.probabilidades = analysisData.probabilidades;
+      analysisData.goles_esperados = analysisData.goles_esperados;
+      // Mostrar resumen en veredicto
+      const eloInfo = analysisData.elo || {};
+      document.getElementById('veredicto-content').innerHTML = `
+        <div style="padding:16px">
+          <div style="margin-bottom:12px;color:var(--muted);font-size:12px">ANÁLISIS ELO · AMISTOSO INTERNACIONAL</div>
+          <div style="margin-bottom:16px;font-size:13px;line-height:1.6">${analysisData.resumen}</div>
+          <div style="display:flex;gap:16px;margin-bottom:16px">
+            <div style="flex:1;background:var(--card);border-radius:8px;padding:12px;text-align:center">
+              <div style="font-size:20px;font-weight:700;color:var(--green)">${analysisData.probabilidades.home}%</div>
+              <div style="font-size:11px;color:var(--muted)">${analysisData.home}</div>
+              <div style="font-size:11px;color:var(--muted)">ELO ${eloInfo.home} · #${eloInfo.rank_home}</div>
+            </div>
+            <div style="flex:1;background:var(--card);border-radius:8px;padding:12px;text-align:center">
+              <div style="font-size:20px;font-weight:700">${analysisData.probabilidades.draw}%</div>
+              <div style="font-size:11px;color:var(--muted)">Empate</div>
+            </div>
+            <div style="flex:1;background:var(--card);border-radius:8px;padding:12px;text-align:center">
+              <div style="font-size:20px;font-weight:700;color:#e07">${analysisData.probabilidades.away}%</div>
+              <div style="font-size:11px;color:var(--muted)">${analysisData.away}</div>
+              <div style="font-size:11px;color:var(--muted)">ELO ${eloInfo.away} · #${eloInfo.rank_away}</div>
+            </div>
+          </div>
+          <div style="background:var(--card);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">GOLES ESPERADOS</div>
+            <div style="font-size:18px;font-weight:700">${(analysisData.goles_esperados||{}).home || '—'} – ${(analysisData.goles_esperados||{}).away || '—'}</div>
+            <div style="font-size:11px;color:var(--muted)">Total: ${(analysisData.goles_esperados||{}).total || '—'}</div>
+          </div>
+        </div>`;
+      allMercados = analysisData.mercados || [];
+      renderMercados(allMercados);
+      document.getElementById('combinadas-content').innerHTML = '<div class="empty">No aplica para amistosos</div>';
+      document.getElementById('avanzado-content').innerHTML = '<div class="empty">Stats avanzadas no disponibles para selecciones</div>';
+      return;
+    }
 
     document.getElementById('panel-title').textContent =
       `${analysisData.match.home} vs ${analysisData.match.away}`;

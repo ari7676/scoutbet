@@ -134,6 +134,7 @@ LIGAS = {
     "CL":  {"nombre": "🏆 Champions League",    "as_id": 2,   "season": 2025, "source": "fd"},
     "BSA": {"nombre": "🇧🇷 Brasileirão",        "as_id": 71,  "season": 2026, "source": "fd"},
     "AARG": {"nombre": "Primera División Argentina", "as_id": 128, "season": 2026, "source": "as"},
+    "INTL": {"nombre": "🌍 Amistosos Internacionales", "source": "espn"},
 }
 
 _cache = {}
@@ -852,7 +853,55 @@ def partidos(codigo):
 
     matches = []
 
-    if source == "as":
+    if source == "espn":
+        # Amistosos internacionales vía ESPN API
+        espn_slugs_intl = ["fifa.friendly", "fifa.worldq.conmebol", "fifa.worldq.uefa",
+                           "uefa.nations", "concacaf.nations.league"]
+        seen_ids = set()
+        for slug in espn_slugs_intl:
+            try:
+                d = espn_get(slug, "scoreboard")
+                for ev in d.get("events", []):
+                    ev_id = ev.get("id", "")
+                    if ev_id in seen_ids:
+                        continue
+                    seen_ids.add(ev_id)
+                    comp_data = ev.get("competitions", [{}])[0]
+                    competitors = comp_data.get("competitors", [])
+                    home_c = next((c for c in competitors if c.get("homeAway") == "home"), {})
+                    away_c = next((c for c in competitors if c.get("homeAway") == "away"), {})
+                    status_obj = ev.get("status", {})
+                    state = status_obj.get("type", {}).get("state", "pre")
+                    estado = "FINISHED" if state == "post" else ("IN_PLAY" if state == "in" else "SCHEDULED")
+                    resultado = None
+                    if estado == "FINISHED":
+                        resultado = f"{home_c.get('score','0')}-{away_c.get('score','0')}"
+                    matches.append({
+                        "id": f"espn_{ev_id}",
+                        "fecha": ev.get("date", ""),
+                        "home": home_c.get("team", {}).get("displayName", ""),
+                        "home_id": home_c.get("team", {}).get("id", ""),
+                        "away": away_c.get("team", {}).get("displayName", ""),
+                        "away_id": away_c.get("team", {}).get("id", ""),
+                        "jornada": None,
+                        "competicion": ev.get("name", slug),
+                        "estado": estado,
+                        "arbitro": None,
+                        "resultado": resultado,
+                        "mp_acertado": None,
+                        "comb_acertado": None,
+                        "tiene_prediccion": False,
+                        "live_state": state,
+                        "live_clock": status_obj.get("displayClock", ""),
+                        "live_score": f"{home_c.get('score','0')}-{away_c.get('score','0')}" if state == "in" else None,
+                    })
+            except Exception as e:
+                print(f"ESPN intl error {slug}: {e}")
+        # Ordenar por fecha
+        matches.sort(key=lambda x: x.get("fecha", ""))
+        return jsonify({"response": matches, "total": len(matches)})
+
+    elif source == "as":
         as_id = liga.get("as_id")
         season = liga.get("season")
         desde = (hoy - timedelta(days=2)).strftime("%Y-%m-%d")
@@ -1359,6 +1408,147 @@ def analizar_pendientes(codigo):
 def analizar(codigo, match_id):
     r = _do_analyze(codigo, match_id)
     return jsonify(r)
+
+
+@app.route("/analizar/INTL/<espn_id>")
+def analizar_intl(espn_id):
+    """Análisis de amistosos internacionales usando ELO de eloratings.net"""
+    # Buscar el partido en ESPN
+    partido = None
+    slugs = ["fifa.friendly", "fifa.worldq.conmebol", "fifa.worldq.uefa",
+             "uefa.nations", "concacaf.nations.league"]
+    for slug in slugs:
+        try:
+            d = espn_get(slug, "scoreboard")
+            for ev in d.get("events", []):
+                if str(ev.get("id", "")) == str(espn_id):
+                    partido = ev
+                    break
+        except: pass
+        if partido: break
+
+    if not partido:
+        return jsonify({"error": "Partido no encontrado"})
+
+    comp_data = partido.get("competitions", [{}])[0]
+    competitors = comp_data.get("competitors", [])
+    home_c = next((c for c in competitors if c.get("homeAway") == "home"), {})
+    away_c = next((c for c in competitors if c.get("homeAway") == "away"), {})
+    hn = home_c.get("team", {}).get("displayName", "")
+    an = away_c.get("team", {}).get("displayName", "")
+    fecha = partido.get("date", "")
+
+    # Obtener ELO de eloratings.net
+    elo_data = {}
+    try:
+        r = requests.get("https://www.eloratings.net/World.tsv",
+                         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+                         timeout=15)
+        if r.ok:
+            lines = r.content.decode("utf-8", errors="replace").strip().split("\n")
+            for line in lines[1:]:
+                parts = line.strip().split("\t")
+                if len(parts) >= 3:
+                    try:
+                        elo_data[parts[1].strip()] = {"rank": int(parts[0]), "elo": int(float(parts[2]))}
+                    except: pass
+    except Exception as e:
+        print(f"ELO fetch error: {e}")
+
+    # Buscar ELO de cada selección (fuzzy match)
+    def find_elo(nombre):
+        if nombre in elo_data:
+            return elo_data[nombre]
+        nombre_lower = nombre.lower()
+        for k, v in elo_data.items():
+            if k.lower() == nombre_lower or k.lower() in nombre_lower or nombre_lower in k.lower():
+                return v
+        return {"rank": 50, "elo": 1700}
+
+    home_elo = find_elo(hn)
+    away_elo = find_elo(an)
+    elo_h = home_elo["elo"]
+    elo_a = away_elo["elo"]
+
+    # Modelo ELO → probabilidades (fórmula estándar)
+    # Ventaja local no aplica en amistosos neutrales → reducida
+    elo_diff = (elo_h - elo_a) + 50  # +50 leve ventaja "local" en amistosos
+    p_home_raw = 1 / (1 + 10 ** (-elo_diff / 400))
+    # Ajustar para incluir empate (modelo de Davidson)
+    draw_factor = 0.22  # amistosos tienen ~22% empates
+    p_home = round(p_home_raw * (1 - draw_factor) * 100)
+    p_away = round((1 - p_home_raw) * (1 - draw_factor) * 100)
+    p_draw = 100 - p_home - p_away
+
+    # Goles esperados basados en ELO relativo
+    avg_goals = 2.5
+    elo_factor = (elo_h - elo_a) / 400
+    xg_home = round(avg_goals / 2 * (1 + elo_factor * 0.6), 2)
+    xg_away = round(avg_goals / 2 * (1 - elo_factor * 0.6), 2)
+    xg_total = xg_home + xg_away
+
+    # Mercados
+    mercados = []
+
+    def add_mercado(nombre, prob, umbral_key):
+        umbral = UMBRALES.get(umbral_key, 75)
+        cuota = round(100 / max(prob, 1), 2)
+        aprobado = prob >= umbral
+        mercados.append({
+            "mercado": nombre, "prob": prob, "cuota": cuota,
+            "aprobado": aprobado, "umbral": umbral,
+            "estado": "APROBADO ✓" if aprobado else ("MARGINAL" if prob >= umbral - 7 else "RECHAZADO")
+        })
+
+    # 1X2
+    if p_home >= UMBRALES["1X2"] or p_away >= UMBRALES["1X2"]:
+        fav = hn if p_home > p_away else an
+        prob_fav = max(p_home, p_away)
+        add_mercado(f"Victoria {fav}", prob_fav, "1X2")
+    # DC
+    dc_h = p_home + p_draw
+    dc_a = p_away + p_draw
+    if dc_h >= dc_a:
+        add_mercado(f"DC {hn} (1X)", dc_h, "DC")
+    else:
+        add_mercado(f"DC {an} (X2)", dc_a, "DC")
+    # Over/Under
+    p_over25 = round(min(95, max(5, (1 - ((2.5 / xg_total) ** xg_total * 2.718 ** (-xg_total) * (1 + 2.5/xg_total))) * 100)))
+    p_under25 = 100 - p_over25
+    add_mercado("Over 2.5 goles", p_over25, "OU")
+    add_mercado("Under 2.5 goles", p_under25, "OU")
+    # BTTS
+    p_btts = round((1 - (xg_home / (xg_home + 1))) * 0 + min(85, max(30, int((xg_home * xg_away) / (xg_home * xg_away + 0.5) * 100))))
+    # Simplified BTTS
+    p_h_scores = round(min(90, max(20, 100 - 100 * (xg_home ** 0) * (2.718 ** (-xg_home)))))
+    p_a_scores = round(min(90, max(20, 100 - 100 * (xg_away ** 0) * (2.718 ** (-xg_away)))))
+    p_btts = round(p_h_scores * p_a_scores / 100)
+    add_mercado("Ambos anotan (BTTS)", p_btts, "BTTS")
+
+    # Veredicto
+    aprobados = [m for m in mercados if m.get("aprobado")]
+    aprobados.sort(key=lambda x: x["prob"], reverse=True)
+    mercado_principal = aprobados[0]["mercado"] + f" ({aprobados[0]['prob']}% · @{aprobados[0]['cuota']})" if aprobados else "Sin mercados aprobados"
+
+    return jsonify({
+        "home": hn,
+        "away": an,
+        "fecha": fecha,
+        "elo": {"home": elo_h, "away": elo_a, "rank_home": home_elo["rank"], "rank_away": away_elo["rank"]},
+        "probabilidades": {"home": p_home, "draw": p_draw, "away": p_away},
+        "goles_esperados": {"home": xg_home, "away": xg_away, "total": round(xg_total, 2)},
+        "mercados": mercados,
+        "veredicto": {
+            "favorito": hn if p_home > p_away else (an if p_away > p_home else "Equilibrado"),
+            "confianza": "alta" if abs(p_home - p_away) > 20 else ("media" if abs(p_home - p_away) > 10 else "baja"),
+            "mercado_principal": mercado_principal,
+            "total_aprobados": len(aprobados),
+        },
+        "resumen": f"{hn} (ELO {elo_h}, #{home_elo['rank']}) vs {an} (ELO {elo_a}, #{away_elo['rank']}). "
+                   f"Diferencia ELO: {elo_h - elo_a:+d} puntos. "
+                   f"Probabilidades: {hn} {p_home}% · Empate {p_draw}% · {an} {p_away}%. "
+                   f"xG esperado: {xg_home}-{xg_away}.",
+    })
 
 
 def _team_stats(as_stats, pos, forma):
@@ -2380,19 +2570,6 @@ def live_scores():
                 results[codigo] = liga_scores
         except Exception as e:
             results[codigo] = {"error": str(e)}
-    return jsonify(results)
-
-@app.route("/test_espn")
-def test_espn():
-    slugs = ["fifa.friendly", "fifa.worldq.conmebol", "uefa.nations", 
-             "concacaf.nations.league", "conmebol.nations", "fifa.worldq.uefa"]
-    results = {}
-    for slug in slugs:
-        try:
-            d = espn_get(slug, "scoreboard")
-            results[slug] = len(d.get("events", [])) if "events" in d else str(d)[:100]
-        except Exception as e:
-            results[slug] = str(e)
     return jsonify(results)
 
 @app.route("/health")

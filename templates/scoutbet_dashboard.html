@@ -603,6 +603,7 @@ async function openAnalysis(liga, matchId, row) {
   }
 
   // Load avanzado en paralelo
+  if (liga === 'INTL') return;  // INTL no tiene avanzado/formacion
   try {
     const r2 = await fetch(`${API}/analisis_avanzado/${liga}/${matchId}`);
     advancedData = await r2.json();

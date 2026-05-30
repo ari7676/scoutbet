@@ -888,7 +888,7 @@ def partidos(codigo):
                         if estado == "FINISHED":
                             resultado = f"{home_c.get('score','0')}-{away_c.get('score','0')}"
                         matches.append({
-                            "id": f"espn_{ev_id}",
+                            "id": f"espn_{slug}_{fecha_str}_{ev_id}",
                             "fecha": ev.get("date", ""),
                             "home": home_c.get("team", {}).get("displayName", ""),
                             "home_id": home_c.get("team", {}).get("id", ""),
@@ -1424,32 +1424,28 @@ def analizar(codigo, match_id):
 @app.route("/analizar/INTL/<espn_id>")
 def analizar_intl(espn_id):
     """Analisis de amistosos internacionales usando ELO de eloratings.net"""
-    from datetime import datetime, timedelta
-    hoy = datetime.utcnow()
+    # ID formato: espn_{slug}_{fecha}_{ev_id}  ej: espn_fifa.friendly_20260611_401874104
     partido = None
-    slugs = ["fifa.friendly", "fifa.worldq.conmebol", "fifa.worldq.uefa",
-             "uefa.nations", "concacaf.nations.league"]
-    fechas = [(hoy + timedelta(days=i)).strftime("%Y%m%d") for i in range(-3, 25)]
-    for slug in slugs:
-        for fecha_str in fechas:
-            try:
-                ck = f"espn_intl:{slug}:{fecha_str}"
-                now_t = time.time()
-                if ck in _cache and now_t - _cache[ck][1] < 3600:
-                    d = _cache[ck][0]
-                else:
-                    r = requests.get(f"{ESPN_URL}/{slug}/scoreboard",
-                                params={"dates": fecha_str}, timeout=10)
-                    d = r.json() if r.ok else {}
-                    if d.get("events"):
-                        _cache[ck] = (d, now_t)
-                for ev in d.get("events", []):
-                    if str(ev.get("id", "")) == str(espn_id):
-                        partido = ev
-                        break
-            except: pass
-            if partido: break
-        if partido: break
+    parts = espn_id.split("_", 3)  # ["espn", slug, fecha, ev_id]
+    if len(parts) == 4:
+        _, slug, fecha_str, real_id = parts
+        try:
+            ck = f"espn_intl:{slug}:{fecha_str}"
+            now_t = time.time()
+            if ck in _cache and now_t - _cache[ck][1] < 3600:
+                d = _cache[ck][0]
+            else:
+                r = requests.get(f"{ESPN_URL}/{slug}/scoreboard",
+                            params={"dates": fecha_str}, timeout=10)
+                d = r.json() if r.ok else {}
+                if d.get("events"):
+                    _cache[ck] = (d, now_t)
+            for ev in d.get("events", []):
+                if str(ev.get("id", "")) == str(real_id):
+                    partido = ev
+                    break
+        except Exception as e:
+            print(f"analizar_intl error: {e}")
 
     if not partido:
         return jsonify({"error": "Partido no encontrado"})

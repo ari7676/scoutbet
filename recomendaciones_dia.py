@@ -854,49 +854,60 @@ def partidos(codigo):
     matches = []
 
     if source == "espn":
-        # Amistosos internacionales vía ESPN API
+        # Amistosos internacionales via ESPN API - proximos 21 dias + ultimos 2
         espn_slugs_intl = ["fifa.friendly", "fifa.worldq.conmebol", "fifa.worldq.uefa",
                            "uefa.nations", "concacaf.nations.league"]
         seen_ids = set()
+        fechas = [(hoy + timedelta(days=i)).strftime("%Y%m%d") for i in range(-2, 22)]
         for slug in espn_slugs_intl:
-            try:
-                d = espn_get(slug, "scoreboard")
-                for ev in d.get("events", []):
-                    ev_id = ev.get("id", "")
-                    if ev_id in seen_ids:
-                        continue
-                    seen_ids.add(ev_id)
-                    comp_data = ev.get("competitions", [{}])[0]
-                    competitors = comp_data.get("competitors", [])
-                    home_c = next((c for c in competitors if c.get("homeAway") == "home"), {})
-                    away_c = next((c for c in competitors if c.get("homeAway") == "away"), {})
-                    status_obj = ev.get("status", {})
-                    state = status_obj.get("type", {}).get("state", "pre")
-                    estado = "FINISHED" if state == "post" else ("IN_PLAY" if state == "in" else "SCHEDULED")
-                    resultado = None
-                    if estado == "FINISHED":
-                        resultado = f"{home_c.get('score','0')}-{away_c.get('score','0')}"
-                    matches.append({
-                        "id": f"espn_{ev_id}",
-                        "fecha": ev.get("date", ""),
-                        "home": home_c.get("team", {}).get("displayName", ""),
-                        "home_id": home_c.get("team", {}).get("id", ""),
-                        "away": away_c.get("team", {}).get("displayName", ""),
-                        "away_id": away_c.get("team", {}).get("id", ""),
-                        "jornada": None,
-                        "competicion": ev.get("name", slug),
-                        "estado": estado,
-                        "arbitro": None,
-                        "resultado": resultado,
-                        "mp_acertado": None,
-                        "comb_acertado": None,
-                        "tiene_prediccion": False,
-                        "live_state": state,
-                        "live_clock": status_obj.get("displayClock", ""),
-                        "live_score": f"{home_c.get('score','0')}-{away_c.get('score','0')}" if state == "in" else None,
-                    })
-            except Exception as e:
-                print(f"ESPN intl error {slug}: {e}")
+            for fecha_str in fechas:
+                try:
+                    ck = f"espn_intl:{slug}:{fecha_str}"
+                    now_t = time.time()
+                    if ck in _cache and now_t - _cache[ck][1] < 3600:
+                        d = _cache[ck][0]
+                    else:
+                        r = requests.get(f"{ESPN_URL}/{slug}/scoreboard",
+                                    params={"dates": fecha_str}, timeout=10)
+                        d = r.json() if r.ok else {}
+                        if d.get("events"):
+                            _cache[ck] = (d, now_t)
+                    for ev in d.get("events", []):
+                        ev_id = ev.get("id", "")
+                        if ev_id in seen_ids:
+                            continue
+                        seen_ids.add(ev_id)
+                        comp_data = ev.get("competitions", [{}])[0]
+                        competitors = comp_data.get("competitors", [])
+                        home_c = next((c for c in competitors if c.get("homeAway") == "home"), {})
+                        away_c = next((c for c in competitors if c.get("homeAway") == "away"), {})
+                        status_obj = ev.get("status", {})
+                        state = status_obj.get("type", {}).get("state", "pre")
+                        estado = "FINISHED" if state == "post" else ("IN_PLAY" if state == "in" else "SCHEDULED")
+                        resultado = None
+                        if estado == "FINISHED":
+                            resultado = f"{home_c.get('score','0')}-{away_c.get('score','0')}"
+                        matches.append({
+                            "id": f"espn_{ev_id}",
+                            "fecha": ev.get("date", ""),
+                            "home": home_c.get("team", {}).get("displayName", ""),
+                            "home_id": home_c.get("team", {}).get("id", ""),
+                            "away": away_c.get("team", {}).get("displayName", ""),
+                            "away_id": away_c.get("team", {}).get("id", ""),
+                            "jornada": None,
+                            "competicion": ev.get("name", slug),
+                            "estado": estado,
+                            "arbitro": None,
+                            "resultado": resultado,
+                            "mp_acertado": None,
+                            "comb_acertado": None,
+                            "tiene_prediccion": False,
+                            "live_state": state,
+                            "live_clock": status_obj.get("displayClock", ""),
+                            "live_score": f"{home_c.get('score','0')}-{away_c.get('score','0')}" if state == "in" else None,
+                        })
+                except Exception as e:
+                    print(f"ESPN intl error {slug} {fecha_str}: {e}")
         # Ordenar por fecha
         matches.sort(key=lambda x: x.get("fecha", ""))
         return jsonify({"response": matches, "total": len(matches)})
@@ -1412,19 +1423,32 @@ def analizar(codigo, match_id):
 
 @app.route("/analizar/INTL/<espn_id>")
 def analizar_intl(espn_id):
-    """Análisis de amistosos internacionales usando ELO de eloratings.net"""
-    # Buscar el partido en ESPN
+    """Analisis de amistosos internacionales usando ELO de eloratings.net"""
+    from datetime import datetime, timedelta
+    hoy = datetime.utcnow()
     partido = None
     slugs = ["fifa.friendly", "fifa.worldq.conmebol", "fifa.worldq.uefa",
              "uefa.nations", "concacaf.nations.league"]
+    fechas = [(hoy + timedelta(days=i)).strftime("%Y%m%d") for i in range(-3, 25)]
     for slug in slugs:
-        try:
-            d = espn_get(slug, "scoreboard")
-            for ev in d.get("events", []):
-                if str(ev.get("id", "")) == str(espn_id):
-                    partido = ev
-                    break
-        except: pass
+        for fecha_str in fechas:
+            try:
+                ck = f"espn_intl:{slug}:{fecha_str}"
+                now_t = time.time()
+                if ck in _cache and now_t - _cache[ck][1] < 3600:
+                    d = _cache[ck][0]
+                else:
+                    r = requests.get(f"{ESPN_URL}/{slug}/scoreboard",
+                                params={"dates": fecha_str}, timeout=10)
+                    d = r.json() if r.ok else {}
+                    if d.get("events"):
+                        _cache[ck] = (d, now_t)
+                for ev in d.get("events", []):
+                    if str(ev.get("id", "")) == str(espn_id):
+                        partido = ev
+                        break
+            except: pass
+            if partido: break
         if partido: break
 
     if not partido:

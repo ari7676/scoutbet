@@ -354,7 +354,7 @@ def as_get(ep, params=None):
         return d
     except Exception as e: return {"error":str(e)}
 
-    ESPN_SLUGS = {
+ESPN_SLUGS = {
     "PL": "eng.1", "PD": "esp.1", "SA": "ita.1",
     "BL1": "ger.1", "FL1": "fra.1", "DED": "ned.1",
     "PPL": "por.1", "ELC": "eng.2", "BSA": "bra.1",

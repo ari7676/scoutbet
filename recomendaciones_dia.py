@@ -2634,6 +2634,221 @@ def wc_data():
 
     return jsonify({"elo": elo_data, "fixtures": fixtures, "total_fixtures": len(fixtures)})
 
+
+@app.route("/wc_generar_ausencias")
+def wc_generar_ausencias():
+    """
+    Usa Claude con web search para buscar las listas del Mundial 2026
+    y generar automaticamente el diccionario de ausencias.
+    Solo ejecutar el 2 de junio o despues cuando esten las listas oficiales.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return jsonify({"error": "Sin ANTHROPIC_API_KEY"})
+
+    # Selecciones top a analizar
+    selecciones = [
+        "Argentina", "France", "Spain", "England", "Brazil", "Germany",
+        "Portugal", "Netherlands", "Belgium", "Uruguay", "Colombia",
+        "Croatia", "Denmark", "Switzerland", "USA", "Mexico", "Morocco",
+        "Japan", "Senegal", "Ecuador", "Canada", "Australia", "Serbia",
+        "Poland", "Ukraine", "Turkey", "Austria", "Nigeria", "Egypt",
+        "Cameroon", "Saudi Arabia", "Qatar", "South Korea", "Iran",
+        "Peru", "Chile", "Bolivia", "Paraguay", "Venezuela",
+        "Panama", "Honduras", "Costa Rica", "Jamaica",
+        "Ivory Coast", "Ghana", "Mali", "Algeria", "Tunisia"
+    ]
+
+    prompt = f"""Buscá las listas oficiales convocadas para el Mundial 2026 de estas selecciones: {', '.join(selecciones[:20])}.
+
+Para cada selección, identificá los jugadores de alto perfil que NO fueron convocados (lesionados, suspendidos, o excluidos por forma).
+
+Respondé SOLO con JSON válido sin markdown:
+{{
+  "Argentina": {{
+    "ausentes": [
+      {{"nombre": "Nombre", "posicion": "Posicion", "valor_m": 50, "criticidad": 0.45, "penalty_elo": -38, "motivo": "lesion/suspension/forma"}}
+    ],
+    "penalty_total": -38
+  }}
+}}
+
+Para calcular penalty_elo: criticidad * 80 (negativo). Solo incluí jugadores ausentes que normalmente estarían en el equipo titular o rotación principal. Si un jugador fue convocado, NO lo incluyas. Si no hay ausencias relevantes, devolvé lista vacía."""
+
+    try:
+        r = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json"
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 4000,
+                "tools": [{"type": "web_search_20250305", "name": "web_search"}],
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=60
+        )
+        if not r.ok:
+            return jsonify({"error": f"API error {r.status_code}"})
+
+        data = r.json()
+        texto = ""
+        for block in data.get("content", []):
+            if block.get("type") == "text":
+                texto += block.get("text", "")
+
+        texto = texto.strip()
+        if "```" in texto:
+            import re
+            match = re.search(r'```(?:json)?\s*([\s\S]*?)```', texto)
+            if match:
+                texto = match.group(1).strip()
+
+        ausencias_nuevas = json.loads(texto)
+
+        # Guardar en cache para que wc_ausencias lo use
+        _cache["wc_ausencias_generadas"] = (ausencias_nuevas, time.time())
+
+        return jsonify({
+            "ok": True,
+            "selecciones_procesadas": len(ausencias_nuevas),
+            "ausencias": ausencias_nuevas,
+            "mensaje": "Ausencias generadas. Para aplicarlas permanentemente, copiar el JSON a wc_ausencias() en recomendaciones_dia.py"
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e), "texto_raw": texto if 'texto' in locals() else ""})
+
+
+@app.route("/wc_ausencias_preview")
+def wc_ausencias_preview():
+    """Muestra las ausencias generadas en cache (si existen) o las hardcodeadas."""
+    cached = _cache.get("wc_ausencias_generadas")
+    if cached:
+        return jsonify({"fuente": "generado_automaticamente", "data": cached[0], "generado_hace": round((time.time() - cached[1])/60), "minutos": True})
+    return jsonify({"fuente": "hardcodeado", "mensaje": "No hay ausencias generadas. Ejecutar /wc_generar_ausencias primero."})
+
+
+@app.route("/wc_generar_squads")
+def wc_generar_squads():
+    """
+    Usa Claude web search para buscar las listas del Mundial 2026
+    y calcular el ELO ajustado de cada seleccion basado en los convocados.
+    Devuelve el mismo formato que wc_ausencias para que el simulador lo use sin cambios.
+    Ejecutar el 2 de junio o despues cuando esten las listas oficiales.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return jsonify({"error": "Sin ANTHROPIC_API_KEY"})
+
+    # Cache de 12 horas
+    ck = "wc_squads_generados"
+    now_t = time.time()
+    if ck in _cache and now_t - _cache[ck][1] < 43200:
+        return jsonify({"ok": True, "fuente": "cache", "data": _cache[ck][0]})
+
+    # Selecciones clasificadas al Mundial 2026 (48 equipos)
+    grupos = {
+        "CONMEBOL": ["Argentina", "Brazil", "Uruguay", "Colombia", "Ecuador", "Chile", "Paraguay", "Bolivia", "Venezuela", "Peru"],
+        "UEFA": ["France", "Spain", "England", "Germany", "Portugal", "Netherlands", "Belgium", "Croatia", "Denmark", "Switzerland", "Austria", "Serbia", "Poland", "Ukraine", "Turkey", "Hungary", "Romania", "Scotland", "Czechia", "Slovakia"],
+        "CONCACAF": ["USA", "Mexico", "Canada", "Costa Rica", "Honduras", "Jamaica", "Panama", "El Salvador", "Trinidad and Tobago", "Curacao"],
+        "AFC": ["Japan", "South Korea", "Iran", "Saudi Arabia", "Australia", "Qatar", "Iraq", "Uzbekistan", "Jordan", "Oman"],
+        "CAF": ["Morocco", "Nigeria", "Senegal", "Egypt", "Cameroon", "Ivory Coast", "Ghana", "Algeria", "Mali", "Tunisia", "South Africa", "DR Congo"],
+        "OFC": ["New Zealand"],
+    }
+    todas = [t for g in grupos.values() for t in g]
+
+    prompt = f"""Es el Mundial 2026. Buscá las listas oficiales de convocados para estas selecciones: {', '.join(todas[:24])}.
+
+Para cada seleccion, identificá:
+1. Los jugadores TOP que SI fueron convocados (los mejores 5-6 del equipo)
+2. Los jugadores importantes que NO fueron convocados (lesionados, excluidos)
+
+Calculá un "elo_adjustment" para cada seleccion:
+- Si el plantel es completo con sus mejores jugadores: adjustment = 0
+- Si faltan jugadores clave: adjustment negativo (-20 a -100 segun importancia)
+- Si hay jugadores en gran forma no habituales: adjustment positivo (+10 a +30)
+
+Respondé SOLO con JSON valido sin markdown ni explicaciones:
+{{
+  "Argentina": {{
+    "ausentes": [
+      {{"nombre": "Nombre", "posicion": "Posicion", "criticidad": 0.5, "penalty_elo": -40, "motivo": "lesion"}}
+    ],
+    "convocados_destacados": ["Messi", "Di Maria"],
+    "penalty_total": -40,
+    "notas": "texto breve"
+  }}
+}}
+
+Solo incluí selecciones donde encontres informacion confirmada. penalty_total es la suma de todos los penalty_elo."""
+
+    try:
+        r = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json"
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 8000,
+                "tools": [{"type": "web_search_20250305", "name": "web_search"}],
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=90
+        )
+        if not r.ok:
+            return jsonify({"error": f"API error {r.status_code}", "detail": r.text[:300]})
+
+        data = r.json()
+        texto = ""
+        for block in data.get("content", []):
+            if block.get("type") == "text":
+                texto += block.get("text", "")
+
+        texto = texto.strip()
+        import re
+        match = re.search(r'\{[\s\S]*\}', texto)
+        if match:
+            texto = match.group(0)
+
+        squads = json.loads(texto)
+
+        # Guardar en cache
+        _cache[ck] = (squads, now_t)
+
+        return jsonify({
+            "ok": True,
+            "fuente": "web_search",
+            "selecciones": len(squads),
+            "data": squads,
+            "instruccion": "Revisar el JSON y si esta correcto, este endpoint reemplaza a /wc_ausencias automaticamente via /wc_ausencias_v2"
+        })
+
+    except json.JSONDecodeError as e:
+        return jsonify({"error": f"JSON parse error: {e}", "texto_raw": texto[:500] if 'texto' in locals() else ""})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
+@app.route("/wc_ausencias_v2")
+def wc_ausencias_v2():
+    """
+    Version dinamica de wc_ausencias que usa los squads generados si existen,
+    sino cae al hardcodeado. El simulador puede apuntar a este endpoint.
+    """
+    ck = "wc_squads_generados"
+    cached = _cache.get(ck)
+    if cached and time.time() - cached[1] < 43200:
+        return jsonify(cached[0])
+    # Fallback al hardcodeado
+    return wc_ausencias()
+
 @app.route("/wc_ausencias")
 def wc_ausencias():
     ausencias = {

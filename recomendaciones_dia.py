@@ -2382,6 +2382,19 @@ def live_scores():
             results[codigo] = {"error": str(e)}
     return jsonify(results)
 
+@app.route("/test_espn")
+def test_espn():
+    slugs = ["fifa.friendly", "fifa.worldq.conmebol", "uefa.nations", 
+             "concacaf.nations.league", "conmebol.nations", "fifa.worldq.uefa"]
+    results = {}
+    for slug in slugs:
+        try:
+            d = espn_get(slug, "scoreboard")
+            results[slug] = len(d.get("events", [])) if "events" in d else str(d)[:100]
+        except Exception as e:
+            results[slug] = str(e)
+    return jsonify(results)
+
 @app.route("/health")
 def health():
     return jsonify({"ok": True})

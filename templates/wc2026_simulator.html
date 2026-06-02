@@ -927,7 +927,7 @@ async function init() {
   setProgress(10);
   setText("CARGANDO ELO RATINGS...");
   try {
-    const [r1, r2, r3] = await Promise.all([
+    const [r1, r2, r3, r4] = await Promise.all([
       fetch(`${API}/wc_data`),
       fetch(`${API}/wc_ausencias_v2`),
       fetch(`${API}/wc_fatiga`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),

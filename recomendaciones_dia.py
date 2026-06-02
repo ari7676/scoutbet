@@ -3066,6 +3066,56 @@ def wc_rendimiento():
         return jsonify({"ajustes": ajustes, "partidos": len(rows)})
 
 
+
+@app.route("/wc_cargar_planteles_static")
+def wc_cargar_planteles_static():
+    """Carga los planteles oficiales del Mundial 2026 directo a Supabase (sin API externa)."""
+    try:
+        from wc_planteles_data import WC_PLANTELES
+    except ImportError:
+        return jsonify({"error": "No se encontro wc_planteles_data.py"})
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS wc_planteles (
+        seleccion TEXT,
+        nombre TEXT,
+        posicion TEXT,
+        club TEXT,
+        valor_m REAL,
+        edad INTEGER,
+        creado TEXT,
+        PRIMARY KEY (seleccion, nombre)
+    )""")
+    conn.commit()
+
+    ahora = datetime.utcnow().isoformat()
+    total = 0
+    errores = []
+    for seleccion, jugadores in WC_PLANTELES.items():
+        for j in jugadores:
+            try:
+                c.execute("""INSERT INTO wc_planteles (seleccion, nombre, posicion, club, valor_m, edad, creado)
+                             VALUES (%s, %s, %s, %s, %s, %s, %s)
+                             ON CONFLICT (seleccion, nombre) DO UPDATE
+                             SET posicion=EXCLUDED.posicion, club=EXCLUDED.club,
+                                 valor_m=EXCLUDED.valor_m, edad=EXCLUDED.edad""",
+                          (seleccion, j.get("nombre",""), j.get("posicion",""),
+                           j.get("club",""), float(j.get("valor_m", 1)),
+                           int(j.get("edad", 25)), ahora))
+                total += 1
+            except Exception as e:
+                errores.append(f"{seleccion}/{j.get('nombre','?')}: {e}")
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "ok": True,
+        "selecciones": len(WC_PLANTELES),
+        "jugadores_cargados": total,
+        "errores": errores[:10]
+    })
+
 @app.route("/wc_cargar_planteles")
 def wc_cargar_planteles():
     """

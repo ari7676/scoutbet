@@ -2940,6 +2940,131 @@ def wc_ausencias():
     return jsonify(ausencias)
 
 
+
+# ── WORLD CUP: FORMACIONES Y RENDIMIENTO ─────────────────────────────────
+
+@app.route("/wc_formacion", methods=["GET", "POST"])
+def wc_formacion():
+    """Guardar/obtener formaciones de partidos del Mundial."""
+    conn = get_db()
+    c = conn.cursor()
+    # Crear tabla si no existe
+    c.execute("""CREATE TABLE IF NOT EXISTS wc_formaciones (
+        partido_id TEXT PRIMARY KEY,
+        home TEXT,
+        away TEXT,
+        home_titulares TEXT,
+        away_titulares TEXT,
+        creado TEXT,
+        actualizado TEXT
+    )""")
+    conn.commit()
+
+    if request.method == "POST":
+        body = request.get_json() or {}
+        partido_id = body.get("partido_id")
+        home = body.get("home")
+        away = body.get("away")
+        home_titulares = json.dumps(body.get("home_titulares", []), ensure_ascii=False)
+        away_titulares = json.dumps(body.get("away_titulares", []), ensure_ascii=False)
+        ahora = datetime.utcnow().isoformat()
+        c.execute("""INSERT INTO wc_formaciones (partido_id, home, away, home_titulares, away_titulares, creado, actualizado)
+                     VALUES (%s, %s, %s, %s, %s, %s, %s)
+                     ON CONFLICT (partido_id) DO UPDATE
+                     SET home_titulares=EXCLUDED.home_titulares,
+                         away_titulares=EXCLUDED.away_titulares,
+                         actualizado=EXCLUDED.actualizado""",
+                  (partido_id, home, away, home_titulares, away_titulares, ahora, ahora))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "partido_id": partido_id})
+    else:
+        partido_id = request.args.get("partido_id")
+        if partido_id:
+            c.execute("SELECT * FROM wc_formaciones WHERE partido_id=%s", (partido_id,))
+            row = c.fetchone()
+            conn.close()
+            if row:
+                return jsonify({
+                    "partido_id": row[0], "home": row[1], "away": row[2],
+                    "home_titulares": json.loads(row[3]),
+                    "away_titulares": json.loads(row[4]),
+                    "actualizado": row[6]
+                })
+            return jsonify({"error": "No encontrado"})
+        else:
+            c.execute("SELECT partido_id, home, away, actualizado FROM wc_formaciones ORDER BY actualizado DESC")
+            rows = c.fetchall()
+            conn.close()
+            return jsonify([{"partido_id": r[0], "home": r[1], "away": r[2], "actualizado": r[3]} for r in rows])
+
+
+@app.route("/wc_rendimiento", methods=["GET", "POST"])
+def wc_rendimiento():
+    """Guardar/obtener resultados reales del Mundial para ajuste dinamico de ELO."""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS wc_resultados (
+        partido_id TEXT PRIMARY KEY,
+        home TEXT,
+        away TEXT,
+        goles_home INTEGER,
+        goles_away INTEGER,
+        fase TEXT,
+        fecha TEXT,
+        elo_home_antes INTEGER,
+        elo_away_antes INTEGER,
+        elo_ajuste_home INTEGER,
+        elo_ajuste_away INTEGER,
+        creado TEXT
+    )""")
+    conn.commit()
+
+    if request.method == "POST":
+        body = request.get_json() or {}
+        partido_id = body.get("partido_id")
+        home = body.get("home")
+        away = body.get("away")
+        gh = body.get("goles_home", 0)
+        ga = body.get("goles_away", 0)
+        fase = body.get("fase", "Grupos")
+        fecha = body.get("fecha", datetime.utcnow().isoformat()[:10])
+        elo_h = body.get("elo_home_antes", 1800)
+        elo_a = body.get("elo_away_antes", 1800)
+
+        # Calcular ajuste ELO post-partido (formula ELO estandar)
+        k = 40 if fase == "Grupos" else (50 if "Octavos" in fase or "Cuartos" in fase else 60)
+        expected_h = 1 / (1 + 10 ** ((elo_a - elo_h) / 400))
+        if gh > ga: score_h = 1.0
+        elif gh == ga: score_h = 0.5
+        else: score_h = 0.0
+        score_a = 1.0 - score_h
+        ajuste_h = round(k * (score_h - expected_h))
+        ajuste_a = round(k * (score_a - (1 - expected_h)))
+
+        ahora = datetime.utcnow().isoformat()
+        c.execute("""INSERT INTO wc_resultados
+            (partido_id, home, away, goles_home, goles_away, fase, fecha,
+             elo_home_antes, elo_away_antes, elo_ajuste_home, elo_ajuste_away, creado)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            ON CONFLICT (partido_id) DO UPDATE
+            SET goles_home=EXCLUDED.goles_home, goles_away=EXCLUDED.goles_away,
+                elo_ajuste_home=EXCLUDED.elo_ajuste_home, elo_ajuste_away=EXCLUDED.elo_ajuste_away""",
+            (partido_id, home, away, gh, ga, fase, fecha, elo_h, elo_a, ajuste_h, ajuste_a, ahora))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "ajuste_home": ajuste_h, "ajuste_away": ajuste_a})
+    else:
+        # Devolver ajustes acumulados por seleccion
+        c.execute("SELECT home, away, elo_ajuste_home, elo_ajuste_away FROM wc_resultados")
+        rows = c.fetchall()
+        conn.close()
+        ajustes = {}
+        for home, away, adj_h, adj_a in rows:
+            ajustes[home] = ajustes.get(home, 0) + (adj_h or 0)
+            ajustes[away] = ajustes.get(away, 0) + (adj_a or 0)
+        return jsonify({"ajustes": ajustes, "partidos": len(rows)})
+
 @app.route("/wc_bonus")
 def wc_bonus():
     ck = "wc_bonus_data"

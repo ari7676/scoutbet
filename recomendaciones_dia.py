@@ -2851,15 +2851,16 @@ def wc_ausencias_v2():
 
 @app.route("/wc_ausencias")
 def wc_ausencias():
+    # Actualizado con listas oficiales FIFA - 2 de junio 2026
     ausencias = {
         "Brazil": {
             "ausentes": [
+                # Neymar SI convocado (sorpresa). Rodrygo, Militao, Estevaoo NO convocados
                 {"nombre": "Rodrygo", "posicion": "Right Winger", "valor_m": 120, "criticidad": 0.65, "penalty_elo": -52},
-                {"nombre": "Éder Militão", "posicion": "Centre-Back", "valor_m": 50, "criticidad": 0.40, "penalty_elo": -35},
-                {"nombre": "Estêvão", "posicion": "Right Winger", "valor_m": 60, "criticidad": 0.42, "penalty_elo": -37},
-                {"nombre": "Neymar", "posicion": "Left Winger", "valor_m": 30, "criticidad": 0.16, "penalty_elo": -17},
+                {"nombre": "Eder Militao", "posicion": "Centre-Back", "valor_m": 50, "criticidad": 0.40, "penalty_elo": -35},
+                {"nombre": "Estevaoo", "posicion": "Right Winger", "valor_m": 60, "criticidad": 0.42, "penalty_elo": -37},
             ],
-            "penalty_total": -141
+            "penalty_total": -124
         },
         "Netherlands": {
             "ausentes": [
@@ -2870,10 +2871,10 @@ def wc_ausencias():
         },
         "France": {
             "ausentes": [
-                {"nombre": "Hugo Ekitiké", "posicion": "Centre-Forward", "valor_m": 60, "criticidad": 0.38, "penalty_elo": -33},
-                {"nombre": "Lucas Hernandez", "posicion": "Left-Back", "valor_m": 40, "criticidad": 0.28, "penalty_elo": -26},
+                # Lucas Hernandez SI convocado. Solo falta Ekitike
+                {"nombre": "Hugo Ekitike", "posicion": "Centre-Forward", "valor_m": 60, "criticidad": 0.38, "penalty_elo": -33},
             ],
-            "penalty_total": -59
+            "penalty_total": -33
         },
         "Germany": {
             "ausentes": [
@@ -2883,53 +2884,57 @@ def wc_ausencias():
         },
         "Spain": {
             "ausentes": [
-                {"nombre": "Fermín López", "posicion": "Central Midfield", "valor_m": 50, "criticidad": 0.38, "penalty_elo": -33},
-                {"nombre": "Samu Omorodion", "posicion": "Centre-Forward", "valor_m": 30, "criticidad": 0.22, "penalty_elo": -20},
+                # Pedri, Gavi y Fermin confirmados NO convocados
                 {"nombre": "Pedri", "posicion": "Central Midfield", "valor_m": 100, "criticidad": 0.61, "penalty_elo": -51},
                 {"nombre": "Gavi", "posicion": "Central Midfield", "valor_m": 80, "criticidad": 0.49, "penalty_elo": -42},
+                {"nombre": "Fermin Lopez", "posicion": "Central Midfield", "valor_m": 50, "criticidad": 0.38, "penalty_elo": -33},
             ],
-            "penalty_total": -146
+            "penalty_total": -126
         },
         "England": {
             "ausentes": [
+                # Reece James SI convocado. Ben White y Foden NO convocados
                 {"nombre": "Ben White", "posicion": "Right-Back", "valor_m": 45, "criticidad": 0.30, "penalty_elo": -27},
-                {"nombre": "Reece James", "posicion": "Right-Back", "valor_m": 50, "criticidad": 0.35, "penalty_elo": -31},
+                {"nombre": "Phil Foden", "posicion": "Attacking Midfield", "valor_m": 110, "criticidad": 0.55, "penalty_elo": -46},
             ],
-            "penalty_total": -58
+            "penalty_total": -73
         },
         "Argentina": {
             "ausentes": [
-                {"nombre": "Cristian Romero", "posicion": "Centre-Back", "valor_m": 65, "criticidad": 0.46, "penalty_elo": -40},
+                # Romero y Nico Paz SI convocados. Solo falta Foyth
                 {"nombre": "Juan Foyth", "posicion": "Right-Back", "valor_m": 30, "criticidad": 0.25, "penalty_elo": -23},
-                {"nombre": "Nico Paz", "posicion": "Attacking Midfield", "valor_m": 40, "criticidad": 0.21, "penalty_elo": -21},
             ],
-            "penalty_total": -84
+            "penalty_total": -23
         },
         "Uruguay": {
             "ausentes": [
                 {"nombre": "Fede Valverde", "posicion": "Central Midfield", "valor_m": 120, "criticidad": 0.71, "penalty_elo": -58},
-                {"nombre": "Ronald Araújo", "posicion": "Centre-Back", "valor_m": 60, "criticidad": 0.44, "penalty_elo": -38},
+                {"nombre": "Ronald Araujo", "posicion": "Centre-Back", "valor_m": 60, "criticidad": 0.44, "penalty_elo": -38},
             ],
             "penalty_total": -96
         },
         "Ecuador": {
             "ausentes": [
-                {"nombre": "Piero Hincapié", "posicion": "Centre-Back", "valor_m": 45, "criticidad": 0.37, "penalty_elo": -33},
+                # Hincapie SI convocado (Arsenal). Solo Preciado ausente
                 {"nombre": "Angelo Preciado", "posicion": "Right-Back", "valor_m": 15, "criticidad": 0.17, "penalty_elo": -18},
             ],
-            "penalty_total": -51
+            "penalty_total": -18
         },
         "Mexico": {
             "ausentes": [
-                {"nombre": "Luis Ángel Malagón", "posicion": "Goalkeeper", "valor_m": 15, "criticidad": 0.35, "penalty_elo": -30},
+                {"nombre": "Hirving Lozano", "posicion": "Right Winger", "valor_m": 20, "criticidad": 0.28, "penalty_elo": -24},
             ],
-            "penalty_total": -30
+            "penalty_total": -24
         },
         "United States": {
             "ausentes": [
-                {"nombre": "Cameron Carter-Vickers", "posicion": "Centre-Back", "valor_m": 20, "criticidad": 0.25, "penalty_elo": -22},
+                {"nombre": "Gio Reyna", "posicion": "Attacking Midfield", "valor_m": 25, "criticidad": 0.28, "penalty_elo": -24},
             ],
-            "penalty_total": -22
+            "penalty_total": -24
+        },
+        "Colombia": {
+            "ausentes": [],
+            "penalty_total": 0
         },
     }
     return jsonify(ausencias)

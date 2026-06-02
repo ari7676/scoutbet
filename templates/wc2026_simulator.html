@@ -1031,38 +1031,36 @@ async function guardarFormacion() {
     return;
   }
   document.getElementById('form-status').textContent = 'Guardando...';
+  // Primero calcular ajuste ELO por valor del XI
+  let xi_adj_home = 0, xi_adj_away = 0, valorMsg = '';
+  try {
+    const rv = await fetch(`${API}/wc_valor_xi`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        home, away,
+        home_titulares: homeTit, away_titulares: awayTit,
+        elo_home: getElo(home), elo_away: getElo(away)
+      })
+    });
+    const dv = await rv.json();
+    xi_adj_home = dv.ajuste_elo_home || 0;
+    xi_adj_away = dv.ajuste_elo_away || 0;
+    if (dv.valor_xi_home) valorMsg += ` · ${home} XI: €${dv.valor_xi_home}M (ELO ${xi_adj_home >= 0 ? '+' : ''}${xi_adj_home})`;
+    if (dv.valor_xi_away) valorMsg += ` · ${away} XI: €${dv.valor_xi_away}M (ELO ${xi_adj_away >= 0 ? '+' : ''}${xi_adj_away})`;
+    // Actualizar formacionesData en memoria para que analyzeMatch lo use inmediatamente
+    formacionesData[partidoId] = {partido_id: partidoId, home, away, home_titulares: homeTit, away_titulares: awayTit, xi_adj_home, xi_adj_away};
+  } catch(e) {}
+
   const r = await fetch(`${API}/wc_formacion`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({partido_id: partidoId, home, away, home_titulares: homeTit, away_titulares: awayTit})
+    body: JSON.stringify({partido_id: partidoId, home, away, home_titulares: homeTit, away_titulares: awayTit, xi_adj_home, xi_adj_away})
   });
   const d = await r.json();
   if (d.ok) {
-    // Calcular valor XI y ajuste ELO
-    try {
-      const rv = await fetch(`${API}/wc_valor_xi`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          home, away,
-          home_titulares: homeTit, away_titulares: awayTit,
-          elo_home: getElo(home), elo_away: getElo(away)
-        })
-      });
-      const dv = await rv.json();
-      let msg = '✅ Guardado';
-      if (dv.valor_xi_home) {
-        msg += ` · ${home} XI: €${dv.valor_xi_home}M`;
-        if (dv.ajuste_elo_home !== 0) msg += ` (ELO ${dv.ajuste_elo_home > 0 ? '+' : ''}${dv.ajuste_elo_home})`;
-      }
-      if (dv.valor_xi_away) {
-        msg += ` · ${away} XI: €${dv.valor_xi_away}M`;
-        if (dv.ajuste_elo_away !== 0) msg += ` (ELO ${dv.ajuste_elo_away > 0 ? '+' : ''}${dv.ajuste_elo_away})`;
-      }
-      document.getElementById('form-status').textContent = msg;
-    } catch(e) {
-      document.getElementById('form-status').textContent = '✅ Guardado (sin datos de valor XI)';
-    }
+    document.getElementById('form-status').textContent = `✅ Guardado${valorMsg} — ELO actualizado en análisis`;
+    analyzeMatch(); // Refrescar análisis con nuevo ELO
   } else {
     document.getElementById('form-status').textContent = '❌ Error';
   }
@@ -1172,6 +1170,7 @@ let ausenciasData = {};
 let fatigaData = {};
 let bonusData = {};
 let rendimientoData = {};
+let formacionesData = {}; // {partido_id: {home_titulares, away_titulares, xi_adj_home, xi_adj_away}}
 // Estructura esperada de fatigaData:
 // { "Argentina": { extraTime: true, round: "R16", opponent: "Australia" }, ... }
 
@@ -1281,18 +1280,24 @@ async function init() {
   setProgress(10);
   setText("CARGANDO ELO RATINGS...");
   try {
-    const [r1, r2, r3, r4, r5] = await Promise.all([
+    const [r1, r2, r3, r4, r5, r6] = await Promise.all([
       fetch(`${API}/wc_data`),
       fetch(`${API}/wc_ausencias_v2`),
       fetch(`${API}/wc_fatiga`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
       fetch(`${API}/wc_bonus`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
-      fetch(`${API}/wc_rendimiento`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({}))
+      fetch(`${API}/wc_rendimiento`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
+      fetch(`${API}/wc_formacion`).catch(() => null).then(r => r ? r.json().catch(() => ([])) : ([]))
     ]);
     const data = await r1.json();
     ausenciasData = await r2.json();
     fatigaData = r3 || {};
     bonusData = r4 || {};
     rendimientoData = (r5 || {}).ajustes || {};
+    // Indexar formaciones por partido_id
+    const formList = r6 || [];
+    if (Array.isArray(formList)) {
+      formList.forEach(f => { formacionesData[f.partido_id] = f; });
+    }
     eloData = data.elo || {};
     fixtures = data.fixtures || [];
 
@@ -1654,8 +1659,22 @@ function analyzeMatch() {
   updateModifierStatus('clima');
 
   const homeBonus = parseInt(document.getElementById('home-bonus-select').value);
-  const eloHBase = getElo(f.home);
-  const eloABase = getElo(f.away);
+  let eloHBase = getElo(f.home);
+  let eloABase = getElo(f.away);
+
+  // Buscar formacion cargada para este partido
+  let formacionInfo = null;
+  for (const [pid, form] of Object.entries(formacionesData)) {
+    if (form.home === f.home && form.away === f.away) {
+      formacionInfo = form;
+      break;
+    }
+  }
+  // Si hay ajuste por XI titular, aplicarlo
+  if (formacionInfo && formacionInfo.xi_adj_home !== undefined) {
+    eloHBase += (formacionInfo.xi_adj_home || 0);
+    eloABase += (formacionInfo.xi_adj_away || 0);
+  }
 
   // Calcular efectos de modificadores
   const { eloModH, eloModA, lModH, lModA, chips } = computeModifierEffects(f.home, f.away, eloHBase, eloABase);

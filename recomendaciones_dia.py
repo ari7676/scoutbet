@@ -2955,9 +2955,17 @@ def wc_formacion():
         away TEXT,
         home_titulares TEXT,
         away_titulares TEXT,
+        xi_adj_home REAL DEFAULT 0,
+        xi_adj_away REAL DEFAULT 0,
         creado TEXT,
         actualizado TEXT
     )""")
+    # Agregar columnas si no existen (migracion)
+    try:
+        c.execute("ALTER TABLE wc_formaciones ADD COLUMN xi_adj_home REAL DEFAULT 0")
+        c.execute("ALTER TABLE wc_formaciones ADD COLUMN xi_adj_away REAL DEFAULT 0")
+        conn.commit()
+    except: pass
     conn.commit()
 
     if request.method == "POST":
@@ -2968,13 +2976,17 @@ def wc_formacion():
         home_titulares = json.dumps(body.get("home_titulares", []), ensure_ascii=False)
         away_titulares = json.dumps(body.get("away_titulares", []), ensure_ascii=False)
         ahora = datetime.utcnow().isoformat()
-        c.execute("""INSERT INTO wc_formaciones (partido_id, home, away, home_titulares, away_titulares, creado, actualizado)
-                     VALUES (%s, %s, %s, %s, %s, %s, %s)
+        xi_adj_home = float(body.get("xi_adj_home", 0) or 0)
+        xi_adj_away = float(body.get("xi_adj_away", 0) or 0)
+        c.execute("""INSERT INTO wc_formaciones (partido_id, home, away, home_titulares, away_titulares, xi_adj_home, xi_adj_away, creado, actualizado)
+                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                      ON CONFLICT (partido_id) DO UPDATE
                      SET home_titulares=EXCLUDED.home_titulares,
                          away_titulares=EXCLUDED.away_titulares,
+                         xi_adj_home=EXCLUDED.xi_adj_home,
+                         xi_adj_away=EXCLUDED.xi_adj_away,
                          actualizado=EXCLUDED.actualizado""",
-                  (partido_id, home, away, home_titulares, away_titulares, ahora, ahora))
+                  (partido_id, home, away, home_titulares, away_titulares, xi_adj_home, xi_adj_away, ahora, ahora))
         conn.commit()
         conn.close()
         return jsonify({"ok": True, "partido_id": partido_id})
@@ -2989,14 +3001,16 @@ def wc_formacion():
                     "partido_id": row[0], "home": row[1], "away": row[2],
                     "home_titulares": json.loads(row[3]),
                     "away_titulares": json.loads(row[4]),
-                    "actualizado": row[6]
+                    "xi_adj_home": row[5] if len(row) > 5 else 0,
+                    "xi_adj_away": row[6] if len(row) > 6 else 0,
+                    "actualizado": row[8] if len(row) > 8 else row[6]
                 })
             return jsonify({"error": "No encontrado"})
         else:
-            c.execute("SELECT partido_id, home, away, actualizado FROM wc_formaciones ORDER BY actualizado DESC")
+            c.execute("SELECT partido_id, home, away, xi_adj_home, xi_adj_away, actualizado FROM wc_formaciones ORDER BY actualizado DESC")
             rows = c.fetchall()
             conn.close()
-            return jsonify([{"partido_id": r[0], "home": r[1], "away": r[2], "actualizado": r[3]} for r in rows])
+            return jsonify([{"partido_id": r[0], "home": r[1], "away": r[2], "xi_adj_home": r[3] or 0, "xi_adj_away": r[4] or 0, "actualizado": r[5]} for r in rows])
 
 
 @app.route("/wc_rendimiento", methods=["GET", "POST"])

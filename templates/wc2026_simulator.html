@@ -1026,11 +1026,6 @@ async function guardarFormacion() {
   // Obtener titulares de los checkboxes
   const homeTit = [...document.querySelectorAll('#plantel-home input:checked')].map(c => c.value);
   const awayTit = [...document.querySelectorAll('#plantel-away input:checked')].map(c => c.value);
-  const partidoId = document.getElementById('form-partido-id').value.trim();
-  const home = document.getElementById('form-home').value.trim();
-  const away = document.getElementById('form-away').value.trim();
-  const homeTit = document.getElementById('form-home-titulares').value.trim().split('\n').filter(x=>x);
-  const awayTit = document.getElementById('form-away-titulares').value.trim().split('\n').filter(x=>x);
   if (!partidoId || !home || !away) {
     document.getElementById('form-status').textContent = '⚠ Completá todos los campos';
     return;

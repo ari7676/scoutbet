@@ -3076,10 +3076,13 @@ def wc_cargar_planteles():
     if not api_key:
         return jsonify({"error": "Sin ANTHROPIC_API_KEY"})
 
-    # Verificar cache (24hs)
+    # Verificar cache (24hs) - ?force=1 para forzar recarga
     ck = "wc_planteles_loaded"
-    if ck in _cache and time.time() - _cache[ck][1] < 86400:
+    force = request.args.get("force") == "1"
+    if not force and ck in _cache and time.time() - _cache[ck][1] < 86400:
         return jsonify({"ok": True, "fuente": "cache", "mensaje": "Ya cargado recientemente"})
+    if force and ck in _cache:
+        del _cache[ck]
 
     # Crear tabla si no existe
     conn = get_db()

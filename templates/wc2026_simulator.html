@@ -816,40 +816,44 @@ header {
   <!-- CARGAR FORMACION -->
   <div style="background:var(--surface);border-radius:12px;padding:20px;margin-bottom:24px;border:1px solid var(--border)">
     <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:16px">📋 FORMACIÓN PRE-PARTIDO</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
       <div>
-        <label style="font-size:11px;color:var(--muted)">PARTIDO ID (ej: WC_ARG_FRA)</label>
+        <label style="font-size:11px;color:var(--muted)">PARTIDO ID</label>
         <input id="form-partido-id" type="text" placeholder="WC_ARG_FRA_GrupoA"
                style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div>
-          <label style="font-size:11px;color:var(--muted)">LOCAL</label>
-          <input id="form-home" type="text" placeholder="Argentina"
-                 style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
-        </div>
-        <div>
-          <label style="font-size:11px;color:var(--muted)">VISITANTE</label>
-          <input id="form-away" type="text" placeholder="France"
-                 style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
-        </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">LOCAL</label>
+        <input id="form-home" type="text" placeholder="Argentina" oninput="cargarPlantelSelector('home')"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">VISITANTE</label>
+        <input id="form-away" type="text" placeholder="France" oninput="cargarPlantelSelector('away')"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
       <div>
-        <label style="font-size:11px;color:var(--muted)">TITULARES LOCAL (uno por línea)</label>
-        <textarea id="form-home-titulares" rows="11" placeholder="Ej:\nDibu Martinez\nMolina\nRomero..."
-                  style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:12px;resize:vertical"></textarea>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">TITULARES LOCAL <span id="home-count" style="color:var(--accent)">(0/11)</span></div>
+        <div id="plantel-home" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px;max-height:320px;overflow-y:auto;font-size:12px">
+          <div style="color:var(--muted)">Ingresá el equipo local para ver el plantel</div>
+        </div>
       </div>
       <div>
-        <label style="font-size:11px;color:var(--muted)">TITULARES VISITANTE (uno por línea)</label>
-        <textarea id="form-away-titulares" rows="11" placeholder="Ej:\nMaignan\nKounde\nSaliba..."
-                  style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:12px;resize:vertical"></textarea>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">TITULARES VISITANTE <span id="away-count" style="color:var(--accent)">(0/11)</span></div>
+        <div id="plantel-away" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px;max-height:320px;overflow-y:auto;font-size:12px">
+          <div style="color:var(--muted)">Ingresá el equipo visitante para ver el plantel</div>
+        </div>
       </div>
     </div>
     <button onclick="guardarFormacion()"
             style="background:var(--accent);color:#000;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;letter-spacing:1px">
       GUARDAR FORMACIÓN
+    </button>
+    <button onclick="limpiarFormacion()"
+            style="background:transparent;color:var(--muted);border:1px solid var(--border);padding:10px 16px;border-radius:6px;cursor:pointer;font-size:12px;margin-left:8px">
+      LIMPIAR
     </button>
     <span id="form-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
   </div>
@@ -948,7 +952,80 @@ header {
 </div>
 
 <script>
+// Cache de planteles cargados
+const plantelCache = {};
+
+async function cargarPlantelSelector(side) {
+  const seleccion = document.getElementById(`form-${side}`).value.trim();
+  if (seleccion.length < 3) return;
+  
+  clearTimeout(window[`timer_${side}`]);
+  window[`timer_${side}`] = setTimeout(async () => {
+    if (plantelCache[seleccion]) {
+      renderPlantelCheckboxes(side, seleccion, plantelCache[seleccion]);
+      return;
+    }
+    const r = await fetch(`${API}/wc_planteles?seleccion=${encodeURIComponent(seleccion)}`);
+    const d = await r.json();
+    if (d.jugadores && d.jugadores.length > 0) {
+      plantelCache[seleccion] = d.jugadores;
+      renderPlantelCheckboxes(side, seleccion, d.jugadores);
+    }
+  }, 600);
+}
+
+function renderPlantelCheckboxes(side, seleccion, jugadores) {
+  const container = document.getElementById(`plantel-${side}`);
+  const posOrder = {'GK': 0, 'DF': 1, 'MF': 2, 'FW': 3};
+  const sorted = [...jugadores].sort((a,b) => (posOrder[a.posicion]||9) - (posOrder[b.posicion]||9));
+  
+  const byPos = {};
+  sorted.forEach(j => {
+    if (!byPos[j.posicion]) byPos[j.posicion] = [];
+    byPos[j.posicion].push(j);
+  });
+
+  let html = '';
+  const posNames = {'GK': '🥅 Porteros', 'DF': '🛡 Defensas', 'MF': '⚙ Mediocampistas', 'FW': '⚡ Delanteros'};
+  for (const [pos, jgs] of Object.entries(byPos)) {
+    html += `<div style="font-size:10px;color:var(--accent);margin:8px 0 4px;letter-spacing:1px">${posNames[pos]||pos}</div>`;
+    jgs.forEach(j => {
+      const id = `chk-${side}-${j.nombre.replace(/\s+/g,'-')}`;
+      html += `<label style="display:flex;align-items:center;gap:8px;padding:4px;cursor:pointer;border-radius:4px;transition:background 0.1s" 
+                      onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background=''"
+                      onclick="updateCount('${side}')">
+        <input type="checkbox" id="${id}" value="${j.nombre}" 
+               style="accent-color:var(--accent);width:14px;height:14px">
+        <span style="flex:1">${j.nombre}</span>
+        <span style="color:var(--muted);font-size:10px">${j.club}</span>
+        <span style="color:var(--accent);font-size:10px">€${j.valor_m}M</span>
+      </label>`;
+    });
+  }
+  container.innerHTML = html;
+  updateCount(side);
+}
+
+function updateCount(side) {
+  const checked = document.querySelectorAll(`#plantel-${side} input:checked`).length;
+  document.getElementById(`${side}-count`).textContent = `(${checked}/11)`;
+  document.getElementById(`${side}-count`).style.color = checked === 11 ? '#0f0' : checked > 11 ? '#f00' : 'var(--accent)';
+}
+
+function limpiarFormacion() {
+  document.querySelectorAll('#plantel-home input, #plantel-away input').forEach(c => c.checked = false);
+  updateCount('home'); updateCount('away');
+  document.getElementById('form-status').textContent = '';
+}
+
 async function guardarFormacion() {
+  const partidoId = document.getElementById('form-partido-id').value.trim();
+  const home = document.getElementById('form-home').value.trim();
+  const away = document.getElementById('form-away').value.trim();
+  
+  // Obtener titulares de los checkboxes
+  const homeTit = [...document.querySelectorAll('#plantel-home input:checked')].map(c => c.value);
+  const awayTit = [...document.querySelectorAll('#plantel-away input:checked')].map(c => c.value);
   const partidoId = document.getElementById('form-partido-id').value.trim();
   const home = document.getElementById('form-home').value.trim();
   const away = document.getElementById('form-away').value.trim();

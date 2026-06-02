@@ -3065,6 +3065,216 @@ def wc_rendimiento():
             ajustes[away] = ajustes.get(away, 0) + (adj_a or 0)
         return jsonify({"ajustes": ajustes, "partidos": len(rows)})
 
+
+@app.route("/wc_cargar_planteles")
+def wc_cargar_planteles():
+    """
+    Carga las listas completas de convocados con valores de mercado via Claude web search.
+    Guarda en Supabase tabla wc_planteles. Ejecutar una vez antes del torneo.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return jsonify({"error": "Sin ANTHROPIC_API_KEY"})
+
+    # Verificar cache (24hs)
+    ck = "wc_planteles_loaded"
+    if ck in _cache and time.time() - _cache[ck][1] < 86400:
+        return jsonify({"ok": True, "fuente": "cache", "mensaje": "Ya cargado recientemente"})
+
+    # Crear tabla si no existe
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS wc_planteles (
+        seleccion TEXT,
+        nombre TEXT,
+        posicion TEXT,
+        club TEXT,
+        valor_m REAL,
+        edad INTEGER,
+        creado TEXT,
+        PRIMARY KEY (seleccion, nombre)
+    )""")
+    conn.commit()
+    conn.close()
+
+    # Procesar en lotes de 8 selecciones para no exceder tokens
+    selecciones_lotes = [
+        ["Argentina", "Brazil", "France", "Spain", "England", "Germany", "Portugal", "Netherlands"],
+        ["Belgium", "Croatia", "Uruguay", "Colombia", "Morocco", "Japan", "USA", "Mexico"],
+        ["Senegal", "Ecuador", "Canada", "Australia", "Denmark", "Switzerland", "Austria", "Serbia"],
+        ["Poland", "South Korea", "Saudi Arabia", "Qatar", "Iran", "Cameroon", "Ghana", "Ivory Coast"],
+        ["Egypt", "Nigeria", "Algeria", "Norway", "Scotland", "Czechia", "Bosnia And Herzegovina", "Panama"],
+        ["Paraguay", "New Zealand", "Haiti", "Iraq", "Jordan", "Congo DR", "Cabo Verde", "Curacao"],
+    ]
+
+    total_guardados = 0
+    errores = []
+
+    for lote in selecciones_lotes:
+        prompt = (
+            f"Para cada una de estas selecciones del Mundial 2026, dame la lista de sus 26 convocados "
+            f"con nombre completo, posicion (GK/DF/MF/FW), club actual y valor de mercado aproximado en millones de euros: "
+            f"{', '.join(lote)}. "
+            "Respondé SOLO con JSON valido sin markdown: "
+            '{"Argentina": [{"nombre": "Lionel Messi", "posicion": "FW", "club": "Inter Miami", "valor_m": 25, "edad": 38}], ...}'
+            " Para jugadores de selecciones menores con poco valor de mercado, estimá entre 0.5 y 5M."
+        )
+
+        try:
+            r = requests.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json"
+                },
+                json={
+                    "model": "claude-haiku-4-5-20251001",
+                    "max_tokens": 8000,
+                    "tools": [{"type": "web_search_20250305", "name": "web_search"}],
+                    "messages": [{"role": "user", "content": prompt}]
+                },
+                timeout=120
+            )
+            if not r.ok:
+                errores.append(f"API error lote {lote[0]}: {r.status_code}")
+                continue
+
+            data = r.json()
+            texto = ""
+            for block in data.get("content", []):
+                if block.get("type") == "text":
+                    texto += block.get("text", "")
+
+            texto = texto.strip()
+            import re
+            match = re.search(r'\{[\s\S]*\}', texto)
+            if match:
+                texto = match.group(0)
+
+            planteles = json.loads(texto)
+
+            # Guardar en Supabase
+            conn = get_db()
+            c = conn.cursor()
+            ahora = datetime.utcnow().isoformat()
+            for seleccion, jugadores in planteles.items():
+                for j in jugadores:
+                    try:
+                        c.execute("""INSERT INTO wc_planteles (seleccion, nombre, posicion, club, valor_m, edad, creado)
+                                     VALUES (%s, %s, %s, %s, %s, %s, %s)
+                                     ON CONFLICT (seleccion, nombre) DO UPDATE
+                                     SET posicion=EXCLUDED.posicion, club=EXCLUDED.club,
+                                         valor_m=EXCLUDED.valor_m, edad=EXCLUDED.edad""",
+                                  (seleccion, j.get("nombre",""), j.get("posicion",""),
+                                   j.get("club",""), float(j.get("valor_m", 1)),
+                                   int(j.get("edad", 25)), ahora))
+                        total_guardados += 1
+                    except Exception as e:
+                        errores.append(f"{seleccion}/{j.get('nombre','?')}: {e}")
+            conn.commit()
+            conn.close()
+            time.sleep(2)  # evitar rate limit
+
+        except Exception as e:
+            errores.append(f"Lote {lote}: {e}")
+
+    _cache[ck] = (True, time.time())
+    return jsonify({
+        "ok": True,
+        "total_guardados": total_guardados,
+        "errores": errores[:10],
+        "mensaje": f"Planteles cargados: {total_guardados} jugadores"
+    })
+
+
+@app.route("/wc_planteles")
+def wc_planteles():
+    """Devuelve los planteles guardados, filtrable por seleccion."""
+    seleccion = request.args.get("seleccion")
+    conn = get_db()
+    c = conn.cursor()
+    if seleccion:
+        c.execute("SELECT nombre, posicion, club, valor_m, edad FROM wc_planteles WHERE seleccion=%s ORDER BY valor_m DESC", (seleccion,))
+        rows = c.fetchall()
+        conn.close()
+        return jsonify({
+            "seleccion": seleccion,
+            "jugadores": [{"nombre": r[0], "posicion": r[1], "club": r[2], "valor_m": r[3], "edad": r[4]} for r in rows]
+        })
+    else:
+        c.execute("SELECT seleccion, COUNT(*) as n, SUM(valor_m) as valor_total FROM wc_planteles GROUP BY seleccion ORDER BY valor_total DESC")
+        rows = c.fetchall()
+        conn.close()
+        return jsonify([{"seleccion": r[0], "jugadores": r[1], "valor_total_m": round(r[2] or 0, 1)} for r in rows])
+
+
+@app.route("/wc_valor_xi", methods=["POST"])
+def wc_valor_xi():
+    """
+    Calcula el valor de mercado del XI titular y ajusta el ELO del partido.
+    Recibe: {home, away, home_titulares: [...], away_titulares: [...], elo_home, elo_away}
+    """
+    body = request.get_json() or {}
+    home = body.get("home")
+    away = body.get("away")
+    home_xi = body.get("home_titulares", [])
+    away_xi = body.get("away_titulares", [])
+    elo_h = body.get("elo_home", 1800)
+    elo_a = body.get("elo_away", 1800)
+
+    conn = get_db()
+    c = conn.cursor()
+
+    def get_valor_xi(seleccion, titulares):
+        if not titulares:
+            return None, None
+        placeholders = ','.join(['%s'] * len(titulares))
+        c.execute(f"""SELECT nombre, valor_m FROM wc_planteles
+                      WHERE seleccion=%s AND nombre = ANY(%s)""",
+                  (seleccion, titulares))
+        rows = c.fetchall()
+        if not rows:
+            return None, None
+        valor_xi = sum(r[1] for r in rows if r[1])
+        encontrados = len(rows)
+        return round(valor_xi, 1), encontrados
+
+    # Valor plantel completo para comparar
+    c.execute("SELECT SUM(valor_m) FROM wc_planteles WHERE seleccion=%s", (home,))
+    row = c.fetchone()
+    valor_total_h = row[0] or 0
+
+    c.execute("SELECT SUM(valor_m) FROM wc_planteles WHERE seleccion=%s", (away,))
+    row = c.fetchone()
+    valor_total_a = row[0] or 0
+
+    valor_xi_h, enc_h = get_valor_xi(home, home_xi)
+    valor_xi_a, enc_a = get_valor_xi(away, away_xi)
+    conn.close()
+
+    # Ajuste ELO basado en % del valor del XI vs plantel total
+    ajuste_h = ajuste_a = 0
+    if valor_xi_h and valor_total_h > 0:
+        pct_h = valor_xi_h / valor_total_h
+        # Si el XI vale menos del 50% del plantel -> penaliza
+        if pct_h < 0.5: ajuste_h = round((pct_h - 0.5) * 100)
+        elif pct_h > 0.7: ajuste_h = round((pct_h - 0.7) * 50)
+
+    if valor_xi_a and valor_total_a > 0:
+        pct_a = valor_xi_a / valor_total_a
+        if pct_a < 0.5: ajuste_a = round((pct_a - 0.5) * 100)
+        elif pct_a > 0.7: ajuste_a = round((pct_a - 0.7) * 50)
+
+    return jsonify({
+        "home": home, "away": away,
+        "valor_xi_home": valor_xi_h, "valor_xi_away": valor_xi_a,
+        "valor_plantel_home": round(valor_total_h, 1), "valor_plantel_away": round(valor_total_a, 1),
+        "ajuste_elo_home": ajuste_h, "ajuste_elo_away": ajuste_a,
+        "elo_ajustado_home": elo_h + ajuste_h, "elo_ajustado_away": elo_a + ajuste_a,
+        "encontrados_home": enc_h, "encontrados_away": enc_a,
+    })
+
 @app.route("/wc_bonus")
 def wc_bonus():
     ck = "wc_bonus_data"

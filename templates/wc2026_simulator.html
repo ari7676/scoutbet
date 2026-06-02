@@ -965,7 +965,35 @@ async function guardarFormacion() {
     body: JSON.stringify({partido_id: partidoId, home, away, home_titulares: homeTit, away_titulares: awayTit})
   });
   const d = await r.json();
-  document.getElementById('form-status').textContent = d.ok ? '✅ Guardado' : '❌ Error';
+  if (d.ok) {
+    // Calcular valor XI y ajuste ELO
+    try {
+      const rv = await fetch(`${API}/wc_valor_xi`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          home, away,
+          home_titulares: homeTit, away_titulares: awayTit,
+          elo_home: getElo(home), elo_away: getElo(away)
+        })
+      });
+      const dv = await rv.json();
+      let msg = '✅ Guardado';
+      if (dv.valor_xi_home) {
+        msg += ` · ${home} XI: €${dv.valor_xi_home}M`;
+        if (dv.ajuste_elo_home !== 0) msg += ` (ELO ${dv.ajuste_elo_home > 0 ? '+' : ''}${dv.ajuste_elo_home})`;
+      }
+      if (dv.valor_xi_away) {
+        msg += ` · ${away} XI: €${dv.valor_xi_away}M`;
+        if (dv.ajuste_elo_away !== 0) msg += ` (ELO ${dv.ajuste_elo_away > 0 ? '+' : ''}${dv.ajuste_elo_away})`;
+      }
+      document.getElementById('form-status').textContent = msg;
+    } catch(e) {
+      document.getElementById('form-status').textContent = '✅ Guardado (sin datos de valor XI)';
+    }
+  } else {
+    document.getElementById('form-status').textContent = '❌ Error';
+  }
 }
 
 async function guardarResultado() {

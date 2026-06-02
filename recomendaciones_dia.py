@@ -3100,27 +3100,34 @@ def wc_cargar_planteles():
     conn.commit()
     conn.close()
 
-    # Procesar en lotes de 8 selecciones para no exceder tokens
-    selecciones_lotes = [
-        ["Argentina", "Brazil", "France", "Spain", "England", "Germany", "Portugal", "Netherlands"],
-        ["Belgium", "Croatia", "Uruguay", "Colombia", "Morocco", "Japan", "USA", "Mexico"],
-        ["Senegal", "Ecuador", "Canada", "Australia", "Denmark", "Switzerland", "Austria", "Serbia"],
-        ["Poland", "South Korea", "Saudi Arabia", "Qatar", "Iran", "Cameroon", "Ghana", "Ivory Coast"],
-        ["Egypt", "Nigeria", "Algeria", "Norway", "Scotland", "Czechia", "Bosnia And Herzegovina", "Panama"],
-        ["Paraguay", "New Zealand", "Haiti", "Iraq", "Jordan", "Congo DR", "Cabo Verde", "Curacao"],
+    # Soporta ?seleccion=Argentina para cargar de a una
+    seleccion_single = request.args.get("seleccion")
+
+    todas_selecciones = [
+        "Argentina", "Brazil", "France", "Spain", "England", "Germany", "Portugal", "Netherlands",
+        "Belgium", "Croatia", "Uruguay", "Colombia", "Morocco", "Japan", "USA", "Mexico",
+        "Senegal", "Ecuador", "Canada", "Australia", "Denmark", "Switzerland", "Austria", "Serbia",
+        "Poland", "South Korea", "Saudi Arabia", "Qatar", "Iran", "Cameroon", "Ghana", "Ivory Coast",
+        "Egypt", "Nigeria", "Algeria", "Norway", "Scotland", "Czechia", "Bosnia And Herzegovina", "Panama",
+        "Paraguay", "New Zealand", "Haiti", "Iraq", "Jordan", "Congo DR", "Cabo Verde", "Curacao",
     ]
+
+    if seleccion_single:
+        selecciones_a_procesar = [seleccion_single]
+    else:
+        # Sin parametro: solo las primeras 4 para no dar timeout
+        selecciones_a_procesar = todas_selecciones[:4]
 
     total_guardados = 0
     errores = []
 
-    for lote in selecciones_lotes:
+    for seleccion_nombre in selecciones_a_procesar:
         prompt = (
-            f"Para cada una de estas selecciones del Mundial 2026, dame la lista de sus 26 convocados "
-            f"con nombre completo, posicion (GK/DF/MF/FW), club actual y valor de mercado aproximado en millones de euros: "
-            f"{', '.join(lote)}. "
+            f"Dame la lista de los 26 jugadores convocados por {seleccion_nombre} para el Mundial 2026, "
+            f"con nombre completo, posicion (GK/DF/MF/FW), club actual y valor de mercado en millones de euros. "
             "Respondé SOLO con JSON valido sin markdown: "
-            '{"Argentina": [{"nombre": "Lionel Messi", "posicion": "FW", "club": "Inter Miami", "valor_m": 25, "edad": 38}], ...}'
-            " Para jugadores de selecciones menores con poco valor de mercado, estimá entre 0.5 y 5M."
+            f'{{"{seleccion_nombre}": [{{"nombre": "Nombre", "posicion": "FW", "club": "Club", "valor_m": 25, "edad": 28}}]}}'
+            " Para jugadores con poco perfil, estimá entre 0.5 y 5M."
         )
 
         try:
@@ -3133,14 +3140,14 @@ def wc_cargar_planteles():
                 },
                 json={
                     "model": "claude-haiku-4-5-20251001",
-                    "max_tokens": 8000,
+                    "max_tokens": 4000,
                     "tools": [{"type": "web_search_20250305", "name": "web_search"}],
                     "messages": [{"role": "user", "content": prompt}]
                 },
-                timeout=120
+                timeout=60
             )
             if not r.ok:
-                errores.append(f"API error lote {lote[0]}: {r.status_code}")
+                errores.append(f"API error lote {seleccion_nombre}: {r.status_code}")
                 continue
 
             data = r.json()
@@ -3161,23 +3168,24 @@ def wc_cargar_planteles():
             conn = get_db()
             c = conn.cursor()
             ahora = datetime.utcnow().isoformat()
-            for seleccion, jugadores in planteles.items():
-                for j in jugadores:
-                    try:
-                        c.execute("""INSERT INTO wc_planteles (seleccion, nombre, posicion, club, valor_m, edad, creado)
-                                     VALUES (%s, %s, %s, %s, %s, %s, %s)
-                                     ON CONFLICT (seleccion, nombre) DO UPDATE
-                                     SET posicion=EXCLUDED.posicion, club=EXCLUDED.club,
-                                         valor_m=EXCLUDED.valor_m, edad=EXCLUDED.edad""",
-                                  (seleccion, j.get("nombre",""), j.get("posicion",""),
-                                   j.get("club",""), float(j.get("valor_m", 1)),
-                                   int(j.get("edad", 25)), ahora))
-                        total_guardados += 1
-                    except Exception as e:
-                        errores.append(f"{seleccion}/{j.get('nombre','?')}: {e}")
+            # planteles puede tener la seleccion bajo distintas keys
+            jugadores_list = planteles.get(seleccion_nombre, list(planteles.values())[0] if planteles else [])
+            for j in jugadores_list:
+                try:
+                    c.execute("""INSERT INTO wc_planteles (seleccion, nombre, posicion, club, valor_m, edad, creado)
+                                 VALUES (%s, %s, %s, %s, %s, %s, %s)
+                                 ON CONFLICT (seleccion, nombre) DO UPDATE
+                                 SET posicion=EXCLUDED.posicion, club=EXCLUDED.club,
+                                     valor_m=EXCLUDED.valor_m, edad=EXCLUDED.edad""",
+                              (seleccion_nombre, j.get("nombre",""), j.get("posicion",""),
+                               j.get("club",""), float(j.get("valor_m", 1)),
+                               int(j.get("edad", 25)), ahora))
+                    total_guardados += 1
+                except Exception as e:
+                    errores.append(f"{seleccion_nombre}/{j.get('nombre','?')}: {e}")
             conn.commit()
             conn.close()
-            time.sleep(2)  # evitar rate limit
+            time.sleep(5)  # evitar rate limit entre selecciones
 
         except Exception as e:
             errores.append(f"Lote {lote}: {e}")

@@ -809,6 +809,187 @@ header {
     </div>
   </div>
 
+<div id="tab-gestion" class="tab-content" style="padding:20px;max-width:900px;margin:0 auto">
+
+  <div class="section-title" style="margin-bottom:16px">⚙ GESTIÓN DEL TORNEO</div>
+
+  <!-- CARGAR FORMACION -->
+  <div style="background:var(--surface);border-radius:12px;padding:20px;margin-bottom:24px;border:1px solid var(--border)">
+    <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:16px">📋 FORMACIÓN PRE-PARTIDO</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div>
+        <label style="font-size:11px;color:var(--muted)">PARTIDO ID (ej: WC_ARG_FRA)</label>
+        <input id="form-partido-id" type="text" placeholder="WC_ARG_FRA_GrupoA"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <label style="font-size:11px;color:var(--muted)">LOCAL</label>
+          <input id="form-home" type="text" placeholder="Argentina"
+                 style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted)">VISITANTE</label>
+          <input id="form-away" type="text" placeholder="France"
+                 style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div>
+        <label style="font-size:11px;color:var(--muted)">TITULARES LOCAL (uno por línea)</label>
+        <textarea id="form-home-titulares" rows="11" placeholder="Ej:\nDibu Martinez\nMolina\nRomero..."
+                  style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:12px;resize:vertical"></textarea>
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">TITULARES VISITANTE (uno por línea)</label>
+        <textarea id="form-away-titulares" rows="11" placeholder="Ej:\nMaignan\nKounde\nSaliba..."
+                  style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:12px;resize:vertical"></textarea>
+      </div>
+    </div>
+    <button onclick="guardarFormacion()"
+            style="background:var(--accent);color:#000;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;letter-spacing:1px">
+      GUARDAR FORMACIÓN
+    </button>
+    <span id="form-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
+  </div>
+
+  <!-- CARGAR RESULTADO -->
+  <div style="background:var(--surface);border-radius:12px;padding:20px;margin-bottom:24px;border:1px solid var(--border)">
+    <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:16px">📊 CARGAR RESULTADO REAL</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+      <div>
+        <label style="font-size:11px;color:var(--muted)">PARTIDO ID</label>
+        <input id="res-partido-id" type="text" placeholder="WC_ARG_FRA_GrupoA"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">LOCAL</label>
+        <input id="res-home" type="text" placeholder="Argentina"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">VISITANTE</label>
+        <input id="res-away" type="text" placeholder="France"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">FASE</label>
+        <select id="res-fase" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+          <option>Grupos</option>
+          <option>Octavos</option>
+          <option>Cuartos</option>
+          <option>Semis</option>
+          <option>Final</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <label style="font-size:11px;color:var(--muted)">GOLES LOCAL</label>
+        <input id="res-gh" type="number" min="0" max="20" value="0"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:18px;text-align:center;font-weight:700">
+      </div>
+      <div style="display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px">
+        <span style="font-size:24px;color:var(--muted)">—</span>
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">GOLES VISITANTE</label>
+        <input id="res-ga" type="number" min="0" max="20" value="0"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:18px;text-align:center;font-weight:700">
+      </div>
+    </div>
+    <button onclick="guardarResultado()"
+            style="background:#e07;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;letter-spacing:1px">
+      REGISTRAR RESULTADO
+    </button>
+    <span id="res-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
+  </div>
+
+  <!-- HISTORIAL RESULTADOS -->
+  <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border)">
+    <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:16px">📈 AJUSTES ELO ACUMULADOS</div>
+    <div id="elo-ajustes-tabla" style="font-size:13px;color:var(--muted)">Cargando...</div>
+  </div>
+
+</div>
+
+<script>
+async function guardarFormacion() {
+  const partidoId = document.getElementById('form-partido-id').value.trim();
+  const home = document.getElementById('form-home').value.trim();
+  const away = document.getElementById('form-away').value.trim();
+  const homeTit = document.getElementById('form-home-titulares').value.trim().split('\n').filter(x=>x);
+  const awayTit = document.getElementById('form-away-titulares').value.trim().split('\n').filter(x=>x);
+  if (!partidoId || !home || !away) {
+    document.getElementById('form-status').textContent = '⚠ Completá todos los campos';
+    return;
+  }
+  document.getElementById('form-status').textContent = 'Guardando...';
+  const r = await fetch(`${API}/wc_formacion`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({partido_id: partidoId, home, away, home_titulares: homeTit, away_titulares: awayTit})
+  });
+  const d = await r.json();
+  document.getElementById('form-status').textContent = d.ok ? '✅ Guardado' : '❌ Error';
+}
+
+async function guardarResultado() {
+  const partidoId = document.getElementById('res-partido-id').value.trim();
+  const home = document.getElementById('res-home').value.trim();
+  const away = document.getElementById('res-away').value.trim();
+  const gh = parseInt(document.getElementById('res-gh').value) || 0;
+  const ga = parseInt(document.getElementById('res-ga').value) || 0;
+  const fase = document.getElementById('res-fase').value;
+  const eloH = getElo(home);
+  const eloA = getElo(away);
+  if (!partidoId || !home || !away) {
+    document.getElementById('res-status').textContent = '⚠ Completá todos los campos';
+    return;
+  }
+  document.getElementById('res-status').textContent = 'Guardando...';
+  const r = await fetch(`${API}/wc_rendimiento`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({partido_id: partidoId, home, away, goles_home: gh, goles_away: ga, fase, elo_home_antes: eloH, elo_away_antes: eloA})
+  });
+  const d = await r.json();
+  if (d.ok) {
+    document.getElementById('res-status').textContent = `✅ ${home} ${d.ajuste_home > 0 ? '+' : ''}${d.ajuste_home} ELO · ${away} ${d.ajuste_away > 0 ? '+' : ''}${d.ajuste_away} ELO`;
+    cargarAjustes();
+    // Refrescar rendimientoData
+    const r2 = await fetch(`${API}/wc_rendimiento`);
+    const d2 = await r2.json();
+    rendimientoData = d2.ajustes || {};
+  } else {
+    document.getElementById('res-status').textContent = '❌ Error';
+  }
+}
+
+async function cargarAjustes() {
+  const r = await fetch(`${API}/wc_rendimiento`);
+  const d = await r.json();
+  const ajustes = d.ajustes || {};
+  const partidos = d.partidos || 0;
+  if (partidos === 0) {
+    document.getElementById('elo-ajustes-tabla').textContent = 'Sin resultados cargados aún.';
+    return;
+  }
+  const sorted = Object.entries(ajustes).sort((a,b) => b[1]-a[1]);
+  document.getElementById('elo-ajustes-tabla').innerHTML = `
+    <div style="margin-bottom:8px;color:var(--muted);font-size:11px">${partidos} partido(s) registrado(s)</div>
+    ${sorted.map(([team, adj]) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span>${team}</span>
+        <span style="font-weight:700;color:${adj>0?'var(--green)':'#e07'}">${adj>0?'+':''}${adj} ELO</span>
+      </div>`).join('')}`;
+}
+
+// Cargar ajustes al abrir tab
+document.addEventListener('DOMContentLoaded', () => { cargarAjustes(); });
+</script>
+
 </div>
 
 <script>
@@ -1674,6 +1855,8 @@ function buildPenaltyGrid() {
     </div>`).join('');
 }
 
+<!-- TAB GESTIÓN -->
+
 // ── TABS ──────────────────────────────────────────
 function switchTab(name, evt) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -1684,188 +1867,6 @@ function switchTab(name, evt) {
 
 // ── START ─────────────────────────────────────────
 init();
-</script>
-
-<!-- TAB GESTIÓN -->
-<div id="tab-gestion" class="tab-content" style="display:none;padding:20px;max-width:900px;margin:0 auto">
-
-  <div class="section-title" style="margin-bottom:16px">⚙ GESTIÓN DEL TORNEO</div>
-
-  <!-- CARGAR FORMACION -->
-  <div style="background:var(--surface);border-radius:12px;padding:20px;margin-bottom:24px;border:1px solid var(--border)">
-    <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:16px">📋 FORMACIÓN PRE-PARTIDO</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-      <div>
-        <label style="font-size:11px;color:var(--muted)">PARTIDO ID (ej: WC_ARG_FRA)</label>
-        <input id="form-partido-id" type="text" placeholder="WC_ARG_FRA_GrupoA"
-               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div>
-          <label style="font-size:11px;color:var(--muted)">LOCAL</label>
-          <input id="form-home" type="text" placeholder="Argentina"
-                 style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
-        </div>
-        <div>
-          <label style="font-size:11px;color:var(--muted)">VISITANTE</label>
-          <input id="form-away" type="text" placeholder="France"
-                 style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
-        </div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-      <div>
-        <label style="font-size:11px;color:var(--muted)">TITULARES LOCAL (uno por línea)</label>
-        <textarea id="form-home-titulares" rows="11" placeholder="Ej:\nDibu Martinez\nMolina\nRomero..."
-                  style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:12px;resize:vertical"></textarea>
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--muted)">TITULARES VISITANTE (uno por línea)</label>
-        <textarea id="form-away-titulares" rows="11" placeholder="Ej:\nMaignan\nKounde\nSaliba..."
-                  style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:12px;resize:vertical"></textarea>
-      </div>
-    </div>
-    <button onclick="guardarFormacion()"
-            style="background:var(--accent);color:#000;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;letter-spacing:1px">
-      GUARDAR FORMACIÓN
-    </button>
-    <span id="form-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
-  </div>
-
-  <!-- CARGAR RESULTADO -->
-  <div style="background:var(--surface);border-radius:12px;padding:20px;margin-bottom:24px;border:1px solid var(--border)">
-    <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:16px">📊 CARGAR RESULTADO REAL</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-      <div>
-        <label style="font-size:11px;color:var(--muted)">PARTIDO ID</label>
-        <input id="res-partido-id" type="text" placeholder="WC_ARG_FRA_GrupoA"
-               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--muted)">LOCAL</label>
-        <input id="res-home" type="text" placeholder="Argentina"
-               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--muted)">VISITANTE</label>
-        <input id="res-away" type="text" placeholder="France"
-               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--muted)">FASE</label>
-        <select id="res-fase" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
-          <option>Grupos</option>
-          <option>Octavos</option>
-          <option>Cuartos</option>
-          <option>Semis</option>
-          <option>Final</option>
-        </select>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
-      <div>
-        <label style="font-size:11px;color:var(--muted)">GOLES LOCAL</label>
-        <input id="res-gh" type="number" min="0" max="20" value="0"
-               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:18px;text-align:center;font-weight:700">
-      </div>
-      <div style="display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px">
-        <span style="font-size:24px;color:var(--muted)">—</span>
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--muted)">GOLES VISITANTE</label>
-        <input id="res-ga" type="number" min="0" max="20" value="0"
-               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:18px;text-align:center;font-weight:700">
-      </div>
-    </div>
-    <button onclick="guardarResultado()"
-            style="background:#e07;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;letter-spacing:1px">
-      REGISTRAR RESULTADO
-    </button>
-    <span id="res-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
-  </div>
-
-  <!-- HISTORIAL RESULTADOS -->
-  <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border)">
-    <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:16px">📈 AJUSTES ELO ACUMULADOS</div>
-    <div id="elo-ajustes-tabla" style="font-size:13px;color:var(--muted)">Cargando...</div>
-  </div>
-
-</div>
-
-<script>
-async function guardarFormacion() {
-  const partidoId = document.getElementById('form-partido-id').value.trim();
-  const home = document.getElementById('form-home').value.trim();
-  const away = document.getElementById('form-away').value.trim();
-  const homeTit = document.getElementById('form-home-titulares').value.trim().split('\n').filter(x=>x);
-  const awayTit = document.getElementById('form-away-titulares').value.trim().split('\n').filter(x=>x);
-  if (!partidoId || !home || !away) {
-    document.getElementById('form-status').textContent = '⚠ Completá todos los campos';
-    return;
-  }
-  document.getElementById('form-status').textContent = 'Guardando...';
-  const r = await fetch(`${API}/wc_formacion`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({partido_id: partidoId, home, away, home_titulares: homeTit, away_titulares: awayTit})
-  });
-  const d = await r.json();
-  document.getElementById('form-status').textContent = d.ok ? '✅ Guardado' : '❌ Error';
-}
-
-async function guardarResultado() {
-  const partidoId = document.getElementById('res-partido-id').value.trim();
-  const home = document.getElementById('res-home').value.trim();
-  const away = document.getElementById('res-away').value.trim();
-  const gh = parseInt(document.getElementById('res-gh').value) || 0;
-  const ga = parseInt(document.getElementById('res-ga').value) || 0;
-  const fase = document.getElementById('res-fase').value;
-  const eloH = getElo(home);
-  const eloA = getElo(away);
-  if (!partidoId || !home || !away) {
-    document.getElementById('res-status').textContent = '⚠ Completá todos los campos';
-    return;
-  }
-  document.getElementById('res-status').textContent = 'Guardando...';
-  const r = await fetch(`${API}/wc_rendimiento`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({partido_id: partidoId, home, away, goles_home: gh, goles_away: ga, fase, elo_home_antes: eloH, elo_away_antes: eloA})
-  });
-  const d = await r.json();
-  if (d.ok) {
-    document.getElementById('res-status').textContent = `✅ ${home} ${d.ajuste_home > 0 ? '+' : ''}${d.ajuste_home} ELO · ${away} ${d.ajuste_away > 0 ? '+' : ''}${d.ajuste_away} ELO`;
-    cargarAjustes();
-    // Refrescar rendimientoData
-    const r2 = await fetch(`${API}/wc_rendimiento`);
-    const d2 = await r2.json();
-    rendimientoData = d2.ajustes || {};
-  } else {
-    document.getElementById('res-status').textContent = '❌ Error';
-  }
-}
-
-async function cargarAjustes() {
-  const r = await fetch(`${API}/wc_rendimiento`);
-  const d = await r.json();
-  const ajustes = d.ajustes || {};
-  const partidos = d.partidos || 0;
-  if (partidos === 0) {
-    document.getElementById('elo-ajustes-tabla').textContent = 'Sin resultados cargados aún.';
-    return;
-  }
-  const sorted = Object.entries(ajustes).sort((a,b) => b[1]-a[1]);
-  document.getElementById('elo-ajustes-tabla').innerHTML = `
-    <div style="margin-bottom:8px;color:var(--muted);font-size:11px">${partidos} partido(s) registrado(s)</div>
-    ${sorted.map(([team, adj]) => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
-        <span>${team}</span>
-        <span style="font-weight:700;color:${adj>0?'var(--green)':'#e07'}">${adj>0?'+':''}${adj} ELO</span>
-      </div>`).join('')}`;
-}
-
-// Cargar ajustes al abrir tab
-document.addEventListener('DOMContentLoaded', () => { cargarAjustes(); });
 </script>
 </body>
 </html>

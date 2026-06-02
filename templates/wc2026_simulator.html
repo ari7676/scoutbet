@@ -906,6 +906,39 @@ header {
     <span id="res-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
   </div>
 
+  <!-- AMISTOSOS PRE-TORNEO -->
+  <div style="background:var(--surface);border-radius:12px;padding:20px;margin-bottom:24px;border:1px solid var(--border)">
+    <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:4px">⚽ AMISTOSOS PRE-TORNEO</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">K=10 (peso reducido vs K=40 en grupos). Usá para ajustar por forma pre-Mundial.</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+      <div>
+        <label style="font-size:11px;color:var(--muted)">LOCAL</label>
+        <input id="ami-home" type="text" placeholder="Argentina"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">VISITANTE</label>
+        <input id="ami-away" type="text" placeholder="France"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">GOLES LOCAL</label>
+        <input id="ami-gh" type="number" min="0" max="20" value="0"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:18px;text-align:center;font-weight:700">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">GOLES VISITANTE</label>
+        <input id="ami-ga" type="number" min="0" max="20" value="0"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:18px;text-align:center;font-weight:700">
+      </div>
+    </div>
+    <button onclick="guardarAmistoso()"
+            style="background:var(--surface);color:var(--accent);border:1px solid var(--accent);padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;letter-spacing:1px">
+      REGISTRAR AMISTOSO
+    </button>
+    <span id="ami-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
+  </div>
+
   <!-- HISTORIAL RESULTADOS -->
   <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border)">
     <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:16px">📈 AJUSTES ELO ACUMULADOS</div>
@@ -964,6 +997,42 @@ async function guardarResultado() {
     rendimientoData = d2.ajustes || {};
   } else {
     document.getElementById('res-status').textContent = '❌ Error';
+  }
+}
+
+async function guardarAmistoso() {
+  const home = document.getElementById('ami-home').value.trim();
+  const away = document.getElementById('ami-away').value.trim();
+  const gh = parseInt(document.getElementById('ami-gh').value) || 0;
+  const ga = parseInt(document.getElementById('ami-ga').value) || 0;
+  if (!home || !away) {
+    document.getElementById('ami-status').textContent = '⚠ Completá los equipos';
+    return;
+  }
+  document.getElementById('ami-status').textContent = 'Guardando...';
+  const eloH = getElo(home);
+  const eloA = getElo(away);
+  const partidoId = `AMI_${home}_${away}_${Date.now()}`;
+  const r = await fetch(`${API}/wc_rendimiento`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      partido_id: partidoId, home, away,
+      goles_home: gh, goles_away: ga,
+      fase: 'Amistoso',
+      elo_home_antes: eloH, elo_away_antes: eloA
+    })
+  });
+  const d = await r.json();
+  if (d.ok) {
+    document.getElementById('ami-status').textContent =
+      `✅ ${home} ${d.ajuste_home > 0 ? '+' : ''}${d.ajuste_home} · ${away} ${d.ajuste_away > 0 ? '+' : ''}${d.ajuste_away}`;
+    cargarAjustes();
+    const r2 = await fetch(`${API}/wc_rendimiento`);
+    const d2 = await r2.json();
+    rendimientoData = d2.ajustes || {};
+  } else {
+    document.getElementById('ami-status').textContent = '❌ Error';
   }
 }
 

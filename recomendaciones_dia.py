@@ -3033,7 +3033,7 @@ def wc_rendimiento():
         elo_a = body.get("elo_away_antes", 1800)
 
         # Calcular ajuste ELO post-partido (formula ELO estandar)
-        k = 40 if fase == "Grupos" else (50 if "Octavos" in fase or "Cuartos" in fase else 60)
+        k = 10 if fase == "Amistoso" else (40 if fase == "Grupos" else (50 if "Octavos" in fase or "Cuartos" in fase else 60))
         expected_h = 1 / (1 + 10 ** ((elo_a - elo_h) / 400))
         if gh > ga: score_h = 1.0
         elif gh == ga: score_h = 0.5

@@ -2939,6 +2939,89 @@ def wc_ausencias():
     }
     return jsonify(ausencias)
 
+
+@app.route("/wc_bonus")
+def wc_bonus():
+    ck = "wc_bonus_data"
+    now_t = time.time()
+    if ck in _cache and now_t - _cache[ck][1] < 86400:
+        return jsonify(_cache[ck][0])
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return jsonify({})
+
+    jugadores_clave = {
+        "Argentina": ["Lionel Messi", "Lautaro Martinez", "Enzo Fernandez"],
+        "France": ["Kylian Mbappe", "Ousmane Dembele", "Antoine Griezmann"],
+        "Spain": ["Lamine Yamal", "Alvaro Morata", "Rodri"],
+        "England": ["Harry Kane", "Jude Bellingham", "Bukayo Saka"],
+        "Brazil": ["Vinicius Junior", "Raphinha", "Neymar"],
+        "Germany": ["Florian Wirtz", "Jamal Musiala", "Kai Havertz"],
+        "Portugal": ["Cristiano Ronaldo", "Bruno Fernandes", "Rafael Leao"],
+        "Netherlands": ["Virgil van Dijk", "Cody Gakpo", "Frenkie de Jong"],
+        "Belgium": ["Kevin De Bruyne", "Romelu Lukaku", "Jeremy Doku"],
+        "Uruguay": ["Darwin Nunez", "Luis Suarez", "Rodrigo Bentancur"],
+        "Colombia": ["Luis Diaz", "James Rodriguez", "Jhon Cordoba"],
+        "Croatia": ["Luka Modric", "Mateo Kovacic", "Josko Gvardiol"],
+        "Morocco": ["Achraf Hakimi", "Brahim Diaz", "Sofyan Amrabat"],
+        "Japan": ["Takefusa Kubo", "Ritsu Doan", "Wataru Endo"],
+        "USA": ["Christian Pulisic", "Weston McKennie", "Tyler Adams"],
+        "Mexico": ["Santiago Gimenez", "Edson Alvarez", "Raul Jimenez"],
+        "Senegal": ["Sadio Mane", "Nicolas Jackson", "Ismaila Sarr"],
+        "Ecuador": ["Moises Caicedo", "Gonzalo Plata", "Enner Valencia"],
+        "Canada": ["Alphonso Davies", "Jonathan David", "Stephen Eustaquio"],
+    }
+
+    prompt = (
+        "Evalua la forma actual (mayo-junio 2026) de los siguientes jugadores de futbol que van al Mundial 2026. "
+        "Para cada SELECCION calcula un bonus_total basado en la forma de sus jugadores clave: "
+        "gran forma = bonus +10 a +40, forma normal = 0, mala forma o lesion reciente = -10 a -30. "
+        "Jugadores: " + json.dumps(jugadores_clave, ensure_ascii=False) + ". "
+        "Respondé SOLO con JSON valido sin markdown con esta estructura: "
+        '{"Argentina": {"jugadores": [{"nombre": "X", "forma": "buena", "nota": "razon"}], "bonus_total": 15, "resumen": "texto"}}. '
+        "Solo incluye selecciones con informacion reciente confiable."
+    )
+
+    try:
+        r = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json"
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 4000,
+                "tools": [{"type": "web_search_20250305", "name": "web_search"}],
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=90
+        )
+        if not r.ok:
+            return jsonify({})
+
+        data = r.json()
+        texto = ""
+        for block in data.get("content", []):
+            if block.get("type") == "text":
+                texto += block.get("text", "")
+
+        texto = texto.strip()
+        import re
+        match = re.search(r'\{[\s\S]*\}', texto)
+        if match:
+            texto = match.group(0)
+
+        bonus = json.loads(texto)
+        _cache[ck] = (bonus, now_t)
+        return jsonify(bonus)
+
+    except Exception as e:
+        print(f"wc_bonus error: {e}")
+        return jsonify({})
+
 @app.route('/wc_fatiga')
 def wc_fatiga():
     """

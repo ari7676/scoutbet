@@ -819,6 +819,7 @@ let fixtures = [];
 let simResults = null;
 let ausenciasData = {};
 let fatigaData = {};
+let bonusData = {};
 // Estructura esperada de fatigaData:
 // { "Argentina": { extraTime: true, round: "R16", opponent: "Australia" }, ... }
 
@@ -904,8 +905,11 @@ function getEloBase(name) {
 function getElo(name) {
   const base = getEloBase(name);
   const aus = ausenciasData[name];
-  if (aus && aus.penalty_total) return base + aus.penalty_total;
-  return base;
+  const bon = bonusData[name];
+  let elo = base;
+  if (aus && aus.penalty_total) elo += aus.penalty_total;
+  if (bon && bon.bonus_total) elo += bon.bonus_total;
+  return elo;
 }
 
 function getAusencias(name) { return ausenciasData[name] || null; }
@@ -926,11 +930,13 @@ async function init() {
     const [r1, r2, r3] = await Promise.all([
       fetch(`${API}/wc_data`),
       fetch(`${API}/wc_ausencias_v2`),
-      fetch(`${API}/wc_fatiga`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({}))
+      fetch(`${API}/wc_fatiga`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
+      fetch(`${API}/wc_bonus`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({}))
     ]);
     const data = await r1.json();
     ausenciasData = await r2.json();
     fatigaData = r3 || {};
+    bonusData = r4 || {};
     eloData = data.elo || {};
     fixtures = data.fixtures || [];
 

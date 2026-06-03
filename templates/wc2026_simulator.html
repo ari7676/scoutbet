@@ -454,48 +454,99 @@ header {
 
 /* ── MOBILE ─────────────────────────────────────── */
 @media (max-width: 768px) {
-  header { padding: 12px 16px; }
-  .title-main { font-size: 28px; letter-spacing: 2px; }
-  .title-sub { font-size: 9px; letter-spacing: 2px; }
+  /* HEADER */
+  header { padding: 10px 14px; }
+  .title-main { font-size: 24px; letter-spacing: 2px; }
+  .title-sub { font-size: 8px; letter-spacing: 1px; }
   .header-stat { display: none; }
 
-  .nav-tabs { padding: 0 12px; top: 57px; }
-  .nav-tab { padding: 12px 14px; font-size: 10px; letter-spacing: 1px; }
+  /* TABS - scroll horizontal sin texto cortado */
+  .nav-tabs { padding: 0 8px; top: 53px; gap: 0; }
+  .nav-tab { padding: 10px 10px; font-size: 9px; letter-spacing: 0.5px; white-space: nowrap; }
 
-  .main { padding: 16px; }
+  /* MAIN */
+  .main { padding: 12px; }
 
-  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
-  .stat-val { font-size: 30px; }
+  /* GRUPOS */
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 12px; }
+  .stat-val { font-size: 26px; }
+  .stat-card { padding: 12px 14px; }
 
-  .groups-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .group-team { padding: 8px 10px; }
-  .team-name { font-size: 13px; }
+  .groups-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .group-card { font-size: 13px; }
+  .group-team { padding: 7px 10px; gap: 6px; }
+  .team-name { font-size: 12px; }
+  .team-elo { font-size: 11px; }
+  .team-rank { font-size: 9px; }
 
-  .champion-table th, .champion-table td { padding: 8px 10px; font-size: 13px; }
+  /* SIMULACION */
+  .champion-table th, .champion-table td { padding: 7px 8px; font-size: 12px; }
   .champion-table th:nth-child(5),
   .champion-table td:nth-child(5),
   .champion-table th:nth-child(6),
-  .champion-table td:nth-child(6) { display: none; }
+  .champion-table td:nth-child(6),
+  .champion-table th:nth-child(7),
+  .champion-table td:nth-child(7) { display: none; }
+  .prob-val { font-size: 13px; }
+  .rank-num { font-size: 18px; }
 
-  .match-grid { grid-template-columns: 1fr; gap: 10px; }
-  .modifiers-row { grid-template-columns: 1fr; gap: 8px; }
-  .vs-block { grid-template-columns: 1fr 40px 1fr; padding: 12px; }
-  .team-big-flag { font-size: 28px; }
-  .team-big-name { font-size: 18px; }
-  .prob-trio { gap: 6px; }
-  .prob-box-val { font-size: 32px; }
-  .goals-dist { grid-template-columns: 1fr; }
+  /* ANALISIS PARTIDO */
+  .match-grid { grid-template-columns: 1fr; gap: 8px; }
+  .modifiers-row { grid-template-columns: 1fr; gap: 6px; }
+  .modifier-toggle { padding: 10px 12px; }
+  .vs-block { grid-template-columns: 1fr 32px 1fr; padding: 10px 8px; gap: 6px; }
+  .team-big-flag { font-size: 24px; margin-bottom: 4px; }
+  .team-big-name { font-size: 15px; letter-spacing: 1px; }
+  .team-big-elo { font-size: 12px; margin-top: 3px; }
+  .team-big-rank { font-size: 10px; }
+  .vs-sep { font-size: 18px; }
+  .prob-trio { gap: 5px; }
+  .prob-box { padding: 12px 8px; }
+  .prob-box-val { font-size: 28px; }
+  .prob-box-label { font-size: 8px; letter-spacing: 1px; }
+  .prob-box-cuota { font-size: 11px; }
+  .goals-dist { grid-template-columns: 1fr; gap: 8px; }
+  .goals-meta { font-size: 11px; padding: 10px; }
+  .mercado-wc { padding: 10px 12px; }
+  .mercado-wc-name { font-size: 13px; }
+  .mercado-wc-prob { font-size: 13px; }
+  .mercado-wc-cuota { font-size: 11px; }
+  .analysis-card { padding: 16px; }
 
-  .penalty-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  /* PENALES */
+  .penalty-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .penalty-card { padding: 10px 8px; }
+  .penalty-rate { font-size: 22px; }
+  .penalty-team { font-size: 12px; }
 
-  .metodo-grid { grid-template-columns: 1fr; gap: 12px; }
-  .metodo-h1 { font-size: 36px; }
-  .metodo-lead { font-size: 15px; }
-  .metodo-metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  /* METODOLOGIA */
+  .metodo-grid { grid-template-columns: 1fr; gap: 10px; }
+  .metodo-h1 { font-size: 30px; }
+  .metodo-lead { font-size: 14px; }
+  .metodo-metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .metodo-no-grid { grid-template-columns: repeat(2, 1fr); }
+  .metodo-card { padding: 16px; }
+  .metodo-formula { font-size: 10px; word-break: break-all; }
 
-  .sim-controls { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .btn-simulate { width: 100%; text-align: center; }
+  /* SIMULACION CONTROLES */
+  .sim-controls { flex-direction: column; align-items: stretch; gap: 8px; }
+  .btn-simulate { width: 100%; text-align: center; padding: 12px; }
+  .sim-select { width: 100%; }
+
+  /* GESTION */
+  #tab-gestion { padding: 12px !important; }
+  #tab-gestion input, #tab-gestion select, #tab-gestion textarea {
+    font-size: 16px !important; /* evita zoom en iOS */
+  }
+  #tab-gestion > div > div[style*="grid-template-columns:1fr 1fr 1fr"],
+  #tab-gestion > div > div[style*="grid-template-columns:repeat(4"],
+  #tab-gestion > div > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  #plantel-home, #plantel-away { max-height: 260px; font-size: 13px; }
+  
+  /* ANALISIS INLINE GESTION */
+  #gestion-analisis .prob-box-val { font-size: 26px !important; }
 }
 </style>
 </head>

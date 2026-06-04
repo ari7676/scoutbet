@@ -854,12 +854,16 @@ def partidos(codigo):
     matches = []
 
     if source == "espn":
-        # Amistosos internacionales via ESPN API - proximos 21 dias + ultimos 2
+        # Amistosos internacionales via ESPN API - proximos 7 dias + ultimos 2
+        # Limitado para evitar timeout de gunicorn (max ~25s total)
         espn_slugs_intl = ["fifa.friendly", "fifa.worldq.conmebol", "fifa.worldq.uefa",
                            "uefa.nations", "concacaf.nations.league"]
         seen_ids = set()
-        fechas = [(hoy + timedelta(days=i)).strftime("%Y%m%d") for i in range(-2, 22)]
+        fechas = [(hoy + timedelta(days=i)).strftime("%Y%m%d") for i in range(-2, 8)]
+        t_start = time.time()
         for slug in espn_slugs_intl:
+            if time.time() - t_start > 20:
+                break
             for fecha_str in fechas:
                 try:
                     ck = f"espn_intl:{slug}:{fecha_str}"

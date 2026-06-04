@@ -975,10 +975,7 @@ Respondé en español, de forma directa y sin rodeos.`;
     if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
     const texto = data.content?.[0]?.text || 'Sin respuesta';
     // Formatear saltos de linea
-    const html = texto.replace(/
-
-/g, '</p><p>').replace(/
-/g, '<br>');
+    const html = texto.split('\n\n').join('</p><p>').split('\n').join('<br>');
     document.getElementById('ia-content').innerHTML = `<div class="ia-output"><p>${html}</p></div>`;
   } catch(e) {
     document.getElementById('ia-content').innerHTML = `<div class="empty">Error: ${e.message}</div>`;

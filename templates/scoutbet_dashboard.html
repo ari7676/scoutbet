@@ -936,22 +936,50 @@ async function loadIA() {
   try {
     const hs = advancedData?.home_stats || {};
     const as_ = advancedData?.away_stats || {};
-    const body = {
-      home: analysisData.match.home,
-      away: analysisData.match.away,
-      liga: analysisData.match.competicion,
-      mercados: allMercados,
-      home_stats: hs,
-      away_stats: as_,
-    };
-    const r = await fetch(`${API}/ia_analisis`, {
+    const home = analysisData.match.home;
+    const away = analysisData.match.away;
+    const liga = analysisData.match.competicion || '';
+
+    // Construir resumen de mercados
+    const mercadosTop = (allMercados || []).slice(0, 5).map(m =>
+      `${m.nombre}: ${m.prob}% (@${m.cuota})`).join(', ');
+
+    // Stats clave
+    const statsHome = hs.goles_favor != null ? `Goles favor: ${hs.goles_favor}, Goles contra: ${hs.goles_contra}` : '';
+    const statsAway = as_.goles_favor != null ? `Goles favor: ${as_.goles_favor}, Goles contra: ${as_.goles_contra}` : '';
+
+    const prompt = `Sos un analista de apuestas deportivas. Analizá este partido de fútbol y dá una recomendación concisa.
+
+Partido: ${home} vs ${away} — ${liga}
+Mercados principales: ${mercadosTop || 'no disponibles'}
+${statsHome ? `Stats ${home}: ${statsHome}` : ''}
+${statsAway ? `Stats ${away}: ${statsAway}` : ''}
+
+Dá un análisis breve (3-4 párrafos) con:
+1. Contexto del partido
+2. Qué mercados tienen más valor
+3. Recomendación final
+
+Respondé en español, de forma directa y sin rodeos.`;
+
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(body)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
     const data = await r.json();
-    if (data.error) throw new Error(data.error);
-    document.getElementById('ia-content').innerHTML = `<div class="ia-output">${data.analisis}</div>`;
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    const texto = data.content?.[0]?.text || 'Sin respuesta';
+    // Formatear saltos de linea
+    const html = texto.replace(/
+
+/g, '</p><p>').replace(/
+/g, '<br>');
+    document.getElementById('ia-content').innerHTML = `<div class="ia-output"><p>${html}</p></div>`;
   } catch(e) {
     document.getElementById('ia-content').innerHTML = `<div class="empty">Error: ${e.message}</div>`;
     btn.disabled = false;

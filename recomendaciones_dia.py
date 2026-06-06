@@ -410,7 +410,6 @@ def ia_analisis():
     mercados = body.get("mercados", [])
     home_stats = body.get("home_stats", {})
     away_stats = body.get("away_stats", {})
-    aprobados = [m for m in mercados if m.get("aprobado")]
 
     def fmt(v):
         try:
@@ -423,7 +422,6 @@ def ia_analisis():
         try: return math.exp(-lam) * (lam**k) / math.factorial(k)
         except: return 0
 
-    # Stats
     gf_h = fmt(home_stats.get("goles_favor")) or 1.3
     gc_h = fmt(home_stats.get("goles_contra")) or 1.1
     gf_a = fmt(away_stats.get("goles_favor")) or 1.1
@@ -439,16 +437,13 @@ def ia_analisis():
     tarj_h = fmt(home_stats.get("tarjetas_amarillas_pj"))
     tarj_a = fmt(away_stats.get("tarjetas_amarillas_pj"))
 
-    # Lambda Poisson
     lambda_h = round((gf_h + gc_a) / 2, 2)
     lambda_a = round((gf_a + gc_h) / 2, 2)
 
-    # Distribución goles 0-5
     dist_h = [round(poisson_prob(lambda_h, k) * 100, 1) for k in range(6)]
     dist_a = [round(poisson_prob(lambda_a, k) * 100, 1) for k in range(6)]
     max_prob = max(max(dist_h), max(dist_a), 0.01)
 
-    # Probabilidades
     best_score = {"hg": 0, "ag": 0, "p": 0}
     p_win = p_draw = p_loss = 0.0
     for i in range(8):
@@ -465,185 +460,167 @@ def ia_analisis():
     p_loss = round(p_loss * 100)
     p_over25 = round((1 - sum(poisson_prob(lambda_h + lambda_a, k) for k in range(3))) * 100)
     p_btts = round((1 - poisson_prob(lambda_h, 0)) * (1 - poisson_prob(lambda_a, 0)) * 100)
-    p_dc1x = p_win + p_draw
-    p_dcx2 = p_draw + p_loss
 
     def cuota(p):
-        return round(100 / max(p, 1) * 0.95, 2) if p > 0 else "—"
+        return round(100 / max(p, 1) * 0.95, 2) if p > 0 else "S/D"
 
-    # Forma
     def forma_badges(forma):
-        if not forma: return "<span style='color:#8890aa'>sin datos</span>"
+        if not forma: return "<span style='font-size:10px;color:#8890aa'>sin datos</span>"
         colors = {"W": "#34d399", "D": "#f0b429", "L": "#ff3d5a"}
-        return "".join([f"<span style='display:inline-block;width:20px;height:20px;border-radius:3px;background:{colors.get(c,'#252838')};color:#000;font-size:10px;font-weight:700;text-align:center;line-height:20px;margin:1px'>{c}</span>" for c in forma[:5]])
+        out = ""
+        for c in forma[:5]:
+            col = colors.get(c, "#252838")
+            out += f"<span style='display:inline-block;width:17px;height:17px;border-radius:3px;background:{col};color:#000;font-size:8px;font-weight:700;text-align:center;line-height:17px;margin:1px'>{c}</span>"
+        return out
 
-    def forma_txt(forma):
-        if not forma: return "sin datos"
-        w = forma.count("W"); d = forma.count("D"); l = forma.count("L")
-        if w >= 3: return f"buena ({w}V {d}E {l}D)"
-        elif l >= 3: return f"mala ({w}V {d}E {l}D)"
-        else: return f"regular ({w}V {d}E {l}D)"
-
-    # Stats row helper
-    def stat_row(label, val_h, val_a, higher_is_better=True):
-        if val_h is None and val_a is None: return ""
-        vh = val_h or 0; va = val_a or 0
-        col_h = "#34d399" if (vh > va) == higher_is_better else "#ff3d5a" if vh != va else "#c8ccdf"
-        col_a = "#34d399" if (va > vh) == higher_is_better else "#ff3d5a" if vh != va else "#c8ccdf"
-        return f"<tr><td style='color:#8890aa;padding:3px 8px;font-size:11px'>{label}</td><td style='text-align:center;color:{col_h};font-weight:700;padding:3px 8px'>{val_h or '—'}</td><td style='text-align:center;color:{col_a};font-weight:700;padding:3px 8px'>{val_a or '—'}</td></tr>"
-
-    # Barra distribución goles
     def barra(k, pct, max_p):
         w = round(pct / max_p * 100) if max_p > 0 else 0
-        return f"""<div style='display:flex;align-items:center;gap:8px;margin:4px 0'>
-          <span style='font-family:monospace;width:14px;font-size:12px;color:#8890aa'>{k}</span>
-          <div style='flex:1;background:#1c1f2e;border-radius:2px;height:13px'>
-            <div style='width:{w}%;height:100%;background:linear-gradient(90deg,#f0b429,rgba(240,180,41,0.5));border-radius:2px'></div>
-          </div>
-          <span style='font-family:monospace;font-size:11px;color:#22d3c5;width:38px;text-align:right'>{pct}%</span>
-        </div>"""
+        return (
+            f"<div style='display:flex;align-items:center;gap:5px;margin:2px 0'>"
+            f"<span style='font-family:monospace;width:11px;font-size:10px;color:#8890aa'>{k}</span>"
+            f"<div style='flex:1;background:#1c1f2e;border-radius:2px;height:10px'>"
+            f"<div style='width:{w}%;height:100%;background:linear-gradient(90deg,#f0b429,rgba(240,180,41,0.4));border-radius:2px'></div>"
+            f"</div>"
+            f"<span style='font-family:monospace;font-size:10px;color:#22d3c5;width:32px;text-align:right'>{pct}%</span>"
+            f"</div>"
+        )
 
-    # Riesgos
+    def sr(label, vh, va, good_high=True):
+        if vh is None and va is None: return ""
+        if vh and va and vh != va:
+            ch = "#34d399" if (vh > va) == good_high else "#ff3d5a"
+            ca = "#34d399" if (va > vh) == good_high else "#ff3d5a"
+        else:
+            ch = ca = "#c8ccdf"
+        return (
+            f"<tr>"
+            f"<td style='color:#8890aa;font-size:11px;padding:3px 6px'>{label}</td>"
+            f"<td style='text-align:center;font-family:monospace;font-size:11px;color:{ch};padding:3px 6px'>{vh or chr(8212)}</td>"
+            f"<td style='text-align:center;font-family:monospace;font-size:11px;color:{ca};padding:3px 6px'>{va or chr(8212)}</td>"
+            f"</tr>"
+        )
+
     riesgos = []
-    if tarj_h and tarj_h > 2.5: riesgos.append(f"{hn} alta tarjetería ({tarj_h}/PJ)")
-    if tarj_a and tarj_a > 2.5: riesgos.append(f"{an} alta tarjetería ({tarj_a}/PJ)")
-    if "L" in forma_h[:2]: riesgos.append(f"{hn} viene de derrotas recientes")
-    if "L" in forma_a[:2]: riesgos.append(f"{an} viene de derrotas recientes")
-    if abs(lambda_h - lambda_a) < 0.15: riesgos.append("Equipos muy parejos — alta varianza en el resultado")
-    if not riesgos: riesgos.append("Sin señales de riesgo elevado")
+    if tarj_h and tarj_h > 2.5: riesgos.append(f"{hn} alta tarjeteria ({tarj_h}/PJ)")
+    if tarj_a and tarj_a > 2.5: riesgos.append(f"{an} alta tarjeteria ({tarj_a}/PJ)")
+    if "L" in forma_h[:2]: riesgos.append(f"{hn} viene mal")
+    if "L" in forma_a[:2]: riesgos.append(f"{an} viene mal")
+    if abs(lambda_h - lambda_a) < 0.15: riesgos.append("Equipos parejos, alta varianza")
+    if not riesgos: riesgos.append("Sin senales de riesgo elevado")
 
-    # Mercados lista completa
-    todos_mercados = [
-        {"nombre": f"Victoria {hn}", "prob": p_win, "cuota": cuota(p_win), "aprobado": p_win >= 55},
-        {"nombre": "Empate", "prob": p_draw, "cuota": cuota(p_draw), "aprobado": False},
-        {"nombre": f"Victoria {an}", "prob": p_loss, "cuota": cuota(p_loss), "aprobado": p_loss >= 55},
-        {"nombre": f"DC {hn} o Empate", "prob": p_dc1x, "cuota": cuota(p_dc1x), "aprobado": p_dc1x >= 75},
-        {"nombre": f"DC {an} o Empate", "prob": p_dcx2, "cuota": cuota(p_dcx2), "aprobado": p_dcx2 >= 75},
-        {"nombre": "Over 2.5 Goles", "prob": p_over25, "cuota": cuota(p_over25), "aprobado": p_over25 >= 65},
-        {"nombre": "BTTS — Ambos Anotan", "prob": p_btts, "cuota": cuota(p_btts), "aprobado": p_btts >= 65},
+    todos = [
+        {"n": f"Victoria {hn}", "p": p_win, "c": cuota(p_win), "ok": p_win >= 55},
+        {"n": "Empate", "p": p_draw, "c": cuota(p_draw), "ok": False},
+        {"n": f"Victoria {an}", "p": p_loss, "c": cuota(p_loss), "ok": p_loss >= 55},
+        {"n": f"DC {hn[:8]} o Empate", "p": p_win+p_draw, "c": cuota(p_win+p_draw), "ok": (p_win+p_draw) >= 75},
+        {"n": f"DC {an[:8]} o Empate", "p": p_draw+p_loss, "c": cuota(p_draw+p_loss), "ok": (p_draw+p_loss) >= 75},
+        {"n": "Over 2.5", "p": p_over25, "c": cuota(p_over25), "ok": p_over25 >= 65},
+        {"n": "BTTS", "p": p_btts, "c": cuota(p_btts), "ok": p_btts >= 65},
     ]
-    # Agregar mercados del modelo si vienen
     for m in (mercados or []):
-        nombre = m.get("mercado", "")
-        if nombre and not any(x["nombre"] == nombre for x in todos_mercados):
-            todos_mercados.append({"nombre": nombre, "prob": m.get("prob", 0), "cuota": m.get("cuota", "—"), "aprobado": m.get("aprobado", False)})
-    todos_mercados.sort(key=lambda x: -x["prob"])
+        nm = m.get("mercado", "")
+        if nm and not any(x["n"] == nm for x in todos):
+            todos.append({"n": nm, "p": m.get("prob", 0), "c": m.get("cuota", "S/D"), "ok": m.get("aprobado", False)})
+    todos.sort(key=lambda x: -x["p"])
 
-    mercados_html = ""
-    for m in todos_mercados:
-        ap = m["aprobado"]
-        badge = "<span style='font-family:monospace;font-size:9px;color:#f0b429;background:rgba(240,180,41,0.1);padding:2px 7px;border-radius:3px;letter-spacing:1px'>✓ APROBADO</span>" if ap else ""
-        bcolor = "#f0b429" if ap else "#252838"
-        mercados_html += f"""<div style='background:#151720;border-radius:5px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid {bcolor};margin-bottom:6px'>
-          <span style='font-size:14px;font-weight:600;color:#f0f0f8'>{m['nombre']}</span>
-          <div style='display:flex;gap:12px;align-items:center'>
-            <span style='font-family:monospace;font-size:14px;color:#f0b429;font-weight:700'>{m['prob']}%</span>
-            <span style='font-family:monospace;font-size:12px;color:#22d3c5;background:rgba(34,211,197,0.08);padding:2px 8px;border-radius:3px'>@{m['cuota']}</span>
-            {badge}
-          </div>
-        </div>"""
+    mhtml = ""
+    for m in todos:
+        bc = "#f0b429" if m["ok"] else "#252838"
+        badge = "<span style='font-size:9px;color:#f0b429;margin-left:5px'>&#10003;</span>" if m["ok"] else ""
+        mhtml += (
+            f"<div style='display:flex;justify-content:space-between;align-items:center;"
+            f"padding:6px 10px;border-left:2px solid {bc};background:#151720;border-radius:3px;margin-bottom:3px'>"
+            f"<span style='font-size:12px;color:#f0f0f8'>{m['n']}{badge}</span>"
+            f"<div style='display:flex;gap:8px;align-items:center'>"
+            f"<span style='font-family:monospace;font-size:12px;color:#f0b429;font-weight:700'>{m['p']}%</span>"
+            f"<span style='font-family:monospace;font-size:10px;color:#22d3c5'>@{m['c']}</span>"
+            f"</div></div>"
+        )
 
-    html = f"""<div style="font-family:'IBM Plex Sans',sans-serif;color:#f0f0f8">
+    stats_rows = (
+        sr("Goles/PJ", gf_h, gf_a) +
+        sr("G.contra/PJ", gc_h, gc_a, False) +
+        sr("Remates/PJ", rem_h, rem_a) +
+        sr("Al arco/PJ", arco_h, arco_a) +
+        sr("Corners/PJ", corners_h, corners_a) +
+        sr("Tarjetas/PJ", tarj_h, tarj_a, False)
+    )
 
-  <!-- HEADER -->
-  <div style="font-family:monospace;font-size:10px;color:#22d3c5;letter-spacing:4px;margin-bottom:14px">▶ ANÁLISIS · {liga_nombre.upper()}</div>
+    goles_h_html = "".join([barra(k, dist_h[k], max_prob) for k in range(6)])
+    goles_a_html = "".join([barra(k, dist_a[k], max_prob) for k in range(6)])
+    over_col = "#34d399" if p_over25 >= 60 else "#8890aa"
+    btts_col = "#34d399" if p_btts >= 60 else "#8890aa"
 
-  <!-- VS BLOCK -->
-  <div style="display:grid;grid-template-columns:1fr 50px 1fr;gap:8px;align-items:center;background:#0e1018;border:1px solid #252838;border-radius:6px;padding:14px;margin-bottom:14px">
-    <div style="text-align:center">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px">{hn}</div>
-      <div style="font-family:monospace;font-size:11px;color:#f0b429;margin-top:2px">λ {lambda_h} goles</div>
-      <div style="margin-top:6px">{forma_badges(forma_h)}</div>
-    </div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#252838;text-align:center">VS</div>
-    <div style="text-align:center">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px">{an}</div>
-      <div style="font-family:monospace;font-size:11px;color:#f0b429;margin-top:2px">λ {lambda_a} goles</div>
-      <div style="margin-top:6px">{forma_badges(forma_a)}</div>
-    </div>
-  </div>
+    html = (
+        f"<div style='font-family:IBM Plex Sans,sans-serif;color:#f0f0f8;font-size:13px'>"
+        f"<div style='font-family:monospace;font-size:9px;color:#22d3c5;letter-spacing:3px;margin-bottom:10px'>ANALISIS {liga_nombre.upper()}</div>"
 
-  <!-- 1X2 -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">
-    <div style="background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.25);border-radius:6px;padding:12px;text-align:center">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;color:#4f8ef7">{p_win}%</div>
-      <div style="font-family:monospace;font-size:9px;color:#8890aa;letter-spacing:1px">VICTORIA LOCAL</div>
-      <div style="font-family:monospace;font-size:12px;color:#22d3c5">@{cuota(p_win)}</div>
-    </div>
-    <div style="background:rgba(90,94,122,0.12);border:1px solid #252838;border-radius:6px;padding:12px;text-align:center">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;color:#c8ccdf">{p_draw}%</div>
-      <div style="font-family:monospace;font-size:9px;color:#8890aa;letter-spacing:1px">EMPATE</div>
-      <div style="font-family:monospace;font-size:12px;color:#22d3c5">@{cuota(p_draw)}</div>
-    </div>
-    <div style="background:rgba(255,61,90,0.1);border:1px solid rgba(255,61,90,0.25);border-radius:6px;padding:12px;text-align:center">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;color:#ff3d5a">{p_loss}%</div>
-      <div style="font-family:monospace;font-size:9px;color:#8890aa;letter-spacing:1px">VICTORIA VISITANTE</div>
-      <div style="font-family:monospace;font-size:12px;color:#22d3c5">@{cuota(p_loss)}</div>
-    </div>
-  </div>
+        # VS block
+        f"<div style='background:#0e1018;border:1px solid #252838;border-radius:6px;padding:10px;margin-bottom:8px'>"
+        f"<div style='display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:center;margin-bottom:8px'>"
+        f"<div style='text-align:center'><div style='font-weight:700;font-size:13px'>{hn}</div>"
+        f"<div style='font-family:monospace;font-size:10px;color:#f0b429'>lambda {lambda_h}</div>"
+        f"<div style='margin-top:3px'>{forma_badges(forma_h)}</div></div>"
+        f"<div style='font-size:12px;color:#252838;padding:0 4px'>VS</div>"
+        f"<div style='text-align:center'><div style='font-weight:700;font-size:13px'>{an}</div>"
+        f"<div style='font-family:monospace;font-size:10px;color:#f0b429'>lambda {lambda_a}</div>"
+        f"<div style='margin-top:3px'>{forma_badges(forma_a)}</div></div>"
+        f"</div>"
 
-  <!-- GOALS META -->
-  <div style="font-family:monospace;font-size:11px;color:#c8ccdf;text-align:center;background:#0e1018;padding:10px;border-radius:4px;margin-bottom:14px;line-height:1.8">
-    λ LOCAL: <b style="color:#f0b429">{lambda_h}</b> &nbsp;·&nbsp; λ VISITANTE: <b style="color:#f0b429">{lambda_a}</b> &nbsp;·&nbsp;
-    Resultado probable: <b style="color:#f0b429">{hn} {best_score['hg']}–{best_score['ag']} {an} ({best_score['p']}%)</b>
-  </div>
+        # 1X2
+        f"<div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px'>"
+        f"<div style='background:rgba(79,142,247,0.12);border-radius:4px;padding:7px;text-align:center'>"
+        f"<div style='font-family:monospace;font-size:20px;font-weight:700;color:#4f8ef7'>{p_win}%</div>"
+        f"<div style='font-size:9px;color:#8890aa'>LOCAL</div>"
+        f"<div style='font-family:monospace;font-size:10px;color:#22d3c5'>@{cuota(p_win)}</div></div>"
+        f"<div style='background:rgba(90,94,122,0.12);border-radius:4px;padding:7px;text-align:center'>"
+        f"<div style='font-family:monospace;font-size:20px;font-weight:700;color:#c8ccdf'>{p_draw}%</div>"
+        f"<div style='font-size:9px;color:#8890aa'>EMPATE</div>"
+        f"<div style='font-family:monospace;font-size:10px;color:#22d3c5'>@{cuota(p_draw)}</div></div>"
+        f"<div style='background:rgba(255,61,90,0.1);border-radius:4px;padding:7px;text-align:center'>"
+        f"<div style='font-family:monospace;font-size:20px;font-weight:700;color:#ff3d5a'>{p_loss}%</div>"
+        f"<div style='font-size:9px;color:#8890aa'>VISITANTE</div>"
+        f"<div style='font-family:monospace;font-size:10px;color:#22d3c5'>@{cuota(p_loss)}</div></div>"
+        f"</div>"
+        f"<div style='font-family:monospace;font-size:10px;color:#c8ccdf;text-align:center;margin-top:7px'>"
+        f"Probable: <b style='color:#f0b429'>{hn} {best_score['hg']}-{best_score['ag']} {an} ({best_score['p']}%)</b></div>"
+        f"</div>"
 
-  <!-- DISTRIBUCIÓN GOLES -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-    <div style="background:#0e1018;border:1px solid #252838;border-radius:6px;padding:12px">
-      <div style="font-family:monospace;font-size:9px;color:#22d3c5;letter-spacing:2px;margin-bottom:10px">GOLES — {hn[:15].upper()}</div>
-      {"".join([barra(k, dist_h[k], max_prob) for k in range(6)])}
-    </div>
-    <div style="background:#0e1018;border:1px solid #252838;border-radius:6px;padding:12px">
-      <div style="font-family:monospace;font-size:9px;color:#22d3c5;letter-spacing:2px;margin-bottom:10px">GOLES — {an[:15].upper()}</div>
-      {"".join([barra(k, dist_a[k], max_prob) for k in range(6)])}
-    </div>
-  </div>
+        # Goles
+        f"<div style='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px'>"
+        f"<div style='background:#0e1018;border:1px solid #252838;border-radius:6px;padding:9px'>"
+        f"<div style='font-family:monospace;font-size:8px;color:#22d3c5;letter-spacing:2px;margin-bottom:5px'>GOLES {hn[:12].upper()}</div>"
+        f"{goles_h_html}</div>"
+        f"<div style='background:#0e1018;border:1px solid #252838;border-radius:6px;padding:9px'>"
+        f"<div style='font-family:monospace;font-size:8px;color:#22d3c5;letter-spacing:2px;margin-bottom:5px'>GOLES {an[:12].upper()}</div>"
+        f"{goles_a_html}</div></div>"
 
-  <!-- STATS TABLA -->
-  <div style="background:#0e1018;border:1px solid #252838;border-radius:6px;padding:12px;margin-bottom:14px">
-    <div style="font-family:monospace;font-size:9px;color:#22d3c5;letter-spacing:2px;margin-bottom:10px">ESTADÍSTICAS COMPARADAS</div>
-    <table style="width:100%;border-collapse:collapse">
-      <tr style="border-bottom:1px solid #252838">
-        <th style="font-family:monospace;font-size:9px;color:#8890aa;padding:4px 8px;text-align:left">STAT</th>
-        <th style="font-family:monospace;font-size:9px;color:#8890aa;padding:4px 8px;text-align:center">{hn[:12]}</th>
-        <th style="font-family:monospace;font-size:9px;color:#8890aa;padding:4px 8px;text-align:center">{an[:12]}</th>
-      </tr>
-      {stat_row("Goles/PJ", gf_h, gf_a)}
-      {stat_row("Goles contra/PJ", gc_h, gc_a, higher_is_better=False)}
-      {stat_row("Remates/PJ", rem_h, rem_a)}
-      {stat_row("Al arco/PJ", arco_h, arco_a)}
-      {stat_row("Corners/PJ", corners_h, corners_a)}
-      {stat_row("Tarjetas/PJ", tarj_h, tarj_a, higher_is_better=False)}
-      <tr><td style="color:#8890aa;padding:3px 8px;font-size:11px">Forma reciente</td>
-        <td style="text-align:center;padding:3px 8px;font-size:11px;color:#c8ccdf">{forma_txt(forma_h)}</td>
-        <td style="text-align:center;padding:3px 8px;font-size:11px;color:#c8ccdf">{forma_txt(forma_a)}</td>
-      </tr>
-      <tr><td style="color:#8890aa;padding:3px 8px;font-size:11px">Over 2.5 / BTTS</td>
-        <td colspan="2" style="text-align:center;padding:3px 8px;font-family:monospace;font-size:11px">
-          <span style="color:{'#34d399' if p_over25>=60 else '#8890aa'}">{p_over25}%</span> &nbsp;/&nbsp;
-          <span style="color:{'#34d399' if p_btts>=60 else '#8890aa'}">{p_btts}%</span>
-        </td>
-      </tr>
-    </table>
-  </div>
+        # Stats
+        f"<div style='background:#0e1018;border:1px solid #252838;border-radius:6px;padding:9px;margin-bottom:8px'>"
+        f"<div style='font-family:monospace;font-size:8px;color:#22d3c5;letter-spacing:2px;margin-bottom:6px'>STATS COMPARADAS</div>"
+        f"<table style='width:100%;border-collapse:collapse'>"
+        f"<tr style='border-bottom:1px solid #1c1f2e'>"
+        f"<th style='font-family:monospace;font-size:9px;color:#8890aa;padding:2px 6px;text-align:left;font-weight:400'>STAT</th>"
+        f"<th style='font-family:monospace;font-size:9px;color:#8890aa;padding:2px 6px;text-align:center;font-weight:400'>{hn[:10]}</th>"
+        f"<th style='font-family:monospace;font-size:9px;color:#8890aa;padding:2px 6px;text-align:center;font-weight:400'>{an[:10]}</th>"
+        f"</tr>{stats_rows}"
+        f"<tr><td colspan='3' style='font-family:monospace;font-size:10px;color:#8890aa;padding:4px 6px'>"
+        f"Over 2.5: <b style='color:{over_col}'>{p_over25}%</b> &nbsp;&#183;&nbsp; BTTS: <b style='color:{btts_col}'>{p_btts}%</b>"
+        f"</td></tr></table></div>"
 
-  <!-- MERCADOS -->
-  <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:#c8ccdf;margin-bottom:10px;display:flex;align-items:center;gap:10px">
-    MERCADOS RECOMENDADOS
-    <div style="flex:1;height:1px;background:linear-gradient(90deg,#252838,transparent)"></div>
-  </div>
-  {mercados_html}
+        # Mercados
+        f"<div style='font-family:monospace;font-size:8px;color:#22d3c5;letter-spacing:2px;margin-bottom:5px'>MERCADOS</div>"
+        f"{mhtml}"
 
-  <!-- RIESGOS -->
-  <div style="background:rgba(255,61,90,0.06);border:1px solid rgba(255,61,90,0.2);border-radius:6px;padding:12px;margin-top:10px">
-    <div style="font-family:monospace;font-size:9px;color:#ff3d5a;letter-spacing:3px;margin-bottom:6px">⚠ RIESGOS</div>
-    <div style="font-size:13px;color:#c8ccdf">{"<br>".join(riesgos)}</div>
-  </div>
-
-</div>"""
+        # Riesgos
+        f"<div style='background:rgba(255,61,90,0.05);border:1px solid rgba(255,61,90,0.15);border-radius:5px;padding:7px;margin-top:7px'>"
+        f"<div style='font-family:monospace;font-size:8px;color:#ff3d5a;letter-spacing:2px;margin-bottom:3px'>RIESGOS</div>"
+        f"<div style='font-size:11px;color:#c8ccdf'>{'<br>'.join(riesgos)}</div>"
+        f"</div></div>"
+    )
 
     return jsonify({"analisis": html})
+
 
 @app.route("/diag_as/<codigo>/<int:match_id>")
 def diag_as(codigo, match_id):

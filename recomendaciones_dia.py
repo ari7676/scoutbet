@@ -402,6 +402,7 @@ def mundial():
 
 @app.route("/ia_analisis", methods=["POST"])
 def ia_analisis():
+    import math
     body = request.get_json() or {}
     hn = body.get("home", "Local")
     an = body.get("away", "Visitante")
@@ -411,58 +412,176 @@ def ia_analisis():
     away_stats = body.get("away_stats", {})
     aprobados = [m for m in mercados if m.get("aprobado")]
 
-    def fmt(v): return str(v) if v and v != "—" else "sin datos"
+    def fmt(v, decimals=1):
+        try:
+            if v is None or v == "" or v == "—": return None
+            return round(float(v), decimals)
+        except: return None
 
-    prompt = f"""Sos un analista experto en apuestas deportivas. Analizá este partido y dá una recomendación concisa y fundamentada.
+    def poisson_prob(lam, k):
+        if lam <= 0: return 0
+        try: return math.exp(-lam) * (lam**k) / math.factorial(k)
+        except: return 0
 
-PARTIDO: {hn} vs {an}
-LIGA: {liga_nombre}
+    # Extraer stats
+    gf_h = fmt(home_stats.get("goles_favor")) or 1.3
+    gc_h = fmt(home_stats.get("goles_contra")) or 1.1
+    gf_a = fmt(away_stats.get("goles_favor")) or 1.1
+    gc_a = fmt(away_stats.get("goles_contra")) or 1.3
+    forma_h = home_stats.get("forma", "")
+    forma_a = away_stats.get("forma", "")
+    rem_h = fmt(home_stats.get("remates_pj"))
+    rem_a = fmt(away_stats.get("remates_pj"))
+    arco_h = fmt(home_stats.get("al_arco_pj"))
+    arco_a = fmt(away_stats.get("al_arco_pj"))
+    corners_h = fmt(home_stats.get("corners_pj"))
+    corners_a = fmt(away_stats.get("corners_pj"))
+    tarj_h = fmt(home_stats.get("tarjetas_amarillas_pj"))
+    tarj_a = fmt(away_stats.get("tarjetas_amarillas_pj"))
 
-STATS AVANZADAS (últimos 5 partidos):
-{hn}: Remates/PJ={fmt(home_stats.get('remates_pj'))}, Al arco/PJ={fmt(home_stats.get('al_arco_pj'))}, Corners/PJ={fmt(home_stats.get('corners_pj'))}, Tarjetas/PJ={fmt(home_stats.get('tarjetas_amarillas_pj'))}
-{an}: Remates/PJ={fmt(away_stats.get('remates_pj'))}, Al arco/PJ={fmt(away_stats.get('al_arco_pj'))}, Corners/PJ={fmt(away_stats.get('corners_pj'))}, Tarjetas/PJ={fmt(away_stats.get('tarjetas_amarillas_pj'))}
+    # Lambda Poisson: goles esperados
+    lambda_h = round((gf_h + gc_a) / 2, 2)
+    lambda_a = round((gf_a + gc_h) / 2, 2)
 
-MERCADOS APROBADOS POR EL MODELO:
-{chr(10).join([f"- {m['mercado']}: {m['prob']}% (@{m['cuota']})" for m in aprobados]) if aprobados else "Ninguno"}
+    # Distribución de goles 0-5
+    dist_h = [round(poisson_prob(lambda_h, k) * 100, 1) for k in range(6)]
+    dist_a = [round(poisson_prob(lambda_a, k) * 100, 1) for k in range(6)]
 
-TODOS LOS MERCADOS EVALUADOS:
-{chr(10).join([f"- {m['mercado']}: {m['prob']}% {'✓' if m.get('aprobado') else '✗'}" for m in mercados[:15]])}
+    # Resultado más probable
+    best_score = {"hg": 0, "ag": 0, "p": 0}
+    p_win = p_draw = p_loss = 0
+    for i in range(7):
+        for j in range(7):
+            p = poisson_prob(lambda_h, i) * poisson_prob(lambda_a, j)
+            if p > best_score["p"]:
+                best_score = {"hg": i, "ag": j, "p": round(p*100, 1)}
+            if i > j: p_win += p
+            elif i == j: p_draw += p
+            else: p_loss += p
 
-Respondé en español argentino con este formato exacto:
+    p_win = round(p_win * 100)
+    p_draw = round(p_draw * 100)
+    p_loss = round(p_loss * 100)
+    p_over25 = round((1 - sum(poisson_prob(lambda_h+lambda_a, k) for k in range(3))) * 100)
+    p_btts = round((1 - poisson_prob(lambda_h, 0)) * (1 - poisson_prob(lambda_a, 0)) * 100)
 
-🎯 RECOMENDACIÓN PRINCIPAL
-[el mercado más sólido con justificación en 2 líneas]
+    # Análisis de forma
+    def analizar_forma(forma):
+        if not forma: return "sin datos"
+        w = forma.count("W")
+        d = forma.count("D")
+        l = forma.count("L")
+        if w >= 3: return f"buena ({w}V {d}E {l}D)"
+        elif l >= 3: return f"mala ({w}V {d}E {l}D)"
+        else: return f"regular ({w}V {d}E {l}D)"
 
-📊 ANÁLISIS DE STATS
-[qué dicen las estadísticas avanzadas sobre el estilo de juego esperado, 2-3 líneas]
+    forma_h_txt = analizar_forma(forma_h)
+    forma_a_txt = analizar_forma(forma_a)
 
-⚡ MERCADO ALTERNATIVO
-[segunda opción si la principal falla, con cuota y razonamiento]
+    # Mercado recomendado principal
+    if aprobados:
+        principal = max(aprobados, key=lambda m: m.get("prob", 0))
+        rec_txt = f"{principal.get('mercado', '')} ({principal.get('prob')}% @{principal.get('cuota')})"
+    elif mercados:
+        mejor = max(mercados, key=lambda m: m.get("prob", 0))
+        rec_txt = f"{mejor.get('mercado', '')} ({mejor.get('prob')}%) — sin mercados aprobados por el modelo"
+    else:
+        rec_txt = "Sin datos de mercados"
 
-⚠️ RIESGOS
-[qué podría fallar, máximo 2 líneas]
+    # Riesgo: equipo con peor forma o alta tarjetería
+    riesgos = []
+    if tarj_h and tarj_h > 2.5: riesgos.append(f"{hn} con alta tarjetería ({tarj_h}/PJ)")
+    if tarj_a and tarj_a > 2.5: riesgos.append(f"{an} con alta tarjetería ({tarj_a}/PJ)")
+    if "L" in forma_h[:2]: riesgos.append(f"{hn} viene de derrotas recientes")
+    if "L" in forma_a[:2]: riesgos.append(f"{an} viene de derrotas recientes")
+    if abs(lambda_h - lambda_a) < 0.2: riesgos.append("Equipos muy parejos — alta varianza")
+    riesgo_txt = " · ".join(riesgos) if riesgos else "Sin señales de riesgo elevado"
 
-Sé directo y concreto. No uses frases genéricas. Basate en los números reales. Si no hay datos de stats avanzadas, usá los mercados del modelo para dar tu análisis."""
+    # Armar respuesta estructurada como HTML
+    def barra(pct, color="#f0b429"):
+        w = min(100, max(2, pct * 2))
+        return f'<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-family:monospace;width:20px;text-align:right;font-size:12px">{int(pct//10) if pct > 0 else 0}</span><div style="flex:1;background:#1c1f2e;border-radius:2px;height:12px"><div style="width:{w}%;height:100%;background:{color};border-radius:2px"></div></div><span style="font-family:monospace;font-size:11px;color:#8890aa">{pct}%</span></div>'
 
-    try:
-        gemini_key = os.environ.get("GEMINI_API_KEY", "")
-        if not gemini_key:
-            return jsonify({"error": "Sin GEMINI_API_KEY configurada"})
-        r = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}",
-            headers={"content-type": "application/json"},
-            json={"contents": [{"parts": [{"text": prompt}]}]},
-            timeout=30
-        )
-        if r.ok:
-            data = r.json()
-            texto = data["candidates"][0]["content"]["parts"][0]["text"]
-            return jsonify({"analisis": texto})
-        else:
-            return jsonify({"error": f"API error: {r.status_code} - {r.text[:200]}"})
-    except Exception as e:
-        return jsonify({"error": str(e)})
+    html = f"""
+<div style="font-family:'IBM Plex Sans',sans-serif;color:#f0f0f8;line-height:1.6">
 
+  <div style="background:#0e1018;border:1px solid #f0b429;border-radius:8px;padding:14px;margin-bottom:14px">
+    <div style="font-size:10px;color:#f0b429;letter-spacing:3px;margin-bottom:8px">🎯 RECOMENDACIÓN PRINCIPAL</div>
+    <div style="font-size:15px;font-weight:600">{rec_txt}</div>
+  </div>
+
+  <div style="background:#0e1018;border:1px solid #252838;border-radius:8px;padding:14px;margin-bottom:14px">
+    <div style="font-size:10px;color:#22d3c5;letter-spacing:3px;margin-bottom:10px">📊 PROBABILIDADES 1X2</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;margin-bottom:10px">
+      <div style="background:#0d1b3e;border-radius:6px;padding:10px">
+        <div style="font-size:24px;font-weight:700;color:#4f8ef7">{p_win}%</div>
+        <div style="font-size:9px;color:#8890aa;letter-spacing:1px">{hn[:12]}</div>
+        <div style="font-size:11px;color:#22d3c5">@{round(100/max(p_win,1)*0.95,2)}</div>
+      </div>
+      <div style="background:#151720;border-radius:6px;padding:10px">
+        <div style="font-size:24px;font-weight:700;color:#c8ccdf">{p_draw}%</div>
+        <div style="font-size:9px;color:#8890aa;letter-spacing:1px">EMPATE</div>
+        <div style="font-size:11px;color:#22d3c5">@{round(100/max(p_draw,1)*0.95,2)}</div>
+      </div>
+      <div style="background:#2d0a14;border-radius:6px;padding:10px">
+        <div style="font-size:24px;font-weight:700;color:#ff3d5a">{p_loss}%</div>
+        <div style="font-size:9px;color:#8890aa;letter-spacing:1px">{an[:12]}</div>
+        <div style="font-size:11px;color:#22d3c5">@{round(100/max(p_loss,1)*0.95,2)}</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#c8ccdf;text-align:center">
+      λ {hn}: <b style="color:#f0b429">{lambda_h}</b> &nbsp;·&nbsp; λ {an}: <b style="color:#f0b429">{lambda_a}</b> &nbsp;·&nbsp;
+      Resultado probable: <b style="color:#f0b429">{hn} {best_score['hg']}–{best_score['ag']} {an} ({best_score['p']}%)</b>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+    <div style="background:#0e1018;border:1px solid #252838;border-radius:8px;padding:12px">
+      <div style="font-size:10px;color:#22d3c5;letter-spacing:2px;margin-bottom:8px">GOLES — {hn[:14].upper()}</div>
+      {''.join([barra(dist_h[k]) for k in range(6)])}
+    </div>
+    <div style="background:#0e1018;border:1px solid #252838;border-radius:8px;padding:12px">
+      <div style="font-size:10px;color:#22d3c5;letter-spacing:2px;margin-bottom:8px">GOLES — {an[:14].upper()}</div>
+      {''.join([barra(dist_a[k]) for k in range(6)])}
+    </div>
+  </div>
+
+  <div style="background:#0e1018;border:1px solid #252838;border-radius:8px;padding:14px;margin-bottom:14px">
+    <div style="font-size:10px;color:#22d3c5;letter-spacing:3px;margin-bottom:10px">📈 STATS Y FORMA</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+      <div>
+        <div style="color:#8890aa;margin-bottom:4px">{hn}</div>
+        <div>Forma: <b style="color:#f0f0f8">{forma_h_txt}</b></div>
+        {'<div>Remates/PJ: <b>' + str(rem_h) + '</b></div>' if rem_h else ''}
+        {'<div>Al arco/PJ: <b>' + str(arco_h) + '</b></div>' if arco_h else ''}
+        {'<div>Corners/PJ: <b>' + str(corners_h) + '</b></div>' if corners_h else ''}
+        {'<div>Tarjetas/PJ: <b>' + str(tarj_h) + '</b></div>' if tarj_h else ''}
+        <div>Goles/PJ: <b style="color:#34d399">{gf_h}</b> · Contra: <b style="color:#ff3d5a">{gc_h}</b></div>
+      </div>
+      <div>
+        <div style="color:#8890aa;margin-bottom:4px">{an}</div>
+        <div>Forma: <b style="color:#f0f0f8">{forma_a_txt}</b></div>
+        {'<div>Remates/PJ: <b>' + str(rem_a) + '</b></div>' if rem_a else ''}
+        {'<div>Al arco/PJ: <b>' + str(arco_a) + '</b></div>' if arco_a else ''}
+        {'<div>Corners/PJ: <b>' + str(corners_a) + '</b></div>' if corners_a else ''}
+        {'<div>Tarjetas/PJ: <b>' + str(tarj_a) + '</b></div>' if tarj_a else ''}
+        <div>Goles/PJ: <b style="color:#34d399">{gf_a}</b> · Contra: <b style="color:#ff3d5a">{gc_a}</b></div>
+      </div>
+    </div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #252838;font-size:12px;display:flex;gap:20px">
+      <span>Over 2.5: <b style="color:{'#34d399' if p_over25>=60 else '#8890aa'}">{p_over25}%</b></span>
+      <span>BTTS: <b style="color:{'#34d399' if p_btts>=60 else '#8890aa'}">{p_btts}%</b></span>
+    </div>
+  </div>
+
+  <div style="background:#0e1018;border:1px solid #252838;border-radius:8px;padding:14px">
+    <div style="font-size:10px;color:#ff3d5a;letter-spacing:3px;margin-bottom:6px">⚠️ RIESGOS</div>
+    <div style="font-size:13px;color:#c8ccdf">{riesgo_txt}</div>
+  </div>
+
+</div>"""
+
+    return jsonify({"analisis": html})
 
 @app.route("/diag_as/<codigo>/<int:match_id>")
 def diag_as(codigo, match_id):

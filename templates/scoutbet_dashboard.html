@@ -951,9 +951,8 @@ async function loadIA() {
     });
     const data = await r.json();
     if (data.error) throw new Error(data.error);
-    const texto = data.analisis || '';
-    const html = texto.split('\n\n').join('</p><p>').split('\n').join('<br>');
-    document.getElementById('ia-content').innerHTML = `<div class="ia-output"><p>${html}</p></div>`;
+    const html = data.analisis || '';
+    document.getElementById('ia-content').innerHTML = `<div class="ia-output">${html}</div>`;
   } catch(e) {
     document.getElementById('ia-content').innerHTML = `<div class="empty">Error: ${e.message}</div>`;
     btn.disabled = false;

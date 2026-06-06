@@ -3698,14 +3698,20 @@ def debug_gemini():
     if not api_key:
         return jsonify({"error": "GEMINI_API_KEY no definida"})
     try:
-        r = requests.post(
-            f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}",
-            headers={"Content-Type": "application/json"},
-            json={"contents": [{"parts": [{"text": "Di hola en JSON: {\"saludo\": \"hola\"}"}]}],
-                  "generationConfig": {"maxOutputTokens": 100}},
-            timeout=30
+        # Listar modelos disponibles
+        r = requests.get(
+            f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}",
+            timeout=15
         )
-        return jsonify({"status": r.status_code, "ok": r.ok, "response": r.json()})
+        modelos = [m["name"] for m in r.json().get("models", [])] if r.ok else []
+        # Probar con gemini-2.0-flash
+        r2 = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
+            headers={"Content-Type": "application/json"},
+            json={"contents": [{"parts": [{"text": "Di hola"}]}], "generationConfig": {"maxOutputTokens": 50}},
+            timeout=15
+        )
+        return jsonify({"modelos_disponibles": modelos[:10], "test_flash": {"status": r2.status_code, "ok": r2.ok, "resp": r2.json() if r2.ok else r2.text[:200]}})
     except Exception as e:
         return jsonify({"error": str(e)})
 

@@ -3692,6 +3692,23 @@ def debug_elo(team):
             matches.append({"elo_name": k, "norm": kn, "data": v})
     return jsonify({"query": team, "normalized": norm_team, "matches": matches, "total_elo": len(elo_data)})
 
+@app.route("/debug_gemini")
+def debug_gemini():
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        return jsonify({"error": "GEMINI_API_KEY no definida"})
+    try:
+        r = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+            headers={"Content-Type": "application/json"},
+            json={"contents": [{"parts": [{"text": "Di hola en JSON: {\"saludo\": \"hola\"}"}]}],
+                  "generationConfig": {"maxOutputTokens": 100}},
+            timeout=30
+        )
+        return jsonify({"status": r.status_code, "ok": r.ok, "response": r.json()})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
 @app.route("/health")
 def health():
     return jsonify({"ok": True})

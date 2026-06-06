@@ -445,23 +445,18 @@ Respondé en español argentino con este formato exacto:
 Sé directo y concreto. No uses frases genéricas. Basate en los números reales. Si no hay datos de stats avanzadas, usá los mercados del modelo para dar tu análisis."""
 
     try:
+        gemini_key = os.environ.get("GEMINI_API_KEY", "")
+        if not gemini_key:
+            return jsonify({"error": "Sin GEMINI_API_KEY configurada"})
         r = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key": os.environ.get("ANTHROPIC_API_KEY", ""),
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json"
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 600,
-                "messages": [{"role": "user", "content": prompt}]
-            },
+            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}",
+            headers={"content-type": "application/json"},
+            json={"contents": [{"parts": [{"text": prompt}]}]},
             timeout=30
         )
         if r.ok:
             data = r.json()
-            texto = data["content"][0]["text"]
+            texto = data["candidates"][0]["content"]["parts"][0]["text"]
             return jsonify({"analisis": texto})
         else:
             return jsonify({"error": f"API error: {r.status_code} - {r.text[:200]}"})

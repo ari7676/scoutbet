@@ -3694,26 +3694,8 @@ def debug_elo(team):
 
 @app.route("/debug_gemini")
 def debug_gemini():
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if not api_key:
-        return jsonify({"error": "GEMINI_API_KEY no definida"})
-    try:
-        # Listar modelos disponibles
-        r = requests.get(
-            f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}",
-            timeout=15
-        )
-        modelos = [m["name"] for m in r.json().get("models", [])] if r.ok else []
-        # Probar con gemini-2.0-flash
-        r2 = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
-            headers={"Content-Type": "application/json"},
-            json={"contents": [{"parts": [{"text": "Di hola"}]}], "generationConfig": {"maxOutputTokens": 50}},
-            timeout=15
-        )
-        return jsonify({"modelos_disponibles": modelos[:10], "test_flash": {"status": r2.status_code, "ok": r2.ok, "resp": r2.json() if r2.ok else r2.text[:200]}})
-    except Exception as e:
-        return jsonify({"error": str(e)})
+    resultado = groq_search('Responde solo con JSON: {"saludo": "hola", "estado": "ok"}', max_tokens=100)
+    return jsonify({"groq_response": resultado, "ok": resultado is not None})
 
 @app.route("/health")
 def health():
@@ -3728,46 +3710,35 @@ def clear_cache():
     conn.close()
     return jsonify({"ok": True})
 
-# ── GEMINI HELPER ─────────────────────────────────────────────────────────────
+# ── GROQ HELPER ──────────────────────────────────────────────────────────────
 
-def gemini_search(prompt, max_tokens=4000):
-    """Llama a Gemini 2.0 Flash con Google Search grounding."""
-    api_key = os.environ.get("GEMINI_API_KEY", "")
+def groq_search(prompt, max_tokens=4000):
+    """Llama a Groq con llama-3.3-70b para análisis de texto."""
+    api_key = os.environ.get("GROQ_API_KEY", "")
     if not api_key:
         return None
     try:
         r = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}",
-            headers={"Content-Type": "application/json"},
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
             json={
-                "contents": [{"parts": [{"text": prompt}]}],
-                "tools": [{"google_search": {}}],
-                "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.1}
+                "model": "llama-3.3-70b-versatile",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": max_tokens,
+                "temperature": 0.1
             },
             timeout=60
         )
-        # Fallback sin grounding si falla
         if not r.ok:
-            r = requests.post(
-                f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.1}
-                },
-                timeout=60
-            )
-        if not r.ok:
-            print(f"Gemini error {r.status_code}: {r.text[:200]}")
+            print(f"Groq error {r.status_code}: {r.text[:200]}")
             return None
         data = r.json()
-        candidates = data.get("candidates", [])
-        if not candidates:
-            return None
-        parts = candidates[0].get("content", {}).get("parts", [])
-        return "".join(p.get("text", "") for p in parts)
+        return data["choices"][0]["message"]["content"]
     except Exception as e:
-        print(f"gemini_search error: {e}")
+        print(f"groq_search error: {e}")
         return None
 
 # ── WC BONUS con GEMINI ───────────────────────────────────────────────────────
@@ -3812,7 +3783,7 @@ def wc_bonus_v2():
         "Solo incluye selecciones con informacion confiable reciente."
     )
 
-    texto = gemini_search(prompt, max_tokens=4000)
+    texto = groq_search(prompt, max_tokens=4000)
     if not texto:
         return jsonify({})
     try:
@@ -3971,7 +3942,7 @@ def wc_briefing_diario():
         ("tarjetas", prompt_tarjetas, "tarjetas"),
         ("arbitros", prompt_arbitros, "arbitros"),
     ]:
-        texto = gemini_search(prompt, max_tokens=2000)
+        texto = groq_search(prompt, max_tokens=2000)
         if not texto:
             resultado["errores"].append(f"Gemini no disponible para {nombre}")
             continue

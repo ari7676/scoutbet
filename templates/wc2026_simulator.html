@@ -1438,13 +1438,15 @@ async function init() {
   setProgress(10);
   setText("CARGANDO ELO RATINGS...");
   try {
-    const [r1, r2, r3, r4, r5, r6] = await Promise.all([
+    const [r1, r2, r3, r4, r5, r6, r7, r8] = await Promise.all([
       fetch(`${API}/wc_data`),
-      fetch(`${API}/wc_ausencias_v2`),
+      fetch(`${API}/wc_ausencias_dinamicas`),
       fetch(`${API}/wc_fatiga`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
-      fetch(`${API}/wc_bonus`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
+      fetch(`${API}/wc_bonus_v2`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
       fetch(`${API}/wc_rendimiento`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
-      fetch(`${API}/wc_formacion`).catch(() => null).then(r => r ? r.json().catch(() => ([])) : ([]))
+      fetch(`${API}/wc_formacion`).catch(() => null).then(r => r ? r.json().catch(() => ([])) : ([])),
+      fetch(`${API}/wc_tarjetas`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
+      fetch(`${API}/wc_arbitros`).catch(() => null).then(r => r ? r.json().catch(() => ({})) : ({})),
     ]);
     const data = await r1.json();
     ausenciasData = await r2.json();
@@ -1456,6 +1458,11 @@ async function init() {
     if (Array.isArray(formList)) {
       formList.forEach(f => { formacionesData[f.partido_id] = f; });
     }
+    window.tarjetasData = r7 || {};
+    window.arbitrosData = r8 || {};
+
+    // Cargar clima/sedes
+    fetch(`${API}/wc_clima`).then(r => r.json()).then(d => { window.climaData = d; }).catch(() => {});
     eloData = data.elo || {};
     fixtures = data.fixtures || [];
 
@@ -1900,6 +1907,34 @@ function analyzeMatch() {
     <div class="analysis-card">
       <div class="analysis-title">ANÁLISIS ELO · ${f.fecha} · ${f.group || f.stage || ''}</div>
       ${chipsHtml}
+      ${(() => {
+        // Info de sede y clima
+        const climaD = window.climaData || {};
+        const sedeKey = f.venue || '';
+        const sede = sedeKey ? Object.entries(climaD).find(([k]) => k.toLowerCase().includes(sedeKey.toLowerCase()) || sedeKey.toLowerCase().includes(k.toLowerCase())) : null;
+        if (!sede) return '';
+        const [sedeName, sedeInfo] = sede;
+        const tempColor = sedeInfo.temp_junio >= 35 ? 'var(--red)' : sedeInfo.temp_junio >= 28 ? '#f5a623' : 'var(--green)';
+        const modIcon = sedeInfo.modificador === 'calor_extremo' ? '🔥🔥' : sedeInfo.modificador === 'calor_humedo' ? '🔥💧' : sedeInfo.modificador === 'calor' ? '🔥' : sedeInfo.modificador === 'altitud' ? '⛰' : '✅';
+        const horaArg = f.hora ? (() => {
+          const [h, m] = f.hora.split(':').map(Number);
+          const argH = (h + (sedeInfo.hora_arg_offset || 0) + 24) % 24;
+          return `${String(argH).padStart(2,'0')}:${String(m||0).padStart(2,'0')} ARG`;
+        })() : '';
+        return `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:10px 14px;margin-bottom:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div style="font-size:20px">${modIcon}</div>
+          <div>
+            <div style="font-size:13px;color:var(--text1);font-weight:600">${sedeInfo.estadio}</div>
+            <div style="font-size:12px;color:var(--muted)">${sedeInfo.ciudad}</div>
+          </div>
+          <div style="margin-left:auto;text-align:right">
+            <div style="font-size:15px;font-weight:700;color:${tempColor}">${sedeInfo.temp_junio}°C</div>
+            <div style="font-size:11px;color:var(--muted)">${sedeInfo.humedad} humedad</div>
+          </div>
+          ${horaArg ? `<div style="font-family:var(--mono);font-size:11px;color:var(--accent2);background:var(--surface3);padding:4px 8px;border-radius:4px">${horaArg}</div>` : ''}
+        </div>`;
+      })()}
       <div class="vs-block">
         <div class="team-block">
           <span class="team-big-flag">${flagH}</span>
@@ -1951,6 +1986,56 @@ function analyzeMatch() {
           ${ausA ? ausA.ausentes.map(a => `<div style="font-size:13px;color:var(--text2);margin-bottom:3px">${a.nombre} <span style="font-family:var(--mono);font-size:10px;color:var(--red)">${a.penalty_elo} ELO</span></div>`).join('') : '<div style="font-size:13px;color:var(--muted)">Sin bajas conocidas</div>'}
         </div>
       </div>` : ''}
+
+      ${(() => {
+        // Tarjetas acumuladas
+        const tarjH = (window.tarjetasData || {})[f.home];
+        const tarjA = (window.tarjetasData || {})[f.away];
+        if (!tarjH && !tarjA) return '';
+        const renderTarj = (td, equipo) => {
+          if (!td) return `<div style="font-size:13px;color:var(--muted)">Sin alertas</div>`;
+          let html = '';
+          if (td.suspendidos && td.suspendidos.length)
+            html += td.suspendidos.map(j => `<div style="font-size:13px;color:var(--red);margin-bottom:3px">🚫 ${j} <span style="font-size:10px">(SUSPENDIDO)</span></div>`).join('');
+          if (td.jugadores_en_riesgo && td.jugadores_en_riesgo.length)
+            html += td.jugadores_en_riesgo.map(j => `<div style="font-size:13px;color:#f5a623;margin-bottom:3px">🟨 ${j} <span style="font-size:10px">(en riesgo)</span></div>`).join('');
+          return html || '<div style="font-size:13px;color:var(--muted)">Sin alertas</div>';
+        };
+        return `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+          <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.25);border-radius:5px;padding:12px">
+            <div style="font-family:var(--mono);font-size:9px;color:#f5a623;letter-spacing:3px;margin-bottom:8px">🟨 TARJETAS ${f.home.toUpperCase()}</div>
+            ${renderTarj(tarjH, f.home)}
+          </div>
+          <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.25);border-radius:5px;padding:12px">
+            <div style="font-family:var(--mono);font-size:9px;color:#f5a623;letter-spacing:3px;margin-bottom:8px">🟨 TARJETAS ${f.away.toUpperCase()}</div>
+            ${renderTarj(tarjA, f.away)}
+          </div>
+        </div>`;
+      })()}
+
+      ${(() => {
+        // Árbitro designado
+        const arbitrosD = window.arbitrosData || {};
+        const keyPartido = Object.keys(arbitrosD).find(k =>
+          k.toLowerCase().includes(f.home.toLowerCase()) || k.toLowerCase().includes(f.away.toLowerCase())
+        );
+        const arb = keyPartido ? arbitrosD[keyPartido] : null;
+        if (!arb) return '';
+        const colorPerfil = arb.perfil === 'estricto' ? 'var(--red)' : arb.perfil === 'permisivo' ? 'var(--accent)' : 'var(--text2)';
+        return `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:12px;margin-bottom:16px;display:flex;gap:16px;align-items:center">
+          <div style="font-size:24px">🏁</div>
+          <div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--accent2);letter-spacing:3px;margin-bottom:4px">ÁRBITRO DESIGNADO</div>
+            <div style="font-size:15px;color:var(--text1);font-weight:600">${arb.arbitro} <span style="font-size:12px;color:var(--muted)">(${arb.pais})</span></div>
+            <div style="font-size:12px;margin-top:3px">
+              <span style="color:var(--muted)">${arb.partidos_dirigidos || '?'} partidos · ${arb.tarjetas_por_partido || '?'} tarjetas/PJ · </span>
+              <span style="color:${colorPerfil};font-weight:600">${(arb.perfil || 'normal').toUpperCase()}</span>
+            </div>
+          </div>
+        </div>`;
+      })()}
 
       <div class="goals-dist">
         <div class="goals-card">

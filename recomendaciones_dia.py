@@ -3705,5 +3705,322 @@ def clear_cache():
     conn.close()
     return jsonify({"ok": True})
 
+# ── GEMINI HELPER ─────────────────────────────────────────────────────────────
+
+def gemini_search(prompt, max_tokens=4000):
+    """Llama a Gemini 2.0 Flash con Google Search grounding."""
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        return None
+    try:
+        r = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
+            headers={"Content-Type": "application/json"},
+            json={
+                "contents": [{"parts": [{"text": prompt}]}],
+                "tools": [{"google_search": {}}],
+                "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.1}
+            },
+            timeout=60
+        )
+        if not r.ok:
+            print(f"Gemini error {r.status_code}: {r.text[:200]}")
+            return None
+        data = r.json()
+        candidates = data.get("candidates", [])
+        if not candidates:
+            return None
+        parts = candidates[0].get("content", {}).get("parts", [])
+        return "".join(p.get("text", "") for p in parts)
+    except Exception as e:
+        print(f"gemini_search error: {e}")
+        return None
+
+# ── WC BONUS con GEMINI ───────────────────────────────────────────────────────
+
+@app.route("/wc_bonus_v2")
+def wc_bonus_v2():
+    """Version de wc_bonus usando Gemini con Google Search."""
+    ck = "wc_bonus_v2_data"
+    now_t = time.time()
+    if ck in _cache and now_t - _cache[ck][1] < 86400:
+        return jsonify(_cache[ck][0])
+
+    jugadores_clave = {
+        "Argentina": ["Lionel Messi", "Lautaro Martinez", "Enzo Fernandez"],
+        "France": ["Kylian Mbappe", "Ousmane Dembele", "Antoine Griezmann"],
+        "Spain": ["Lamine Yamal", "Alvaro Morata", "Rodri"],
+        "England": ["Harry Kane", "Jude Bellingham", "Bukayo Saka"],
+        "Brazil": ["Vinicius Junior", "Raphinha", "Neymar"],
+        "Germany": ["Florian Wirtz", "Jamal Musiala", "Kai Havertz"],
+        "Portugal": ["Cristiano Ronaldo", "Bruno Fernandes", "Rafael Leao"],
+        "Netherlands": ["Virgil van Dijk", "Cody Gakpo", "Frenkie de Jong"],
+        "Belgium": ["Kevin De Bruyne", "Romelu Lukaku", "Jeremy Doku"],
+        "Uruguay": ["Darwin Nunez", "Rodrigo Bentancur", "Jose Maria Gimenez"],
+        "Colombia": ["Luis Diaz", "James Rodriguez", "Jhon Cordoba"],
+        "Croatia": ["Luka Modric", "Mateo Kovacic", "Josko Gvardiol"],
+        "Morocco": ["Achraf Hakimi", "Brahim Diaz", "Hakim Ziyech"],
+        "Japan": ["Takefusa Kubo", "Ritsu Doan", "Wataru Endo"],
+        "USA": ["Christian Pulisic", "Weston McKennie", "Tyler Adams"],
+        "Mexico": ["Santiago Gimenez", "Edson Alvarez", "Raul Jimenez"],
+        "Senegal": ["Sadio Mane", "Nicolas Jackson", "Ismaila Sarr"],
+        "Ecuador": ["Moises Caicedo", "Gonzalo Plata", "Enner Valencia"],
+        "Canada": ["Alphonso Davies", "Jonathan David", "Stephen Eustaquio"],
+    }
+
+    prompt = (
+        "Evalua la forma ACTUAL (junio 2026) de los siguientes jugadores del Mundial 2026. "
+        "Busca noticias recientes de forma, lesiones o recuperaciones. "
+        "Para cada SELECCION calcula un bonus_total: gran forma=+10 a +40, normal=0, mala forma o lesion=-10 a -30. "
+        "Jugadores: " + json.dumps(jugadores_clave, ensure_ascii=False) + ". "
+        "Responde SOLO con JSON valido sin markdown: "
+        '{"Argentina": {"jugadores": [{"nombre": "X", "forma": "buena/normal/mala", "nota": "razon breve"}], "bonus_total": 15, "resumen": "texto"}}. '
+        "Solo incluye selecciones con informacion confiable reciente."
+    )
+
+    texto = gemini_search(prompt, max_tokens=4000)
+    if not texto:
+        return jsonify({})
+    try:
+        import re as _re
+        m = _re.search(r'\{[\s\S]*\}', texto)
+        if m:
+            bonus = json.loads(m.group(0))
+            _cache[ck] = (bonus, now_t)
+            return jsonify(bonus)
+    except Exception as e:
+        print(f"wc_bonus_v2 parse error: {e}")
+    return jsonify({})
+
+
+# ── WC TARJETAS ───────────────────────────────────────────────────────────────
+
+@app.route("/wc_tarjetas")
+def wc_tarjetas():
+    """
+    Tarjetas amarillas acumuladas por seleccion durante el Mundial.
+    Actualizar manualmente despues de cada partido o via /wc_briefing_diario.
+    Formato: { "Argentina": { "jugadores_en_riesgo": ["Enzo Fernandez"], "penalty_elo": -30 }, ... }
+    """
+    ck = "wc_tarjetas_data"
+    if ck in _cache:
+        return jsonify(_cache[ck])
+    # Dato hardcodeado inicial — se actualiza via /wc_briefing_diario
+    data = {}
+    return jsonify(data)
+
+@app.route("/wc_tarjetas_update", methods=["POST"])
+def wc_tarjetas_update():
+    """Actualiza el cache de tarjetas. Llamado por el briefing diario."""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "no data"}), 400
+    _cache["wc_tarjetas_data"] = data
+    return jsonify({"ok": True, "equipos": list(data.keys())})
+
+
+# ── WC ARBITROS ───────────────────────────────────────────────────────────────
+
+@app.route("/wc_arbitros")
+def wc_arbitros():
+    """
+    Arbitros designados para cada partido del Mundial.
+    Se actualiza via /wc_briefing_diario.
+    Formato: { "partido_id": { "arbitro": "Nombre", "pais": "Pais", "perfil": "descripcion" }, ... }
+    """
+    ck = "wc_arbitros_data"
+    if ck in _cache:
+        return jsonify(_cache[ck])
+    return jsonify({})
+
+
+# ── WC CLIMA / SEDES ──────────────────────────────────────────────────────────
+
+@app.route("/wc_clima")
+def wc_clima():
+    """
+    Temperatura y condiciones climaticas por sede del Mundial 2026.
+    Datos estaticos basados en promedios historicos junio-julio.
+    """
+    sedes = {
+        # USA
+        "New York/New Jersey": {"estadio": "MetLife Stadium", "ciudad": "East Rutherford, NJ", "temp_junio": 24, "temp_julio": 28, "humedad": "alta", "modificador": "normal", "zona_horaria": "UTC-4", "hora_arg_offset": +1},
+        "Los Angeles": {"estadio": "SoFi Stadium", "ciudad": "Inglewood, CA", "temp_junio": 22, "temp_julio": 26, "humedad": "baja", "modificador": "normal", "zona_horaria": "UTC-7", "hora_arg_offset": +4},
+        "Dallas": {"estadio": "AT&T Stadium", "ciudad": "Arlington, TX", "temp_junio": 36, "temp_julio": 38, "humedad": "alta", "modificador": "calor_extremo", "zona_horaria": "UTC-5", "hora_arg_offset": +2},
+        "San Francisco": {"estadio": "Levi's Stadium", "ciudad": "Santa Clara, CA", "temp_junio": 19, "temp_julio": 21, "humedad": "media", "modificador": "normal", "zona_horaria": "UTC-7", "hora_arg_offset": +4},
+        "Miami": {"estadio": "Hard Rock Stadium", "ciudad": "Miami Gardens, FL", "temp_junio": 33, "temp_julio": 35, "humedad": "muy_alta", "modificador": "calor_humedo", "zona_horaria": "UTC-4", "hora_arg_offset": +1},
+        "Atlanta": {"estadio": "Mercedes-Benz Stadium", "ciudad": "Atlanta, GA", "temp_junio": 31, "temp_julio": 33, "humedad": "alta", "modificador": "calor", "zona_horaria": "UTC-4", "hora_arg_offset": +1},
+        "Seattle": {"estadio": "Lumen Field", "ciudad": "Seattle, WA", "temp_junio": 17, "temp_julio": 20, "humedad": "media", "modificador": "normal", "zona_horaria": "UTC-7", "hora_arg_offset": +4},
+        "Houston": {"estadio": "NRG Stadium", "ciudad": "Houston, TX", "temp_junio": 35, "temp_julio": 37, "humedad": "muy_alta", "modificador": "calor_humedo", "zona_horaria": "UTC-5", "hora_arg_offset": +2},
+        "Philadelphia": {"estadio": "Lincoln Financial Field", "ciudad": "Philadelphia, PA", "temp_junio": 27, "temp_julio": 30, "humedad": "alta", "modificador": "normal", "zona_horaria": "UTC-4", "hora_arg_offset": +1},
+        "Kansas City": {"estadio": "Arrowhead Stadium", "ciudad": "Kansas City, MO", "temp_junio": 31, "temp_julio": 33, "humedad": "media", "modificador": "calor", "zona_horaria": "UTC-5", "hora_arg_offset": +2},
+        "Boston": {"estadio": "Gillette Stadium", "ciudad": "Foxborough, MA", "temp_junio": 22, "temp_julio": 25, "humedad": "media", "modificador": "normal", "zona_horaria": "UTC-4", "hora_arg_offset": +1},
+        # Canada
+        "Toronto": {"estadio": "BMO Field", "ciudad": "Toronto, ON", "temp_junio": 22, "temp_julio": 25, "humedad": "media", "modificador": "normal", "zona_horaria": "UTC-4", "hora_arg_offset": +1},
+        "Vancouver": {"estadio": "BC Place", "ciudad": "Vancouver, BC", "temp_junio": 16, "temp_julio": 19, "humedad": "baja", "modificador": "normal", "zona_horaria": "UTC-7", "hora_arg_offset": +4},
+        # Mexico
+        "Ciudad de Mexico": {"estadio": "Estadio Azteca", "ciudad": "Ciudad de Mexico", "temp_junio": 19, "temp_julio": 18, "humedad": "media", "modificador": "altitud", "altitud_m": 2240, "zona_horaria": "UTC-6", "hora_arg_offset": +3},
+        "Guadalajara": {"estadio": "Estadio Akron", "ciudad": "Zapopan, Jalisco", "temp_junio": 22, "temp_julio": 21, "humedad": "media", "modificador": "altitud", "altitud_m": 1566, "zona_horaria": "UTC-6", "hora_arg_offset": +3},
+        "Monterrey": {"estadio": "Estadio BBVA", "ciudad": "Monterrey, NL", "temp_junio": 36, "temp_julio": 38, "humedad": "baja", "modificador": "calor_extremo", "zona_horaria": "UTC-6", "hora_arg_offset": +3},
+    }
+    return jsonify(sedes)
+
+
+# ── WC BRIEFING DIARIO ────────────────────────────────────────────────────────
+
+@app.route("/wc_briefing_diario")
+def wc_briefing_diario():
+    """
+    Ejecuta el briefing diario del Mundial usando Gemini con Google Search.
+    Busca: lesiones nuevas, incorporaciones FIFA, tarjetas acumuladas, arbitros designados.
+    Cachea por 20 horas. Para forzar: ?force=1
+    """
+    ck = "wc_briefing_data"
+    now_t = time.time()
+    force = request.args.get("force", "0") == "1"
+
+    if not force and ck in _cache and now_t - _cache[ck][1] < 72000:
+        cached = _cache[ck][0]
+        cached["cached"] = True
+        return jsonify(cached)
+
+    hoy = datetime.now().strftime("%d de %B de %Y")
+
+    # ── 1. Lesiones e incorporaciones ──────────────────────────────────────────
+    prompt_lesiones = (
+        f"Fecha de hoy: {hoy}. Busca las ULTIMAS NOTICIAS del Mundial 2026 sobre: "
+        "1) Jugadores lesionados o que abandonaron el torneo en los ultimos dias. "
+        "2) Reemplazos oficiales aprobados por FIFA. "
+        "3) Jugadores recuperados de lesiones previas. "
+        "Responde SOLO con JSON valido sin markdown: "
+        '{"lesiones_nuevas": [{"jugador": "Nombre", "seleccion": "Pais_en_ingles", '
+        '"descripcion": "lesion", "penalty_elo_sugerido": -30}], '
+        '"incorporaciones": [{"jugador": "Nombre", "seleccion": "Pais_en_ingles", '
+        '"reemplaza_a": "Nombre", "bonus_elo_sugerido": 15}], '
+        '"recuperados": [{"jugador": "Nombre", "seleccion": "Pais_en_ingles", "nota": "texto"}]}. '
+        "Si no hay novedades recientes en alguna categoria, devuelve lista vacia."
+    )
+
+    # ── 2. Tarjetas acumuladas ─────────────────────────────────────────────────
+    prompt_tarjetas = (
+        f"Fecha de hoy: {hoy}. Busca informacion sobre tarjetas amarillas en el Mundial 2026. "
+        "Lista los jugadores que tienen 1 o mas tarjetas amarillas acumuladas y estan en riesgo de suspension. "
+        "En el Mundial, 2 amarillas en fase de grupos = suspension automatica en octavos. "
+        "Responde SOLO con JSON valido sin markdown: "
+        '{"tarjetas": {"Nombre_seleccion_ingles": {"jugadores_en_riesgo": ["Jugador1", "Jugador2"], '
+        '"suspendidos": ["Jugador3"], "penalty_elo": -25}}}. '
+        "Solo incluye selecciones con jugadores en riesgo real de suspension."
+    )
+
+    # ── 3. Arbitros ────────────────────────────────────────────────────────────
+    prompt_arbitros = (
+        f"Fecha de hoy: {hoy}. Busca los arbitros designados por FIFA para los proximos partidos del Mundial 2026. "
+        "Responde SOLO con JSON valido sin markdown: "
+        '{"arbitros": {"partido_descripcion": {"arbitro": "Nombre Completo", "pais": "Pais", '
+        '"partidos_dirigidos": 5, "tarjetas_por_partido": 3.2, "perfil": "estricto/normal/permisivo"}}}. '
+        "Solo partidos con arbitro ya designado oficialmente."
+    )
+
+    resultado = {
+        "fecha": hoy,
+        "lesiones_nuevas": [],
+        "incorporaciones": [],
+        "recuperados": [],
+        "tarjetas": {},
+        "arbitros": {},
+        "errores": []
+    }
+
+    # Ejecutar las 3 busquedas
+    for nombre, prompt, clave_principal in [
+        ("lesiones", prompt_lesiones, "lesiones_nuevas"),
+        ("tarjetas", prompt_tarjetas, "tarjetas"),
+        ("arbitros", prompt_arbitros, "arbitros"),
+    ]:
+        texto = gemini_search(prompt, max_tokens=2000)
+        if not texto:
+            resultado["errores"].append(f"Gemini no disponible para {nombre}")
+            continue
+        try:
+            import re as _re
+            m = _re.search(r'\{[\s\S]*\}', texto)
+            if m:
+                datos = json.loads(m.group(0))
+                if nombre == "lesiones":
+                    resultado["lesiones_nuevas"] = datos.get("lesiones_nuevas", [])
+                    resultado["incorporaciones"] = datos.get("incorporaciones", [])
+                    resultado["recuperados"] = datos.get("recuperados", [])
+                elif nombre == "tarjetas":
+                    tarjetas_data = datos.get("tarjetas", {})
+                    resultado["tarjetas"] = tarjetas_data
+                    # Actualizar cache de tarjetas
+                    _cache["wc_tarjetas_data"] = tarjetas_data
+                elif nombre == "arbitros":
+                    resultado["arbitros"] = datos.get("arbitros", {})
+                    _cache["wc_arbitros_data"] = datos.get("arbitros", {})
+        except Exception as e:
+            resultado["errores"].append(f"Parse error {nombre}: {str(e)}")
+            resultado[f"raw_{nombre}"] = texto[:500]
+
+    # Actualizar wc_ausencias dinamicamente con lesiones nuevas
+    if resultado["lesiones_nuevas"]:
+        ausencias_actuales = {}
+        try:
+            # Obtener ausencias actuales del endpoint
+            with app.test_request_context():
+                resp = wc_ausencias()
+                ausencias_actuales = json.loads(resp.get_data())
+        except:
+            pass
+        for lesion in resultado["lesiones_nuevas"]:
+            sel = lesion.get("seleccion", "")
+            if sel and sel not in ausencias_actuales:
+                ausencias_actuales[sel] = {"ausentes": [], "penalty_total": 0}
+            if sel:
+                ausencia_entry = {
+                    "nombre": lesion.get("jugador", ""),
+                    "posicion": "desconocida",
+                    "valor_m": 30,
+                    "criticidad": 0.35,
+                    "penalty_elo": lesion.get("penalty_elo_sugerido", -25)
+                }
+                ausencias_actuales[sel]["ausentes"].append(ausencia_entry)
+                ausencias_actuales[sel]["penalty_total"] = sum(
+                    a.get("penalty_elo", 0) for a in ausencias_actuales[sel]["ausentes"]
+                )
+        _cache["wc_ausencias_briefing"] = ausencias_actuales
+
+    resultado["cached"] = False
+    _cache[ck] = (resultado, now_t)
+    return jsonify(resultado)
+
+
+@app.route("/wc_ausencias_dinamicas")
+def wc_ausencias_dinamicas():
+    """
+    Devuelve ausencias base + cualquier lesion nueva detectada por el briefing diario.
+    El simulador puede usar este endpoint en vez de /wc_ausencias para datos mas frescos.
+    """
+    # Ausencias base (hardcodeadas)
+    resp_base = wc_ausencias()
+    base = json.loads(resp_base.get_data())
+
+    # Merge con actualizaciones del briefing si existen
+    briefing_aus = _cache.get("wc_ausencias_briefing", {})
+    for seleccion, datos in briefing_aus.items():
+        if seleccion not in base:
+            base[seleccion] = datos
+        else:
+            # Agregar solo los nuevos ausentes que no esten ya
+            nombres_base = {a["nombre"] for a in base[seleccion].get("ausentes", [])}
+            for ausente in datos.get("ausentes", []):
+                if ausente["nombre"] not in nombres_base:
+                    base[seleccion]["ausentes"].append(ausente)
+                    base[seleccion]["penalty_total"] = sum(
+                        a.get("penalty_elo", 0) for a in base[seleccion]["ausentes"]
+                    )
+    return jsonify(base)
+
+
 if __name__=="__main__":
     app.run(debug=True)

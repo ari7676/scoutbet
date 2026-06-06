@@ -3714,7 +3714,7 @@ def gemini_search(prompt, max_tokens=4000):
         return None
     try:
         r = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
+            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}",
             headers={"Content-Type": "application/json"},
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
@@ -3723,6 +3723,17 @@ def gemini_search(prompt, max_tokens=4000):
             },
             timeout=60
         )
+        # Fallback sin grounding si falla
+        if not r.ok:
+            r = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.1}
+                },
+                timeout=60
+            )
         if not r.ok:
             print(f"Gemini error {r.status_code}: {r.text[:200]}")
             return None

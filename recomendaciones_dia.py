@@ -3710,6 +3710,41 @@ def clear_cache():
     conn.close()
     return jsonify({"ok": True})
 
+# ── TAVILY HELPER ────────────────────────────────────────────────────────────
+
+def tavily_search(query, max_results=5):
+    """Busca noticias en tiempo real via Tavily."""
+    api_key = os.environ.get("TAVILY_API_KEY", "")
+    if not api_key:
+        return ""
+    try:
+        r = requests.post(
+            "https://api.tavily.com/search",
+            json={
+                "api_key": api_key,
+                "query": query,
+                "search_depth": "basic",
+                "max_results": max_results,
+                "include_answer": True
+            },
+            timeout=20
+        )
+        if not r.ok:
+            print(f"Tavily error {r.status_code}: {r.text[:200]}")
+            return ""
+        data = r.json()
+        # Combinar answer + snippets de resultados
+        partes = []
+        if data.get("answer"):
+            partes.append(data["answer"])
+        for res in data.get("results", []):
+            if res.get("content"):
+                partes.append(f"- {res['title']}: {res['content'][:300]}")
+        return "\n".join(partes)
+    except Exception as e:
+        print(f"tavily_search error: {e}")
+        return ""
+
 # ── GROQ HELPER ──────────────────────────────────────────────────────────────
 
 def groq_search(prompt, max_tokens=4000):
@@ -3891,39 +3926,55 @@ def wc_briefing_diario():
 
     hoy = datetime.now().strftime("%d de %B de %Y")
 
+    # ── Buscar noticias en tiempo real con Tavily ──────────────────────────────
+    noticias_lesiones = tavily_search(
+        f"World Cup 2026 injury player out squad update {datetime.now().strftime('%B %Y')}",
+        max_results=5
+    )
+    noticias_tarjetas = tavily_search(
+        f"World Cup 2026 yellow cards suspension players {datetime.now().strftime('%B %Y')}",
+        max_results=3
+    )
+    noticias_arbitros = tavily_search(
+        f"FIFA World Cup 2026 referee assignments designated matches {datetime.now().strftime('%B %Y')}",
+        max_results=3
+    )
+
     # ── 1. Lesiones e incorporaciones ──────────────────────────────────────────
+    ctx_lesiones = f"\nNoticias recientes:\n{noticias_lesiones}" if noticias_lesiones else ""
     prompt_lesiones = (
-        f"Fecha de hoy: {hoy}. Busca las ULTIMAS NOTICIAS del Mundial 2026 sobre: "
-        "1) Jugadores lesionados o que abandonaron el torneo en los ultimos dias. "
-        "2) Reemplazos oficiales aprobados por FIFA. "
-        "3) Jugadores recuperados de lesiones previas. "
+        f"Fecha de hoy: {hoy}.{ctx_lesiones}\n\n"
+        "Extrae jugadores lesionados, desconvocados o incorporados al Mundial 2026. "
         "Responde SOLO con JSON valido sin markdown: "
         '{"lesiones_nuevas": [{"jugador": "Nombre", "seleccion": "Pais_en_ingles", '
         '"descripcion": "lesion", "penalty_elo_sugerido": -30}], '
         '"incorporaciones": [{"jugador": "Nombre", "seleccion": "Pais_en_ingles", '
         '"reemplaza_a": "Nombre", "bonus_elo_sugerido": 15}], '
         '"recuperados": [{"jugador": "Nombre", "seleccion": "Pais_en_ingles", "nota": "texto"}]}. '
-        "Si no hay novedades recientes en alguna categoria, devuelve lista vacia."
+        "Si no hay novedades, devuelve listas vacias."
     )
 
     # ── 2. Tarjetas acumuladas ─────────────────────────────────────────────────
+    ctx_tarjetas = f"\nNoticias recientes:\n{noticias_tarjetas}" if noticias_tarjetas else ""
     prompt_tarjetas = (
-        f"Fecha de hoy: {hoy}. Busca informacion sobre tarjetas amarillas en el Mundial 2026. "
-        "Lista los jugadores que tienen 1 o mas tarjetas amarillas acumuladas y estan en riesgo de suspension. "
-        "En el Mundial, 2 amarillas en fase de grupos = suspension automatica en octavos. "
+        f"Fecha de hoy: {hoy}.{ctx_tarjetas}\n\n"
+        "Extrae jugadores con tarjetas amarillas acumuladas en el Mundial 2026. "
+        "2 amarillas en grupos = suspension en octavos. "
         "Responde SOLO con JSON valido sin markdown: "
-        '{"tarjetas": {"Nombre_seleccion_ingles": {"jugadores_en_riesgo": ["Jugador1", "Jugador2"], '
-        '"suspendidos": ["Jugador3"], "penalty_elo": -25}}}. '
-        "Solo incluye selecciones con jugadores en riesgo real de suspension."
+        '{"tarjetas": {"Nombre_seleccion_ingles": {"jugadores_en_riesgo": ["Jugador1"], '
+        '"suspendidos": ["Jugador2"], "penalty_elo": -25}}}. '
+        "Si no hay info real, devuelve {}."
     )
 
     # ── 3. Arbitros ────────────────────────────────────────────────────────────
+    ctx_arbitros = f"\nNoticias recientes:\n{noticias_arbitros}" if noticias_arbitros else ""
     prompt_arbitros = (
-        f"Fecha de hoy: {hoy}. Busca los arbitros designados por FIFA para los proximos partidos del Mundial 2026. "
+        f"Fecha de hoy: {hoy}.{ctx_arbitros}\n\n"
+        "Extrae arbitros designados para partidos del Mundial 2026. "
         "Responde SOLO con JSON valido sin markdown: "
-        '{"arbitros": {"partido_descripcion": {"arbitro": "Nombre Completo", "pais": "Pais", '
-        '"partidos_dirigidos": 5, "tarjetas_por_partido": 3.2, "perfil": "estricto/normal/permisivo"}}}. '
-        "Solo partidos con arbitro ya designado oficialmente."
+        '{"arbitros": {"Local vs Visitante": {"arbitro": "Nombre Completo", "pais": "Pais", '
+        '"partidos_dirigidos": 10, "tarjetas_por_partido": 3.2, "perfil": "estricto/normal/permisivo"}}}. '
+        "Si no hay designaciones oficiales, devuelve {}."
     )
 
     resultado = {

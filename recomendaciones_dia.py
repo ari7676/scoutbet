@@ -3699,7 +3699,7 @@ def debug_gemini():
         return jsonify({"error": "GEMINI_API_KEY no definida"})
     try:
         r = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+            f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}",
             headers={"Content-Type": "application/json"},
             json={"contents": [{"parts": [{"text": "Di hola en JSON: {\"saludo\": \"hola\"}"}]}],
                   "generationConfig": {"maxOutputTokens": 100}},
@@ -3743,7 +3743,7 @@ def gemini_search(prompt, max_tokens=4000):
         # Fallback sin grounding si falla
         if not r.ok:
             r = requests.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+                f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}",
                 headers={"Content-Type": "application/json"},
                 json={
                     "contents": [{"parts": [{"text": prompt}]}],

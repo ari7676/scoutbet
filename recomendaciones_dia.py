@@ -3692,6 +3692,26 @@ def debug_elo(team):
             matches.append({"elo_name": k, "norm": kn, "data": v})
     return jsonify({"query": team, "normalized": norm_team, "matches": matches, "total_elo": len(elo_data)})
 
+@app.route("/debug_tavily")
+def debug_tavily():
+    api_key = os.environ.get("TAVILY_API_KEY", "")
+    if not api_key:
+        return jsonify({"error": "TAVILY_API_KEY no definida"})
+    try:
+        r = requests.post(
+            "https://api.tavily.com/search",
+            json={
+                "api_key": api_key,
+                "query": "FIFA World Cup 2026 injury news",
+                "search_depth": "basic",
+                "max_results": 2
+            },
+            timeout=20
+        )
+        return jsonify({"status": r.status_code, "ok": r.ok, "response": r.json() if r.ok else r.text[:300]})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
 @app.route("/debug_gemini")
 def debug_gemini():
     resultado = groq_search('Responde solo con JSON: {"saludo": "hola", "estado": "ok"}', max_tokens=100)

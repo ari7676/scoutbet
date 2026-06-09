@@ -1,7444 +1,1276 @@
-# Planteles oficiales FIFA World Cup 2026 - Listas oficiales 2 junio 2026
 WC_PLANTELES = {
     "Argentina": [
-        {
-            "nombre": "Emiliano Martinez",
-            "posicion": "GK",
-            "club": "Aston Villa",
-            "valor_m": 30,
-            "edad": 33
-        },
-        {
-            "nombre": "Geronimo Rulli",
-            "posicion": "GK",
-            "club": "Olympique Marseille",
-            "valor_m": 8,
-            "edad": 32
-        },
-        {
-            "nombre": "Juan Musso",
-            "posicion": "GK",
-            "club": "Atletico Madrid",
-            "valor_m": 12,
-            "edad": 30
-        },
-        {
-            "nombre": "Nahuel Molina",
-            "posicion": "DF",
-            "club": "Atletico Madrid",
-            "valor_m": 30,
-            "edad": 26
-        },
-        {
-            "nombre": "Cristian Romero",
-            "posicion": "DF",
-            "club": "Tottenham",
-            "valor_m": 65,
-            "edad": 26
-        },
-        {
-            "nombre": "Lisandro Martinez",
-            "posicion": "DF",
-            "club": "Manchester United",
-            "valor_m": 55,
-            "edad": 26
-        },
-        {
-            "nombre": "Nicolas Otamendi",
-            "posicion": "DF",
-            "club": "Benfica",
-            "valor_m": 10,
-            "edad": 36
-        },
-        {
-            "nombre": "Leonardo Balerdi",
-            "posicion": "DF",
-            "club": "Olympique Marseille",
-            "valor_m": 25,
-            "edad": 25
-        },
-        {
-            "nombre": "Nicolas Tagliafico",
-            "posicion": "DF",
-            "club": "Olympique Lyon",
-            "valor_m": 8,
-            "edad": 32
-        },
-        {
-            "nombre": "Gonzalo Montiel",
-            "posicion": "DF",
-            "club": "River Plate",
-            "valor_m": 10,
-            "edad": 27
-        },
-        {
-            "nombre": "Facundo Medina",
-            "posicion": "DF",
-            "club": "Olympique Marseille",
-            "valor_m": 20,
-            "edad": 25
-        },
-        {
-            "nombre": "Rodrigo De Paul",
-            "posicion": "MF",
-            "club": "Inter Miami",
-            "valor_m": 25,
-            "edad": 30
-        },
-        {
-            "nombre": "Leandro Paredes",
-            "posicion": "MF",
-            "club": "Boca Juniors",
-            "valor_m": 10,
-            "edad": 30
-        },
-        {
-            "nombre": "Alexis Mac Allister",
-            "posicion": "MF",
-            "club": "Liverpool",
-            "valor_m": 70,
-            "edad": 25
-        },
-        {
-            "nombre": "Enzo Fernandez",
-            "posicion": "MF",
-            "club": "Chelsea",
-            "valor_m": 80,
-            "edad": 23
-        },
-        {
-            "nombre": "Exequiel Palacios",
-            "posicion": "MF",
-            "club": "Bayer Leverkusen",
-            "valor_m": 30,
-            "edad": 25
-        },
-        {
-            "nombre": "Giovani Lo Celso",
-            "posicion": "MF",
-            "club": "Real Betis",
-            "valor_m": 20,
-            "edad": 28
-        },
-        {
-            "nombre": "Valentin Barco",
-            "posicion": "MF",
-            "club": "RC Strasbourg",
-            "valor_m": 15,
-            "edad": 20
-        },
-        {
-            "nombre": "Lionel Messi",
-            "posicion": "FW",
-            "club": "Inter Miami",
-            "valor_m": 25,
-            "edad": 37
-        },
-        {
-            "nombre": "Lautaro Martinez",
-            "posicion": "FW",
-            "club": "Inter Milan",
-            "valor_m": 100,
-            "edad": 27
-        },
-        {
-            "nombre": "Julian Alvarez",
-            "posicion": "FW",
-            "club": "Atletico Madrid",
-            "valor_m": 90,
-            "edad": 24
-        },
-        {
-            "nombre": "Nico Gonzalez",
-            "posicion": "FW",
-            "club": "Atletico Madrid",
-            "valor_m": 40,
-            "edad": 26
-        },
-        {
-            "nombre": "Thiago Almada",
-            "posicion": "FW",
-            "club": "Atletico Madrid",
-            "valor_m": 35,
-            "edad": 23
-        },
-        {
-            "nombre": "Giuliano Simeone",
-            "posicion": "FW",
-            "club": "Atletico Madrid",
-            "valor_m": 25,
-            "edad": 21
-        },
-        {
-            "nombre": "Nico Paz",
-            "posicion": "FW",
-            "club": "Como",
-            "valor_m": 30,
-            "edad": 20
-        },
-        {
-            "nombre": "Jose Lopez",
-            "posicion": "FW",
-            "club": "Palmeiras",
-            "valor_m": 15,
-            "edad": 23
-        }
+        {"nombre": "Emiliano Martinez", "posicion": "GK", "club": "Aston Villa", "valor_m": 30, "edad": 33},
+        {"nombre": "Geronimo Rulli", "posicion": "GK", "club": "Olympique Marseille", "valor_m": 8, "edad": 32},
+        {"nombre": "Juan Musso", "posicion": "GK", "club": "Atletico Madrid", "valor_m": 12, "edad": 30},
+        {"nombre": "Nahuel Molina", "posicion": "DF", "club": "Atletico Madrid", "valor_m": 30, "edad": 26},
+        {"nombre": "Cristian Romero", "posicion": "DF", "club": "Tottenham", "valor_m": 65, "edad": 26},
+        {"nombre": "Lisandro Martinez", "posicion": "DF", "club": "Manchester United", "valor_m": 55, "edad": 26},
+        {"nombre": "Nicolas Otamendi", "posicion": "DF", "club": "Benfica", "valor_m": 10, "edad": 36},
+        {"nombre": "Leonardo Balerdi", "posicion": "DF", "club": "Olympique Marseille", "valor_m": 25, "edad": 25},
+        {"nombre": "Nicolas Tagliafico", "posicion": "DF", "club": "Olympique Lyon", "valor_m": 8, "edad": 32},
+        {"nombre": "Gonzalo Montiel", "posicion": "DF", "club": "River Plate", "valor_m": 10, "edad": 27},
+        {"nombre": "Facundo Medina", "posicion": "DF", "club": "Olympique Marseille", "valor_m": 20, "edad": 25},
+        {"nombre": "Rodrigo De Paul", "posicion": "MF", "club": "Inter Miami", "valor_m": 25, "edad": 30},
+        {"nombre": "Leandro Paredes", "posicion": "MF", "club": "Boca Juniors", "valor_m": 10, "edad": 30},
+        {"nombre": "Alexis Mac Allister", "posicion": "MF", "club": "Liverpool", "valor_m": 70, "edad": 25},
+        {"nombre": "Enzo Fernandez", "posicion": "MF", "club": "Chelsea", "valor_m": 80, "edad": 23},
+        {"nombre": "Exequiel Palacios", "posicion": "MF", "club": "Bayer Leverkusen", "valor_m": 30, "edad": 25},
+        {"nombre": "Giovani Lo Celso", "posicion": "MF", "club": "Real Betis", "valor_m": 20, "edad": 28},
+        {"nombre": "Valentin Barco", "posicion": "MF", "club": "RC Strasbourg", "valor_m": 15, "edad": 20},
+        {"nombre": "Lionel Messi", "posicion": "FW", "club": "Inter Miami", "valor_m": 25, "edad": 37},
+        {"nombre": "Lautaro Martinez", "posicion": "FW", "club": "Inter Milan", "valor_m": 100, "edad": 27},
+        {"nombre": "Julian Alvarez", "posicion": "FW", "club": "Atletico Madrid", "valor_m": 90, "edad": 24},
+        {"nombre": "Nico Gonzalez", "posicion": "FW", "club": "Atletico Madrid", "valor_m": 40, "edad": 26},
+        {"nombre": "Thiago Almada", "posicion": "FW", "club": "Atletico Madrid", "valor_m": 35, "edad": 23},
+        {"nombre": "Giuliano Simeone", "posicion": "FW", "club": "Atletico Madrid", "valor_m": 25, "edad": 21},
+        {"nombre": "Nico Paz", "posicion": "FW", "club": "Como", "valor_m": 30, "edad": 20},
+        {"nombre": "Jose Lopez", "posicion": "FW", "club": "Palmeiras", "valor_m": 15, "edad": 23},
     ],
     "Brazil": [
-        {
-            "nombre": "Alisson",
-            "posicion": "GK",
-            "club": "Liverpool",
-            "valor_m": 40,
-            "edad": 31
-        },
-        {
-            "nombre": "Ederson",
-            "posicion": "GK",
-            "club": "Fenerbahce",
-            "valor_m": 25,
-            "edad": 30
-        },
-        {
-            "nombre": "Weverton",
-            "posicion": "GK",
-            "club": "Gremio",
-            "valor_m": 5,
-            "edad": 36
-        },
-        {
-            "nombre": "Marquinhos",
-            "posicion": "DF",
-            "club": "PSG",
-            "valor_m": 35,
-            "edad": 29
-        },
-        {
-            "nombre": "Gabriel Magalhaes",
-            "posicion": "DF",
-            "club": "Arsenal",
-            "valor_m": 60,
-            "edad": 26
-        },
-        {
-            "nombre": "Bremer",
-            "posicion": "DF",
-            "club": "Juventus",
-            "valor_m": 45,
-            "edad": 27
-        },
-        {
-            "nombre": "Danilo",
-            "posicion": "DF",
-            "club": "Flamengo",
-            "valor_m": 8,
-            "edad": 33
-        },
-        {
-            "nombre": "Alex Sandro",
-            "posicion": "DF",
-            "club": "Flamengo",
-            "valor_m": 3,
-            "edad": 33
-        },
-        {
-            "nombre": "Wesley",
-            "posicion": "DF",
-            "club": "AS Roma",
-            "valor_m": 25,
-            "edad": 20
-        },
-        {
-            "nombre": "Leo Pereira",
-            "posicion": "DF",
-            "club": "Flamengo",
-            "valor_m": 15,
-            "edad": 28
-        },
-        {
-            "nombre": "Roger Ibanez",
-            "posicion": "DF",
-            "club": "Al Ahli",
-            "valor_m": 10,
-            "edad": 25
-        },
-        {
-            "nombre": "Douglas Santos",
-            "posicion": "DF",
-            "club": "Zenit",
-            "valor_m": 5,
-            "edad": 30
-        },
-        {
-            "nombre": "Bruno Guimaraes",
-            "posicion": "MF",
-            "club": "Newcastle",
-            "valor_m": 80,
-            "edad": 26
-        },
-        {
-            "nombre": "Lucas Paqueta",
-            "posicion": "MF",
-            "club": "Flamengo",
-            "valor_m": 45,
-            "edad": 26
-        },
-        {
-            "nombre": "Casemiro",
-            "posicion": "MF",
-            "club": "Manchester United",
-            "valor_m": 20,
-            "edad": 32
-        },
-        {
-            "nombre": "Fabinho",
-            "posicion": "MF",
-            "club": "Al Ittihad",
-            "valor_m": 12,
-            "edad": 30
-        },
-        {
-            "nombre": "Danilo Santos",
-            "posicion": "MF",
-            "club": "Botafogo",
-            "valor_m": 20,
-            "edad": 23
-        },
-        {
-            "nombre": "Vinicius Junior",
-            "posicion": "FW",
-            "club": "Real Madrid",
-            "valor_m": 180,
-            "edad": 23
-        },
-        {
-            "nombre": "Raphinha",
-            "posicion": "FW",
-            "club": "Barcelona",
-            "valor_m": 80,
-            "edad": 27
-        },
-        {
-            "nombre": "Neymar",
-            "posicion": "FW",
-            "club": "Santos",
-            "valor_m": 15,
-            "edad": 32
-        },
-        {
-            "nombre": "Gabriel Martinelli",
-            "posicion": "FW",
-            "club": "Arsenal",
-            "valor_m": 70,
-            "edad": 22
-        },
-        {
-            "nombre": "Matheus Cunha",
-            "posicion": "FW",
-            "club": "Manchester United",
-            "valor_m": 55,
-            "edad": 25
-        },
-        {
-            "nombre": "Endrick",
-            "posicion": "FW",
-            "club": "Olympique Lyon",
-            "valor_m": 60,
-            "edad": 18
-        },
-        {
-            "nombre": "Luiz Henrique",
-            "posicion": "FW",
-            "club": "Zenit",
-            "valor_m": 20,
-            "edad": 23
-        },
-        {
-            "nombre": "Igor Thiago",
-            "posicion": "FW",
-            "club": "Brentford",
-            "valor_m": 25,
-            "edad": 23
-        },
-        {
-            "nombre": "Rayan",
-            "posicion": "FW",
-            "club": "Bournemouth",
-            "valor_m": 15,
-            "edad": 18
-        }
+        {"nombre": "Alisson", "posicion": "GK", "club": "Liverpool", "valor_m": 40, "edad": 31},
+        {"nombre": "Ederson", "posicion": "GK", "club": "Fenerbahce", "valor_m": 25, "edad": 30},
+        {"nombre": "Weverton", "posicion": "GK", "club": "Gremio", "valor_m": 5, "edad": 36},
+        {"nombre": "Marquinhos", "posicion": "DF", "club": "PSG", "valor_m": 35, "edad": 29},
+        {"nombre": "Gabriel Magalhaes", "posicion": "DF", "club": "Arsenal", "valor_m": 60, "edad": 26},
+        {"nombre": "Bremer", "posicion": "DF", "club": "Juventus", "valor_m": 45, "edad": 27},
+        {"nombre": "Danilo", "posicion": "DF", "club": "Flamengo", "valor_m": 8, "edad": 33},
+        {"nombre": "Alex Sandro", "posicion": "DF", "club": "Flamengo", "valor_m": 3, "edad": 33},
+        {"nombre": "Wesley", "posicion": "DF", "club": "AS Roma", "valor_m": 25, "edad": 20},
+        {"nombre": "Leo Pereira", "posicion": "DF", "club": "Flamengo", "valor_m": 15, "edad": 28},
+        {"nombre": "Roger Ibanez", "posicion": "DF", "club": "Al Ahli", "valor_m": 10, "edad": 25},
+        {"nombre": "Douglas Santos", "posicion": "DF", "club": "Zenit", "valor_m": 5, "edad": 30},
+        {"nombre": "Bruno Guimaraes", "posicion": "MF", "club": "Newcastle", "valor_m": 80, "edad": 26},
+        {"nombre": "Lucas Paqueta", "posicion": "MF", "club": "Flamengo", "valor_m": 45, "edad": 26},
+        {"nombre": "Casemiro", "posicion": "MF", "club": "Manchester United", "valor_m": 20, "edad": 32},
+        {"nombre": "Fabinho", "posicion": "MF", "club": "Al Ittihad", "valor_m": 12, "edad": 30},
+        {"nombre": "Danilo Santos", "posicion": "MF", "club": "Botafogo", "valor_m": 20, "edad": 23},
+        {"nombre": "Vinicius Junior", "posicion": "FW", "club": "Real Madrid", "valor_m": 180, "edad": 23},
+        {"nombre": "Raphinha", "posicion": "FW", "club": "Barcelona", "valor_m": 80, "edad": 27},
+        {"nombre": "Neymar", "posicion": "FW", "club": "Santos", "valor_m": 15, "edad": 32},
+        {"nombre": "Gabriel Martinelli", "posicion": "FW", "club": "Arsenal", "valor_m": 70, "edad": 22},
+        {"nombre": "Matheus Cunha", "posicion": "FW", "club": "Manchester United", "valor_m": 55, "edad": 25},
+        {"nombre": "Endrick", "posicion": "FW", "club": "Olympique Lyon", "valor_m": 60, "edad": 18},
+        {"nombre": "Luiz Henrique", "posicion": "FW", "club": "Zenit", "valor_m": 20, "edad": 23},
+        {"nombre": "Igor Thiago", "posicion": "FW", "club": "Brentford", "valor_m": 25, "edad": 23},
+        {"nombre": "Rayan", "posicion": "FW", "club": "Bournemouth", "valor_m": 15, "edad": 18},
     ],
     "France": [
-        {
-            "nombre": "Mike Maignan",
-            "posicion": "GK",
-            "club": "AC Milan",
-            "valor_m": 40,
-            "edad": 28
-        },
-        {
-            "nombre": "Brice Samba",
-            "posicion": "GK",
-            "club": "Stade Rennais",
-            "valor_m": 10,
-            "edad": 30
-        },
-        {
-            "nombre": "Robin Risser",
-            "posicion": "GK",
-            "club": "RC Lens",
-            "valor_m": 5,
-            "edad": 21
-        },
-        {
-            "nombre": "William Saliba",
-            "posicion": "DF",
-            "club": "Arsenal",
-            "valor_m": 80,
-            "edad": 23
-        },
-        {
-            "nombre": "Jules Kounde",
-            "posicion": "DF",
-            "club": "Barcelona",
-            "valor_m": 65,
-            "edad": 25
-        },
-        {
-            "nombre": "Dayot Upamecano",
-            "posicion": "DF",
-            "club": "Bayern Munich",
-            "valor_m": 50,
-            "edad": 26
-        },
-        {
-            "nombre": "Ibrahima Konate",
-            "posicion": "DF",
-            "club": "Liverpool",
-            "valor_m": 55,
-            "edad": 25
-        },
-        {
-            "nombre": "Theo Hernandez",
-            "posicion": "DF",
-            "club": "Al Hilal",
-            "valor_m": 40,
-            "edad": 26
-        },
-        {
-            "nombre": "Lucas Hernandez",
-            "posicion": "DF",
-            "club": "PSG",
-            "valor_m": 25,
-            "edad": 28
-        },
-        {
-            "nombre": "Malo Gusto",
-            "posicion": "DF",
-            "club": "Chelsea",
-            "valor_m": 30,
-            "edad": 21
-        },
-        {
-            "nombre": "Lucas Digne",
-            "posicion": "DF",
-            "club": "Aston Villa",
-            "valor_m": 12,
-            "edad": 31
-        },
-        {
-            "nombre": "Maxence Lacroix",
-            "posicion": "DF",
-            "club": "Crystal Palace",
-            "valor_m": 20,
-            "edad": 24
-        },
-        {
-            "nombre": "Aurelien Tchouameni",
-            "posicion": "MF",
-            "club": "Real Madrid",
-            "valor_m": 80,
-            "edad": 24
-        },
-        {
-            "nombre": "NGolo Kante",
-            "posicion": "MF",
-            "club": "Fenerbahce",
-            "valor_m": 20,
-            "edad": 33
-        },
-        {
-            "nombre": "Adrien Rabiot",
-            "posicion": "MF",
-            "club": "AC Milan",
-            "valor_m": 20,
-            "edad": 29
-        },
-        {
-            "nombre": "Warren Zaire-Emery",
-            "posicion": "MF",
-            "club": "PSG",
-            "valor_m": 60,
-            "edad": 18
-        },
-        {
-            "nombre": "Manu Kone",
-            "posicion": "MF",
-            "club": "AS Roma",
-            "valor_m": 35,
-            "edad": 23
-        },
-        {
-            "nombre": "Rayan Cherki",
-            "posicion": "MF",
-            "club": "Manchester City",
-            "valor_m": 50,
-            "edad": 21
-        },
-        {
-            "nombre": "Maghnes Akliouche",
-            "posicion": "MF",
-            "club": "Monaco",
-            "valor_m": 30,
-            "edad": 22
-        },
-        {
-            "nombre": "Kylian Mbappe",
-            "posicion": "FW",
-            "club": "Real Madrid",
-            "valor_m": 180,
-            "edad": 25
-        },
-        {
-            "nombre": "Ousmane Dembele",
-            "posicion": "FW",
-            "club": "PSG",
-            "valor_m": 70,
-            "edad": 27
-        },
-        {
-            "nombre": "Marcus Thuram",
-            "posicion": "FW",
-            "club": "Inter Milan",
-            "valor_m": 65,
-            "edad": 26
-        },
-        {
-            "nombre": "Michael Olise",
-            "posicion": "FW",
-            "club": "Bayern Munich",
-            "valor_m": 70,
-            "edad": 22
-        },
-        {
-            "nombre": "Bradley Barcola",
-            "posicion": "FW",
-            "club": "PSG",
-            "valor_m": 60,
-            "edad": 22
-        },
-        {
-            "nombre": "Desire Doue",
-            "posicion": "FW",
-            "club": "PSG",
-            "valor_m": 50,
-            "edad": 19
-        },
-        {
-            "nombre": "Jean-Philippe Mateta",
-            "posicion": "FW",
-            "club": "Crystal Palace",
-            "valor_m": 30,
-            "edad": 26
-        }
+        {"nombre": "Mike Maignan", "posicion": "GK", "club": "AC Milan", "valor_m": 40, "edad": 28},
+        {"nombre": "Brice Samba", "posicion": "GK", "club": "Stade Rennais", "valor_m": 10, "edad": 30},
+        {"nombre": "Robin Risser", "posicion": "GK", "club": "RC Lens", "valor_m": 5, "edad": 21},
+        {"nombre": "William Saliba", "posicion": "DF", "club": "Arsenal", "valor_m": 80, "edad": 23},
+        {"nombre": "Jules Kounde", "posicion": "DF", "club": "Barcelona", "valor_m": 65, "edad": 25},
+        {"nombre": "Dayot Upamecano", "posicion": "DF", "club": "Bayern Munich", "valor_m": 50, "edad": 26},
+        {"nombre": "Ibrahima Konate", "posicion": "DF", "club": "Liverpool", "valor_m": 55, "edad": 25},
+        {"nombre": "Theo Hernandez", "posicion": "DF", "club": "Al Hilal", "valor_m": 40, "edad": 26},
+        {"nombre": "Lucas Hernandez", "posicion": "DF", "club": "PSG", "valor_m": 25, "edad": 28},
+        {"nombre": "Malo Gusto", "posicion": "DF", "club": "Chelsea", "valor_m": 30, "edad": 21},
+        {"nombre": "Lucas Digne", "posicion": "DF", "club": "Aston Villa", "valor_m": 12, "edad": 31},
+        {"nombre": "Maxence Lacroix", "posicion": "DF", "club": "Crystal Palace", "valor_m": 20, "edad": 24},
+        {"nombre": "Aurelien Tchouameni", "posicion": "MF", "club": "Real Madrid", "valor_m": 80, "edad": 24},
+        {"nombre": "NGolo Kante", "posicion": "MF", "club": "Fenerbahce", "valor_m": 20, "edad": 33},
+        {"nombre": "Adrien Rabiot", "posicion": "MF", "club": "AC Milan", "valor_m": 20, "edad": 29},
+        {"nombre": "Warren Zaire-Emery", "posicion": "MF", "club": "PSG", "valor_m": 60, "edad": 18},
+        {"nombre": "Manu Kone", "posicion": "MF", "club": "AS Roma", "valor_m": 35, "edad": 23},
+        {"nombre": "Rayan Cherki", "posicion": "MF", "club": "Manchester City", "valor_m": 50, "edad": 21},
+        {"nombre": "Maghnes Akliouche", "posicion": "MF", "club": "Monaco", "valor_m": 30, "edad": 22},
+        {"nombre": "Kylian Mbappe", "posicion": "FW", "club": "Real Madrid", "valor_m": 180, "edad": 25},
+        {"nombre": "Ousmane Dembele", "posicion": "FW", "club": "PSG", "valor_m": 70, "edad": 27},
+        {"nombre": "Marcus Thuram", "posicion": "FW", "club": "Inter Milan", "valor_m": 65, "edad": 26},
+        {"nombre": "Michael Olise", "posicion": "FW", "club": "Bayern Munich", "valor_m": 70, "edad": 22},
+        {"nombre": "Bradley Barcola", "posicion": "FW", "club": "PSG", "valor_m": 60, "edad": 22},
+        {"nombre": "Desire Doue", "posicion": "FW", "club": "PSG", "valor_m": 50, "edad": 19},
+        {"nombre": "Jean-Philippe Mateta", "posicion": "FW", "club": "Crystal Palace", "valor_m": 30, "edad": 26},
     ],
     "Spain": [
-        {
-            "nombre": "Unai Simon",
-            "posicion": "GK",
-            "club": "Athletic Bilbao",
-            "valor_m": 25,
-            "edad": 27
-        },
-        {
-            "nombre": "David Raya",
-            "posicion": "GK",
-            "club": "Arsenal",
-            "valor_m": 30,
-            "edad": 29
-        },
-        {
-            "nombre": "Alex Remiro",
-            "posicion": "GK",
-            "club": "Real Sociedad",
-            "valor_m": 20,
-            "edad": 29
-        },
-        {
-            "nombre": "Dani Carvajal",
-            "posicion": "DF",
-            "club": "Real Madrid",
-            "valor_m": 30,
-            "edad": 32
-        },
-        {
-            "nombre": "Aymeric Laporte",
-            "posicion": "DF",
-            "club": "Al Nassr",
-            "valor_m": 15,
-            "edad": 30
-        },
-        {
-            "nombre": "Robin Le Normand",
-            "posicion": "DF",
-            "club": "Atletico Madrid",
-            "valor_m": 35,
-            "edad": 27
-        },
-        {
-            "nombre": "Pau Cubarsi",
-            "posicion": "DF",
-            "club": "Barcelona",
-            "valor_m": 60,
-            "edad": 17
-        },
-        {
-            "nombre": "Marc Cucurella",
-            "posicion": "DF",
-            "club": "Chelsea",
-            "valor_m": 30,
-            "edad": 25
-        },
-        {
-            "nombre": "Alejandro Grimaldo",
-            "posicion": "DF",
-            "club": "Bayer Leverkusen",
-            "valor_m": 40,
-            "edad": 28
-        },
-        {
-            "nombre": "Rodri",
-            "posicion": "MF",
-            "club": "Manchester City",
-            "valor_m": 120,
-            "edad": 28
-        },
-        {
-            "nombre": "Fabian Ruiz",
-            "posicion": "MF",
-            "club": "PSG",
-            "valor_m": 40,
-            "edad": 28
-        },
-        {
-            "nombre": "Mikel Merino",
-            "posicion": "MF",
-            "club": "Arsenal",
-            "valor_m": 45,
-            "edad": 28
-        },
-        {
-            "nombre": "Martin Zubimendi",
-            "posicion": "MF",
-            "club": "Arsenal",
-            "valor_m": 60,
-            "edad": 25
-        },
-        {
-            "nombre": "Dani Olmo",
-            "posicion": "MF",
-            "club": "Barcelona",
-            "valor_m": 65,
-            "edad": 26
-        },
-        {
-            "nombre": "Lamine Yamal",
-            "posicion": "FW",
-            "club": "Barcelona",
-            "valor_m": 150,
-            "edad": 16
-        },
-        {
-            "nombre": "Nico Williams",
-            "posicion": "FW",
-            "club": "Athletic Bilbao",
-            "valor_m": 80,
-            "edad": 21
-        },
-        {
-            "nombre": "Alvaro Morata",
-            "posicion": "FW",
-            "club": "AC Milan",
-            "valor_m": 25,
-            "edad": 31
-        },
-        {
-            "nombre": "Joselu",
-            "posicion": "FW",
-            "club": "Real Madrid",
-            "valor_m": 10,
-            "edad": 34
-        },
-        {
-            "nombre": "Bryan Gil",
-            "posicion": "FW",
-            "club": "Villarreal",
-            "valor_m": 20,
-            "edad": 23
-        }
+        {"nombre": "Unai Simon", "posicion": "GK", "club": "Athletic Bilbao", "valor_m": 25, "edad": 27},
+        {"nombre": "David Raya", "posicion": "GK", "club": "Arsenal", "valor_m": 30, "edad": 29},
+        {"nombre": "Alex Remiro", "posicion": "GK", "club": "Real Sociedad", "valor_m": 20, "edad": 29},
+        {"nombre": "Dani Carvajal", "posicion": "DF", "club": "Real Madrid", "valor_m": 30, "edad": 32},
+        {"nombre": "Aymeric Laporte", "posicion": "DF", "club": "Al Nassr", "valor_m": 15, "edad": 30},
+        {"nombre": "Robin Le Normand", "posicion": "DF", "club": "Atletico Madrid", "valor_m": 35, "edad": 27},
+        {"nombre": "Pau Cubarsi", "posicion": "DF", "club": "Barcelona", "valor_m": 60, "edad": 17},
+        {"nombre": "Marc Cucurella", "posicion": "DF", "club": "Chelsea", "valor_m": 30, "edad": 25},
+        {"nombre": "Alejandro Grimaldo", "posicion": "DF", "club": "Bayer Leverkusen", "valor_m": 40, "edad": 28},
+        {"nombre": "Rodri", "posicion": "MF", "club": "Manchester City", "valor_m": 120, "edad": 28},
+        {"nombre": "Fabian Ruiz", "posicion": "MF", "club": "PSG", "valor_m": 40, "edad": 28},
+        {"nombre": "Mikel Merino", "posicion": "MF", "club": "Arsenal", "valor_m": 45, "edad": 28},
+        {"nombre": "Martin Zubimendi", "posicion": "MF", "club": "Arsenal", "valor_m": 60, "edad": 25},
+        {"nombre": "Dani Olmo", "posicion": "MF", "club": "Barcelona", "valor_m": 65, "edad": 26},
+        {"nombre": "Lamine Yamal", "posicion": "FW", "club": "Barcelona", "valor_m": 150, "edad": 16},
+        {"nombre": "Nico Williams", "posicion": "FW", "club": "Athletic Bilbao", "valor_m": 80, "edad": 21},
+        {"nombre": "Alvaro Morata", "posicion": "FW", "club": "AC Milan", "valor_m": 25, "edad": 31},
+        {"nombre": "Joselu", "posicion": "FW", "club": "Real Madrid", "valor_m": 10, "edad": 34},
+        {"nombre": "Bryan Gil", "posicion": "FW", "club": "Villarreal", "valor_m": 20, "edad": 23},
+        {"nombre": "Daniel Vivian", "posicion": "DF", "club": "Athletic Club", "valor_m": 20, "edad": 25},
+        {"nombre": "Jesus Navas", "posicion": "DF", "club": "Sevilla", "valor_m": 3, "edad": 38},
+        {"nombre": "Aleix Garcia", "posicion": "MF", "club": "Man City", "valor_m": 40, "edad": 27},
+        {"nombre": "Yeremy Pino", "posicion": "FW", "club": "Villarreal", "valor_m": 35, "edad": 22},
+        {"nombre": "Mikel Oyarzabal", "posicion": "FW", "club": "Real Sociedad", "valor_m": 50, "edad": 27},
     ],
     "England": [
-        {
-            "nombre": "Jordan Pickford",
-            "posicion": "GK",
-            "club": "Everton",
-            "valor_m": 20,
-            "edad": 30
-        },
-        {
-            "nombre": "Dean Henderson",
-            "posicion": "GK",
-            "club": "Crystal Palace",
-            "valor_m": 12,
-            "edad": 27
-        },
-        {
-            "nombre": "James Trafford",
-            "posicion": "GK",
-            "club": "Manchester City",
-            "valor_m": 15,
-            "edad": 21
-        },
-        {
-            "nombre": "Reece James",
-            "posicion": "DF",
-            "club": "Chelsea",
-            "valor_m": 50,
-            "edad": 24
-        },
-        {
-            "nombre": "John Stones",
-            "posicion": "DF",
-            "club": "Manchester City",
-            "valor_m": 35,
-            "edad": 29
-        },
-        {
-            "nombre": "Marc Guehi",
-            "posicion": "DF",
-            "club": "Manchester City",
-            "valor_m": 55,
-            "edad": 24
-        },
-        {
-            "nombre": "Ezri Konsa",
-            "posicion": "DF",
-            "club": "Aston Villa",
-            "valor_m": 40,
-            "edad": 26
-        },
-        {
-            "nombre": "Tino Livramento",
-            "posicion": "DF",
-            "club": "Newcastle",
-            "valor_m": 30,
-            "edad": 21
-        },
-        {
-            "nombre": "Dan Burn",
-            "posicion": "DF",
-            "club": "Newcastle",
-            "valor_m": 10,
-            "edad": 31
-        },
-        {
-            "nombre": "Nico OReilly",
-            "posicion": "DF",
-            "club": "Manchester City",
-            "valor_m": 20,
-            "edad": 19
-        },
-        {
-            "nombre": "Djed Spence",
-            "posicion": "DF",
-            "club": "Tottenham",
-            "valor_m": 15,
-            "edad": 23
-        },
-        {
-            "nombre": "Jarell Quansah",
-            "posicion": "DF",
-            "club": "Bayer Leverkusen",
-            "valor_m": 25,
-            "edad": 21
-        },
-        {
-            "nombre": "Declan Rice",
-            "posicion": "MF",
-            "club": "Arsenal",
-            "valor_m": 90,
-            "edad": 25
-        },
-        {
-            "nombre": "Jude Bellingham",
-            "posicion": "MF",
-            "club": "Real Madrid",
-            "valor_m": 180,
-            "edad": 20
-        },
-        {
-            "nombre": "Kobbie Mainoo",
-            "posicion": "MF",
-            "club": "Manchester United",
-            "valor_m": 60,
-            "edad": 19
-        },
-        {
-            "nombre": "Morgan Rogers",
-            "posicion": "MF",
-            "club": "Aston Villa",
-            "valor_m": 40,
-            "edad": 21
-        },
-        {
-            "nombre": "Elliot Anderson",
-            "posicion": "MF",
-            "club": "Nottingham Forest",
-            "valor_m": 25,
-            "edad": 21
-        },
-        {
-            "nombre": "Jordan Henderson",
-            "posicion": "MF",
-            "club": "Brentford",
-            "valor_m": 5,
-            "edad": 33
-        },
-        {
-            "nombre": "Eberechi Eze",
-            "posicion": "MF",
-            "club": "Arsenal",
-            "valor_m": 60,
-            "edad": 26
-        },
-        {
-            "nombre": "Harry Kane",
-            "posicion": "FW",
-            "club": "Bayern Munich",
-            "valor_m": 90,
-            "edad": 30
-        },
-        {
-            "nombre": "Bukayo Saka",
-            "posicion": "FW",
-            "club": "Arsenal",
-            "valor_m": 150,
-            "edad": 22
-        },
-        {
-            "nombre": "Marcus Rashford",
-            "posicion": "FW",
-            "club": "Barcelona",
-            "valor_m": 50,
-            "edad": 26
-        },
-        {
-            "nombre": "Ollie Watkins",
-            "posicion": "FW",
-            "club": "Aston Villa",
-            "valor_m": 65,
-            "edad": 28
-        },
-        {
-            "nombre": "Anthony Gordon",
-            "posicion": "FW",
-            "club": "Newcastle",
-            "valor_m": 60,
-            "edad": 23
-        },
-        {
-            "nombre": "Noni Madueke",
-            "posicion": "FW",
-            "club": "Arsenal",
-            "valor_m": 45,
-            "edad": 22
-        },
-        {
-            "nombre": "Ivan Toney",
-            "posicion": "FW",
-            "club": "Al Ahli",
-            "valor_m": 35,
-            "edad": 28
-        }
+        {"nombre": "Jordan Pickford", "posicion": "GK", "club": "Everton", "valor_m": 20, "edad": 30},
+        {"nombre": "Dean Henderson", "posicion": "GK", "club": "Crystal Palace", "valor_m": 12, "edad": 27},
+        {"nombre": "James Trafford", "posicion": "GK", "club": "Manchester City", "valor_m": 15, "edad": 21},
+        {"nombre": "Reece James", "posicion": "DF", "club": "Chelsea", "valor_m": 50, "edad": 24},
+        {"nombre": "John Stones", "posicion": "DF", "club": "Manchester City", "valor_m": 35, "edad": 29},
+        {"nombre": "Marc Guehi", "posicion": "DF", "club": "Manchester City", "valor_m": 55, "edad": 24},
+        {"nombre": "Ezri Konsa", "posicion": "DF", "club": "Aston Villa", "valor_m": 40, "edad": 26},
+        {"nombre": "Tino Livramento", "posicion": "DF", "club": "Newcastle", "valor_m": 30, "edad": 21},
+        {"nombre": "Dan Burn", "posicion": "DF", "club": "Newcastle", "valor_m": 10, "edad": 31},
+        {"nombre": "Nico OReilly", "posicion": "DF", "club": "Manchester City", "valor_m": 20, "edad": 19},
+        {"nombre": "Djed Spence", "posicion": "DF", "club": "Tottenham", "valor_m": 15, "edad": 23},
+        {"nombre": "Jarell Quansah", "posicion": "DF", "club": "Bayer Leverkusen", "valor_m": 25, "edad": 21},
+        {"nombre": "Declan Rice", "posicion": "MF", "club": "Arsenal", "valor_m": 90, "edad": 25},
+        {"nombre": "Jude Bellingham", "posicion": "MF", "club": "Real Madrid", "valor_m": 180, "edad": 20},
+        {"nombre": "Kobbie Mainoo", "posicion": "MF", "club": "Manchester United", "valor_m": 60, "edad": 19},
+        {"nombre": "Morgan Rogers", "posicion": "MF", "club": "Aston Villa", "valor_m": 40, "edad": 21},
+        {"nombre": "Elliot Anderson", "posicion": "MF", "club": "Nottingham Forest", "valor_m": 25, "edad": 21},
+        {"nombre": "Jordan Henderson", "posicion": "MF", "club": "Brentford", "valor_m": 5, "edad": 33},
+        {"nombre": "Eberechi Eze", "posicion": "MF", "club": "Arsenal", "valor_m": 60, "edad": 26},
+        {"nombre": "Harry Kane", "posicion": "FW", "club": "Bayern Munich", "valor_m": 90, "edad": 30},
+        {"nombre": "Bukayo Saka", "posicion": "FW", "club": "Arsenal", "valor_m": 150, "edad": 22},
+        {"nombre": "Marcus Rashford", "posicion": "FW", "club": "Barcelona", "valor_m": 50, "edad": 26},
+        {"nombre": "Ollie Watkins", "posicion": "FW", "club": "Aston Villa", "valor_m": 65, "edad": 28},
+        {"nombre": "Anthony Gordon", "posicion": "FW", "club": "Newcastle", "valor_m": 60, "edad": 23},
+        {"nombre": "Noni Madueke", "posicion": "FW", "club": "Arsenal", "valor_m": 45, "edad": 22},
+        {"nombre": "Ivan Toney", "posicion": "FW", "club": "Al Ahli", "valor_m": 35, "edad": 28},
     ],
     "Germany": [
-        {
-            "nombre": "Manuel Neuer",
-            "posicion": "GK",
-            "club": "Bayern Munich",
-            "valor_m": 10,
-            "edad": 38
-        },
-        {
-            "nombre": "Oliver Baumann",
-            "posicion": "GK",
-            "club": "Hoffenheim",
-            "valor_m": 5,
-            "edad": 33
-        },
-        {
-            "nombre": "Alexander Nubel",
-            "posicion": "GK",
-            "club": "VfB Stuttgart",
-            "valor_m": 15,
-            "edad": 27
-        },
-        {
-            "nombre": "Antonio Rudiger",
-            "posicion": "DF",
-            "club": "Real Madrid",
-            "valor_m": 25,
-            "edad": 31
-        },
-        {
-            "nombre": "Jonathan Tah",
-            "posicion": "DF",
-            "club": "Bayern Munich",
-            "valor_m": 35,
-            "edad": 28
-        },
-        {
-            "nombre": "Nico Schlotterbeck",
-            "posicion": "DF",
-            "club": "Borussia Dortmund",
-            "valor_m": 35,
-            "edad": 24
-        },
-        {
-            "nombre": "Joshua Kimmich",
-            "posicion": "DF",
-            "club": "Bayern Munich",
-            "valor_m": 60,
-            "edad": 29
-        },
-        {
-            "nombre": "Waldemar Anton",
-            "posicion": "DF",
-            "club": "Borussia Dortmund",
-            "valor_m": 20,
-            "edad": 27
-        },
-        {
-            "nombre": "David Raum",
-            "posicion": "DF",
-            "club": "RB Leipzig",
-            "valor_m": 25,
-            "edad": 26
-        },
-        {
-            "nombre": "Nathaniel Brown",
-            "posicion": "DF",
-            "club": "Eintracht Frankfurt",
-            "valor_m": 15,
-            "edad": 21
-        },
-        {
-            "nombre": "Malick Thiaw",
-            "posicion": "DF",
-            "club": "Newcastle",
-            "valor_m": 30,
-            "edad": 22
-        },
-        {
-            "nombre": "Florian Wirtz",
-            "posicion": "MF",
-            "club": "Liverpool",
-            "valor_m": 150,
-            "edad": 21
-        },
-        {
-            "nombre": "Jamal Musiala",
-            "posicion": "MF",
-            "club": "Bayern Munich",
-            "valor_m": 130,
-            "edad": 21
-        },
-        {
-            "nombre": "Leon Goretzka",
-            "posicion": "MF",
-            "club": "Bayern Munich",
-            "valor_m": 30,
-            "edad": 29
-        },
-        {
-            "nombre": "Aleksandar Pavlovic",
-            "posicion": "MF",
-            "club": "Bayern Munich",
-            "valor_m": 40,
-            "edad": 20
-        },
-        {
-            "nombre": "Angelo Stiller",
-            "posicion": "MF",
-            "club": "VfB Stuttgart",
-            "valor_m": 30,
-            "edad": 23
-        },
-        {
-            "nombre": "Pascal Gross",
-            "posicion": "MF",
-            "club": "Brighton",
-            "valor_m": 15,
-            "edad": 32
-        },
-        {
-            "nombre": "Nadiem Amiri",
-            "posicion": "MF",
-            "club": "Mainz",
-            "valor_m": 8,
-            "edad": 27
-        },
-        {
-            "nombre": "Felix Nmecha",
-            "posicion": "MF",
-            "club": "Borussia Dortmund",
-            "valor_m": 25,
-            "edad": 23
-        },
-        {
-            "nombre": "Lennart Karl",
-            "posicion": "MF",
-            "club": "Bayern Munich",
-            "valor_m": 8,
-            "edad": 16
-        },
-        {
-            "nombre": "Kai Havertz",
-            "posicion": "FW",
-            "club": "Arsenal",
-            "valor_m": 65,
-            "edad": 25
-        },
-        {
-            "nombre": "Leroy Sane",
-            "posicion": "FW",
-            "club": "Galatasaray",
-            "valor_m": 30,
-            "edad": 28
-        },
-        {
-            "nombre": "Maximilian Beier",
-            "posicion": "FW",
-            "club": "Borussia Dortmund",
-            "valor_m": 35,
-            "edad": 21
-        },
-        {
-            "nombre": "Nick Woltemade",
-            "posicion": "FW",
-            "club": "Newcastle",
-            "valor_m": 20,
-            "edad": 22
-        },
-        {
-            "nombre": "Jamie Leweling",
-            "posicion": "FW",
-            "club": "VfB Stuttgart",
-            "valor_m": 20,
-            "edad": 23
-        },
-        {
-            "nombre": "Deniz Undav",
-            "posicion": "FW",
-            "club": "VfB Stuttgart",
-            "valor_m": 25,
-            "edad": 27
-        }
+        {"nombre": "Manuel Neuer", "posicion": "GK", "club": "Bayern Munich", "valor_m": 10, "edad": 38},
+        {"nombre": "Oliver Baumann", "posicion": "GK", "club": "Hoffenheim", "valor_m": 5, "edad": 33},
+        {"nombre": "Alexander Nubel", "posicion": "GK", "club": "VfB Stuttgart", "valor_m": 15, "edad": 27},
+        {"nombre": "Antonio Rudiger", "posicion": "DF", "club": "Real Madrid", "valor_m": 25, "edad": 31},
+        {"nombre": "Jonathan Tah", "posicion": "DF", "club": "Bayern Munich", "valor_m": 35, "edad": 28},
+        {"nombre": "Nico Schlotterbeck", "posicion": "DF", "club": "Borussia Dortmund", "valor_m": 35, "edad": 24},
+        {"nombre": "Joshua Kimmich", "posicion": "DF", "club": "Bayern Munich", "valor_m": 60, "edad": 29},
+        {"nombre": "Waldemar Anton", "posicion": "DF", "club": "Borussia Dortmund", "valor_m": 20, "edad": 27},
+        {"nombre": "David Raum", "posicion": "DF", "club": "RB Leipzig", "valor_m": 25, "edad": 26},
+        {"nombre": "Nathaniel Brown", "posicion": "DF", "club": "Eintracht Frankfurt", "valor_m": 15, "edad": 21},
+        {"nombre": "Malick Thiaw", "posicion": "DF", "club": "Newcastle", "valor_m": 30, "edad": 22},
+        {"nombre": "Florian Wirtz", "posicion": "MF", "club": "Liverpool", "valor_m": 150, "edad": 21},
+        {"nombre": "Jamal Musiala", "posicion": "MF", "club": "Bayern Munich", "valor_m": 130, "edad": 21},
+        {"nombre": "Leon Goretzka", "posicion": "MF", "club": "Bayern Munich", "valor_m": 30, "edad": 29},
+        {"nombre": "Aleksandar Pavlovic", "posicion": "MF", "club": "Bayern Munich", "valor_m": 40, "edad": 20},
+        {"nombre": "Angelo Stiller", "posicion": "MF", "club": "VfB Stuttgart", "valor_m": 30, "edad": 23},
+        {"nombre": "Pascal Gross", "posicion": "MF", "club": "Brighton", "valor_m": 15, "edad": 32},
+        {"nombre": "Nadiem Amiri", "posicion": "MF", "club": "Mainz", "valor_m": 8, "edad": 27},
+        {"nombre": "Felix Nmecha", "posicion": "MF", "club": "Borussia Dortmund", "valor_m": 25, "edad": 23},
+        {"nombre": "Lennart Karl", "posicion": "MF", "club": "Bayern Munich", "valor_m": 8, "edad": 16},
+        {"nombre": "Kai Havertz", "posicion": "FW", "club": "Arsenal", "valor_m": 65, "edad": 25},
+        {"nombre": "Leroy Sane", "posicion": "FW", "club": "Galatasaray", "valor_m": 30, "edad": 28},
+        {"nombre": "Maximilian Beier", "posicion": "FW", "club": "Borussia Dortmund", "valor_m": 35, "edad": 21},
+        {"nombre": "Nick Woltemade", "posicion": "FW", "club": "Newcastle", "valor_m": 20, "edad": 22},
+        {"nombre": "Jamie Leweling", "posicion": "FW", "club": "VfB Stuttgart", "valor_m": 20, "edad": 23},
+        {"nombre": "Deniz Undav", "posicion": "FW", "club": "VfB Stuttgart", "valor_m": 25, "edad": 27},
     ],
     "Portugal": [
-        {
-            "nombre": "Diogo Costa",
-            "posicion": "GK",
-            "club": "FC Porto",
-            "valor_m": 35,
-            "edad": 24
-        },
-        {
-            "nombre": "Jose Sa",
-            "posicion": "GK",
-            "club": "Wolverhampton",
-            "valor_m": 15,
-            "edad": 31
-        },
-        {
-            "nombre": "Rui Silva",
-            "posicion": "GK",
-            "club": "Sporting CP",
-            "valor_m": 8,
-            "edad": 30
-        },
-        {
-            "nombre": "Ruben Dias",
-            "posicion": "DF",
-            "club": "Manchester City",
-            "valor_m": 80,
-            "edad": 27
-        },
-        {
-            "nombre": "Joao Cancelo",
-            "posicion": "DF",
-            "club": "Barcelona",
-            "valor_m": 30,
-            "edad": 30
-        },
-        {
-            "nombre": "Nelson Semedo",
-            "posicion": "DF",
-            "club": "Fenerbahce",
-            "valor_m": 15,
-            "edad": 30
-        },
-        {
-            "nombre": "Diogo Dalot",
-            "posicion": "DF",
-            "club": "Manchester United",
-            "valor_m": 35,
-            "edad": 25
-        },
-        {
-            "nombre": "Nuno Mendes",
-            "posicion": "DF",
-            "club": "PSG",
-            "valor_m": 60,
-            "edad": 22
-        },
-        {
-            "nombre": "Goncalo Inacio",
-            "posicion": "DF",
-            "club": "Sporting CP",
-            "valor_m": 45,
-            "edad": 22
-        },
-        {
-            "nombre": "Tomas Araujo",
-            "posicion": "DF",
-            "club": "Benfica",
-            "valor_m": 30,
-            "edad": 22
-        },
-        {
-            "nombre": "Renato Veiga",
-            "posicion": "DF",
-            "club": "Villarreal",
-            "valor_m": 25,
-            "edad": 21
-        },
-        {
-            "nombre": "Samu Costa",
-            "posicion": "DF",
-            "club": "Mallorca",
-            "valor_m": 15,
-            "edad": 23
-        },
-        {
-            "nombre": "Bruno Fernandes",
-            "posicion": "MF",
-            "club": "Manchester United",
-            "valor_m": 70,
-            "edad": 29
-        },
-        {
-            "nombre": "Bernardo Silva",
-            "posicion": "MF",
-            "club": "Manchester City",
-            "valor_m": 80,
-            "edad": 29
-        },
-        {
-            "nombre": "Vitinha",
-            "posicion": "MF",
-            "club": "PSG",
-            "valor_m": 60,
-            "edad": 24
-        },
-        {
-            "nombre": "Joao Neves",
-            "posicion": "MF",
-            "club": "PSG",
-            "valor_m": 80,
-            "edad": 19
-        },
-        {
-            "nombre": "Matheus Nunes",
-            "posicion": "MF",
-            "club": "Manchester City",
-            "valor_m": 45,
-            "edad": 25
-        },
-        {
-            "nombre": "Ruben Neves",
-            "posicion": "MF",
-            "club": "Al Hilal",
-            "valor_m": 20,
-            "edad": 27
-        },
-        {
-            "nombre": "Cristiano Ronaldo",
-            "posicion": "FW",
-            "club": "Al Nassr",
-            "valor_m": 15,
-            "edad": 39
-        },
-        {
-            "nombre": "Rafael Leao",
-            "posicion": "FW",
-            "club": "AC Milan",
-            "valor_m": 80,
-            "edad": 24
-        },
-        {
-            "nombre": "Goncalo Ramos",
-            "posicion": "FW",
-            "club": "PSG",
-            "valor_m": 55,
-            "edad": 23
-        },
-        {
-            "nombre": "Joao Felix",
-            "posicion": "FW",
-            "club": "Al Nassr",
-            "valor_m": 35,
-            "edad": 24
-        },
-        {
-            "nombre": "Pedro Neto",
-            "posicion": "FW",
-            "club": "Chelsea",
-            "valor_m": 55,
-            "edad": 24
-        },
-        {
-            "nombre": "Francisco Trincao",
-            "posicion": "FW",
-            "club": "Sporting CP",
-            "valor_m": 25,
-            "edad": 24
-        },
-        {
-            "nombre": "Goncalo Guedes",
-            "posicion": "FW",
-            "club": "Real Sociedad",
-            "valor_m": 20,
-            "edad": 27
-        },
-        {
-            "nombre": "Francisco Conceicao",
-            "posicion": "FW",
-            "club": "Juventus",
-            "valor_m": 35,
-            "edad": 21
-        }
+        {"nombre": "Diogo Costa", "posicion": "GK", "club": "FC Porto", "valor_m": 35, "edad": 24},
+        {"nombre": "Jose Sa", "posicion": "GK", "club": "Wolverhampton", "valor_m": 15, "edad": 31},
+        {"nombre": "Rui Silva", "posicion": "GK", "club": "Sporting CP", "valor_m": 8, "edad": 30},
+        {"nombre": "Ruben Dias", "posicion": "DF", "club": "Manchester City", "valor_m": 80, "edad": 27},
+        {"nombre": "Joao Cancelo", "posicion": "DF", "club": "Barcelona", "valor_m": 30, "edad": 30},
+        {"nombre": "Nelson Semedo", "posicion": "DF", "club": "Fenerbahce", "valor_m": 15, "edad": 30},
+        {"nombre": "Diogo Dalot", "posicion": "DF", "club": "Manchester United", "valor_m": 35, "edad": 25},
+        {"nombre": "Nuno Mendes", "posicion": "DF", "club": "PSG", "valor_m": 60, "edad": 22},
+        {"nombre": "Goncalo Inacio", "posicion": "DF", "club": "Sporting CP", "valor_m": 45, "edad": 22},
+        {"nombre": "Tomas Araujo", "posicion": "DF", "club": "Benfica", "valor_m": 30, "edad": 22},
+        {"nombre": "Renato Veiga", "posicion": "DF", "club": "Villarreal", "valor_m": 25, "edad": 21},
+        {"nombre": "Samu Costa", "posicion": "DF", "club": "Mallorca", "valor_m": 15, "edad": 23},
+        {"nombre": "Bruno Fernandes", "posicion": "MF", "club": "Manchester United", "valor_m": 70, "edad": 29},
+        {"nombre": "Bernardo Silva", "posicion": "MF", "club": "Manchester City", "valor_m": 80, "edad": 29},
+        {"nombre": "Vitinha", "posicion": "MF", "club": "PSG", "valor_m": 60, "edad": 24},
+        {"nombre": "Joao Neves", "posicion": "MF", "club": "PSG", "valor_m": 80, "edad": 19},
+        {"nombre": "Matheus Nunes", "posicion": "MF", "club": "Manchester City", "valor_m": 45, "edad": 25},
+        {"nombre": "Ruben Neves", "posicion": "MF", "club": "Al Hilal", "valor_m": 20, "edad": 27},
+        {"nombre": "Cristiano Ronaldo", "posicion": "FW", "club": "Al Nassr", "valor_m": 15, "edad": 39},
+        {"nombre": "Rafael Leao", "posicion": "FW", "club": "AC Milan", "valor_m": 80, "edad": 24},
+        {"nombre": "Goncalo Ramos", "posicion": "FW", "club": "PSG", "valor_m": 55, "edad": 23},
+        {"nombre": "Joao Felix", "posicion": "FW", "club": "Al Nassr", "valor_m": 35, "edad": 24},
+        {"nombre": "Pedro Neto", "posicion": "FW", "club": "Chelsea", "valor_m": 55, "edad": 24},
+        {"nombre": "Francisco Trincao", "posicion": "FW", "club": "Sporting CP", "valor_m": 25, "edad": 24},
+        {"nombre": "Goncalo Guedes", "posicion": "FW", "club": "Real Sociedad", "valor_m": 20, "edad": 27},
+        {"nombre": "Francisco Conceicao", "posicion": "FW", "club": "Juventus", "valor_m": 35, "edad": 21},
     ],
     "Netherlands": [
-        {
-            "nombre": "Bart Verbruggen",
-            "posicion": "GK",
-            "club": "Brighton",
-            "valor_m": 25,
-            "edad": 21
-        },
-        {
-            "nombre": "Mark Flekken",
-            "posicion": "GK",
-            "club": "Bayer Leverkusen",
-            "valor_m": 15,
-            "edad": 30
-        },
-        {
-            "nombre": "Robin Roefs",
-            "posicion": "GK",
-            "club": "Sunderland",
-            "valor_m": 5,
-            "edad": 21
-        },
-        {
-            "nombre": "Virgil van Dijk",
-            "posicion": "DF",
-            "club": "Liverpool",
-            "valor_m": 40,
-            "edad": 32
-        },
-        {
-            "nombre": "Jurrien Timber",
-            "posicion": "DF",
-            "club": "Arsenal",
-            "valor_m": 55,
-            "edad": 22
-        },
-        {
-            "nombre": "Nathan Ake",
-            "posicion": "DF",
-            "club": "Manchester City",
-            "valor_m": 35,
-            "edad": 29
-        },
-        {
-            "nombre": "Jan-Paul van Hecke",
-            "posicion": "DF",
-            "club": "Brighton",
-            "valor_m": 30,
-            "edad": 24
-        },
-        {
-            "nombre": "Denzel Dumfries",
-            "posicion": "DF",
-            "club": "Inter Milan",
-            "valor_m": 30,
-            "edad": 28
-        },
-        {
-            "nombre": "Micky van de Ven",
-            "posicion": "DF",
-            "club": "Tottenham",
-            "valor_m": 50,
-            "edad": 23
-        },
-        {
-            "nombre": "Mats Wieffer",
-            "posicion": "DF",
-            "club": "Brighton",
-            "valor_m": 30,
-            "edad": 24
-        },
-        {
-            "nombre": "Jorrel Hato",
-            "posicion": "DF",
-            "club": "Chelsea",
-            "valor_m": 25,
-            "edad": 18
-        },
-        {
-            "nombre": "Frenkie de Jong",
-            "posicion": "MF",
-            "club": "Barcelona",
-            "valor_m": 60,
-            "edad": 27
-        },
-        {
-            "nombre": "Ryan Gravenberch",
-            "posicion": "MF",
-            "club": "Liverpool",
-            "valor_m": 60,
-            "edad": 22
-        },
-        {
-            "nombre": "Tijjani Reijnders",
-            "posicion": "MF",
-            "club": "Manchester City",
-            "valor_m": 55,
-            "edad": 26
-        },
-        {
-            "nombre": "Marten de Roon",
-            "posicion": "MF",
-            "club": "Atalanta",
-            "valor_m": 15,
-            "edad": 33
-        },
-        {
-            "nombre": "Teun Koopmeiners",
-            "posicion": "MF",
-            "club": "Juventus",
-            "valor_m": 60,
-            "edad": 26
-        },
-        {
-            "nombre": "Guus Til",
-            "posicion": "MF",
-            "club": "PSV Eindhoven",
-            "valor_m": 20,
-            "edad": 26
-        },
-        {
-            "nombre": "Quinten Timber",
-            "posicion": "MF",
-            "club": "Olympique Marseille",
-            "valor_m": 20,
-            "edad": 22
-        },
-        {
-            "nombre": "Cody Gakpo",
-            "posicion": "FW",
-            "club": "Liverpool",
-            "valor_m": 65,
-            "edad": 25
-        },
-        {
-            "nombre": "Memphis Depay",
-            "posicion": "FW",
-            "club": "Corinthians",
-            "valor_m": 10,
-            "edad": 30
-        },
-        {
-            "nombre": "Wout Weghorst",
-            "posicion": "FW",
-            "club": "Ajax",
-            "valor_m": 12,
-            "edad": 31
-        },
-        {
-            "nombre": "Donyell Malen",
-            "posicion": "FW",
-            "club": "AS Roma",
-            "valor_m": 30,
-            "edad": 25
-        },
-        {
-            "nombre": "Noa Lang",
-            "posicion": "FW",
-            "club": "Galatasaray",
-            "valor_m": 25,
-            "edad": 25
-        },
-        {
-            "nombre": "Brian Brobbey",
-            "posicion": "FW",
-            "club": "Sunderland",
-            "valor_m": 30,
-            "edad": 23
-        },
-        {
-            "nombre": "Justin Kluivert",
-            "posicion": "FW",
-            "club": "Bournemouth",
-            "valor_m": 20,
-            "edad": 25
-        },
-        {
-            "nombre": "Crysencio Summerville",
-            "posicion": "FW",
-            "club": "West Ham",
-            "valor_m": 35,
-            "edad": 22
-        }
+        {"nombre": "Bart Verbruggen", "posicion": "GK", "club": "Brighton", "valor_m": 25, "edad": 21},
+        {"nombre": "Mark Flekken", "posicion": "GK", "club": "Bayer Leverkusen", "valor_m": 15, "edad": 30},
+        {"nombre": "Robin Roefs", "posicion": "GK", "club": "Sunderland", "valor_m": 5, "edad": 21},
+        {"nombre": "Virgil van Dijk", "posicion": "DF", "club": "Liverpool", "valor_m": 40, "edad": 32},
+        {"nombre": "Jurrien Timber", "posicion": "DF", "club": "Arsenal", "valor_m": 55, "edad": 22},
+        {"nombre": "Nathan Ake", "posicion": "DF", "club": "Manchester City", "valor_m": 35, "edad": 29},
+        {"nombre": "Jan-Paul van Hecke", "posicion": "DF", "club": "Brighton", "valor_m": 30, "edad": 24},
+        {"nombre": "Denzel Dumfries", "posicion": "DF", "club": "Inter Milan", "valor_m": 30, "edad": 28},
+        {"nombre": "Micky van de Ven", "posicion": "DF", "club": "Tottenham", "valor_m": 50, "edad": 23},
+        {"nombre": "Mats Wieffer", "posicion": "DF", "club": "Brighton", "valor_m": 30, "edad": 24},
+        {"nombre": "Jorrel Hato", "posicion": "DF", "club": "Chelsea", "valor_m": 25, "edad": 18},
+        {"nombre": "Frenkie de Jong", "posicion": "MF", "club": "Barcelona", "valor_m": 60, "edad": 27},
+        {"nombre": "Ryan Gravenberch", "posicion": "MF", "club": "Liverpool", "valor_m": 60, "edad": 22},
+        {"nombre": "Tijjani Reijnders", "posicion": "MF", "club": "Manchester City", "valor_m": 55, "edad": 26},
+        {"nombre": "Marten de Roon", "posicion": "MF", "club": "Atalanta", "valor_m": 15, "edad": 33},
+        {"nombre": "Teun Koopmeiners", "posicion": "MF", "club": "Juventus", "valor_m": 60, "edad": 26},
+        {"nombre": "Guus Til", "posicion": "MF", "club": "PSV Eindhoven", "valor_m": 20, "edad": 26},
+        {"nombre": "Quinten Timber", "posicion": "MF", "club": "Olympique Marseille", "valor_m": 20, "edad": 22},
+        {"nombre": "Cody Gakpo", "posicion": "FW", "club": "Liverpool", "valor_m": 65, "edad": 25},
+        {"nombre": "Memphis Depay", "posicion": "FW", "club": "Corinthians", "valor_m": 10, "edad": 30},
+        {"nombre": "Wout Weghorst", "posicion": "FW", "club": "Ajax", "valor_m": 12, "edad": 31},
+        {"nombre": "Donyell Malen", "posicion": "FW", "club": "AS Roma", "valor_m": 30, "edad": 25},
+        {"nombre": "Noa Lang", "posicion": "FW", "club": "Galatasaray", "valor_m": 25, "edad": 25},
+        {"nombre": "Brian Brobbey", "posicion": "FW", "club": "Sunderland", "valor_m": 30, "edad": 23},
+        {"nombre": "Justin Kluivert", "posicion": "FW", "club": "Bournemouth", "valor_m": 20, "edad": 25},
+        {"nombre": "Crysencio Summerville", "posicion": "FW", "club": "West Ham", "valor_m": 35, "edad": 22},
     ],
     "Belgium": [
-        {
-            "nombre": "Thibaut Courtois",
-            "posicion": "GK",
-            "club": "Real Madrid",
-            "valor_m": 30,
-            "edad": 32
-        },
-        {
-            "nombre": "Senne Lammens",
-            "posicion": "GK",
-            "club": "Manchester United",
-            "valor_m": 8,
-            "edad": 22
-        },
-        {
-            "nombre": "Mike Penders",
-            "posicion": "GK",
-            "club": "RC Strasbourg",
-            "valor_m": 5,
-            "edad": 19
-        },
-        {
-            "nombre": "Zeno Debast",
-            "posicion": "DF",
-            "club": "Sporting CP",
-            "valor_m": 30,
-            "edad": 21
-        },
-        {
-            "nombre": "Arthur Theate",
-            "posicion": "DF",
-            "club": "Eintracht Frankfurt",
-            "valor_m": 25,
-            "edad": 24
-        },
-        {
-            "nombre": "Brandon Mechele",
-            "posicion": "DF",
-            "club": "Club Brugge",
-            "valor_m": 8,
-            "edad": 31
-        },
-        {
-            "nombre": "Maxim De Cuyper",
-            "posicion": "DF",
-            "club": "Brighton",
-            "valor_m": 25,
-            "edad": 23
-        },
-        {
-            "nombre": "Thomas Meunier",
-            "posicion": "DF",
-            "club": "Lille",
-            "valor_m": 8,
-            "edad": 32
-        },
-        {
-            "nombre": "Koni De Winter",
-            "posicion": "DF",
-            "club": "AC Milan",
-            "valor_m": 20,
-            "edad": 22
-        },
-        {
-            "nombre": "Timothy Castagne",
-            "posicion": "DF",
-            "club": "Fulham",
-            "valor_m": 15,
-            "edad": 28
-        },
-        {
-            "nombre": "Joaquin Seys",
-            "posicion": "DF",
-            "club": "Club Brugge",
-            "valor_m": 8,
-            "edad": 19
-        },
-        {
-            "nombre": "Nathan Ngoy",
-            "posicion": "DF",
-            "club": "Lille",
-            "valor_m": 5,
-            "edad": 21
-        },
-        {
-            "nombre": "Kevin De Bruyne",
-            "posicion": "MF",
-            "club": "Napoli",
-            "valor_m": 50,
-            "edad": 33
-        },
-        {
-            "nombre": "Youri Tielemans",
-            "posicion": "MF",
-            "club": "Aston Villa",
-            "valor_m": 30,
-            "edad": 27
-        },
-        {
-            "nombre": "Axel Witsel",
-            "posicion": "MF",
-            "club": "Girona",
-            "valor_m": 5,
-            "edad": 35
-        },
-        {
-            "nombre": "Amadou Onana",
-            "posicion": "MF",
-            "club": "Aston Villa",
-            "valor_m": 55,
-            "edad": 23
-        },
-        {
-            "nombre": "Hans Vanaken",
-            "posicion": "MF",
-            "club": "Club Brugge",
-            "valor_m": 10,
-            "edad": 31
-        },
-        {
-            "nombre": "Alexis Saelemaekers",
-            "posicion": "MF",
-            "club": "AC Milan",
-            "valor_m": 20,
-            "edad": 25
-        },
-        {
-            "nombre": "Nicolas Raskin",
-            "posicion": "MF",
-            "club": "Rangers",
-            "valor_m": 15,
-            "edad": 23
-        },
-        {
-            "nombre": "Diego Moreira",
-            "posicion": "MF",
-            "club": "RC Strasbourg",
-            "valor_m": 12,
-            "edad": 20
-        },
-        {
-            "nombre": "Romelu Lukaku",
-            "posicion": "FW",
-            "club": "Napoli",
-            "valor_m": 25,
-            "edad": 31
-        },
-        {
-            "nombre": "Leandro Trossard",
-            "posicion": "FW",
-            "club": "Arsenal",
-            "valor_m": 30,
-            "edad": 29
-        },
-        {
-            "nombre": "Jeremy Doku",
-            "posicion": "FW",
-            "club": "Manchester City",
-            "valor_m": 60,
-            "edad": 22
-        },
-        {
-            "nombre": "Dodi Lukebakio",
-            "posicion": "FW",
-            "club": "Benfica",
-            "valor_m": 20,
-            "edad": 26
-        },
-        {
-            "nombre": "Charles De Ketelaere",
-            "posicion": "FW",
-            "club": "Atalanta",
-            "valor_m": 40,
-            "edad": 23
-        },
-        {
-            "nombre": "Matias Fernandez-Pardo",
-            "posicion": "FW",
-            "club": "Lille",
-            "valor_m": 15,
-            "edad": 19
-        }
+        {"nombre": "Thibaut Courtois", "posicion": "GK", "club": "Real Madrid", "valor_m": 30, "edad": 32},
+        {"nombre": "Senne Lammens", "posicion": "GK", "club": "Manchester United", "valor_m": 8, "edad": 22},
+        {"nombre": "Mike Penders", "posicion": "GK", "club": "RC Strasbourg", "valor_m": 5, "edad": 19},
+        {"nombre": "Zeno Debast", "posicion": "DF", "club": "Sporting CP", "valor_m": 30, "edad": 21},
+        {"nombre": "Arthur Theate", "posicion": "DF", "club": "Eintracht Frankfurt", "valor_m": 25, "edad": 24},
+        {"nombre": "Brandon Mechele", "posicion": "DF", "club": "Club Brugge", "valor_m": 8, "edad": 31},
+        {"nombre": "Maxim De Cuyper", "posicion": "DF", "club": "Brighton", "valor_m": 25, "edad": 23},
+        {"nombre": "Thomas Meunier", "posicion": "DF", "club": "Lille", "valor_m": 8, "edad": 32},
+        {"nombre": "Koni De Winter", "posicion": "DF", "club": "AC Milan", "valor_m": 20, "edad": 22},
+        {"nombre": "Timothy Castagne", "posicion": "DF", "club": "Fulham", "valor_m": 15, "edad": 28},
+        {"nombre": "Joaquin Seys", "posicion": "DF", "club": "Club Brugge", "valor_m": 8, "edad": 19},
+        {"nombre": "Nathan Ngoy", "posicion": "DF", "club": "Lille", "valor_m": 5, "edad": 21},
+        {"nombre": "Kevin De Bruyne", "posicion": "MF", "club": "Napoli", "valor_m": 50, "edad": 33},
+        {"nombre": "Youri Tielemans", "posicion": "MF", "club": "Aston Villa", "valor_m": 30, "edad": 27},
+        {"nombre": "Axel Witsel", "posicion": "MF", "club": "Girona", "valor_m": 5, "edad": 35},
+        {"nombre": "Amadou Onana", "posicion": "MF", "club": "Aston Villa", "valor_m": 55, "edad": 23},
+        {"nombre": "Hans Vanaken", "posicion": "MF", "club": "Club Brugge", "valor_m": 10, "edad": 31},
+        {"nombre": "Alexis Saelemaekers", "posicion": "MF", "club": "AC Milan", "valor_m": 20, "edad": 25},
+        {"nombre": "Nicolas Raskin", "posicion": "MF", "club": "Rangers", "valor_m": 15, "edad": 23},
+        {"nombre": "Diego Moreira", "posicion": "MF", "club": "RC Strasbourg", "valor_m": 12, "edad": 20},
+        {"nombre": "Romelu Lukaku", "posicion": "FW", "club": "Napoli", "valor_m": 25, "edad": 31},
+        {"nombre": "Leandro Trossard", "posicion": "FW", "club": "Arsenal", "valor_m": 30, "edad": 29},
+        {"nombre": "Jeremy Doku", "posicion": "FW", "club": "Manchester City", "valor_m": 60, "edad": 22},
+        {"nombre": "Dodi Lukebakio", "posicion": "FW", "club": "Benfica", "valor_m": 20, "edad": 26},
+        {"nombre": "Charles De Ketelaere", "posicion": "FW", "club": "Atalanta", "valor_m": 40, "edad": 23},
+        {"nombre": "Matias Fernandez-Pardo", "posicion": "FW", "club": "Lille", "valor_m": 15, "edad": 19},
     ],
     "Croatia": [
-        {
-            "nombre": "Dominik Livakovic",
-            "posicion": "GK",
-            "club": "Dinamo Zagreb",
-            "valor_m": 18,
-            "edad": 29
-        },
-        {
-            "nombre": "Ivor Pandur",
-            "posicion": "GK",
-            "club": "Hull City",
-            "valor_m": 5,
-            "edad": 24
-        },
-        {
-            "nombre": "Dominik Kotarski",
-            "posicion": "GK",
-            "club": "FC Kobenhavn",
-            "valor_m": 8,
-            "edad": 24
-        },
-        {
-            "nombre": "Josko Gvardiol",
-            "posicion": "DF",
-            "club": "Manchester City",
-            "valor_m": 80,
-            "edad": 22
-        },
-        {
-            "nombre": "Josip Stanisic",
-            "posicion": "DF",
-            "club": "Bayern Munich",
-            "valor_m": 20,
-            "edad": 24
-        },
-        {
-            "nombre": "Marin Pongracic",
-            "posicion": "DF",
-            "club": "Fiorentina",
-            "valor_m": 20,
-            "edad": 26
-        },
-        {
-            "nombre": "Duje Caleta-Car",
-            "posicion": "DF",
-            "club": "Real Sociedad",
-            "valor_m": 15,
-            "edad": 27
-        },
-        {
-            "nombre": "Josip Sutalo",
-            "posicion": "DF",
-            "club": "Ajax",
-            "valor_m": 20,
-            "edad": 24
-        },
-        {
-            "nombre": "Kristijan Jakic",
-            "posicion": "DF",
-            "club": "Augsburg",
-            "valor_m": 10,
-            "edad": 27
-        },
-        {
-            "nombre": "Martin Erlic",
-            "posicion": "DF",
-            "club": "Midtjylland",
-            "valor_m": 8,
-            "edad": 26
-        },
-        {
-            "nombre": "Luka Vuskovic",
-            "posicion": "DF",
-            "club": "Hamburger SV",
-            "valor_m": 15,
-            "edad": 17
-        },
-        {
-            "nombre": "Luka Modric",
-            "posicion": "MF",
-            "club": "AC Milan",
-            "valor_m": 8,
-            "edad": 38
-        },
-        {
-            "nombre": "Mateo Kovacic",
-            "posicion": "MF",
-            "club": "Manchester City",
-            "valor_m": 35,
-            "edad": 30
-        },
-        {
-            "nombre": "Mario Pasalic",
-            "posicion": "MF",
-            "club": "Atalanta",
-            "valor_m": 25,
-            "edad": 29
-        },
-        {
-            "nombre": "Nikola Moro",
-            "posicion": "MF",
-            "club": "Bologna",
-            "valor_m": 12,
-            "edad": 26
-        },
-        {
-            "nombre": "Nikola Vlasic",
-            "posicion": "MF",
-            "club": "Torino",
-            "valor_m": 20,
-            "edad": 26
-        },
-        {
-            "nombre": "Martin Baturina",
-            "posicion": "MF",
-            "club": "Como",
-            "valor_m": 25,
-            "edad": 21
-        },
-        {
-            "nombre": "Petar Sucic",
-            "posicion": "MF",
-            "club": "Inter Milan",
-            "valor_m": 30,
-            "edad": 21
-        },
-        {
-            "nombre": "Luka Sucic",
-            "posicion": "MF",
-            "club": "Real Sociedad",
-            "valor_m": 25,
-            "edad": 22
-        },
-        {
-            "nombre": "Toni Fruk",
-            "posicion": "MF",
-            "club": "Rijeka",
-            "valor_m": 5,
-            "edad": 23
-        },
-        {
-            "nombre": "Andrej Kramaric",
-            "posicion": "FW",
-            "club": "Hoffenheim",
-            "valor_m": 15,
-            "edad": 33
-        },
-        {
-            "nombre": "Ante Budimir",
-            "posicion": "FW",
-            "club": "Osasuna",
-            "valor_m": 10,
-            "edad": 33
-        },
-        {
-            "nombre": "Ivan Perisic",
-            "posicion": "FW",
-            "club": "PSV Eindhoven",
-            "valor_m": 8,
-            "edad": 35
-        },
-        {
-            "nombre": "Igor Matanovic",
-            "posicion": "FW",
-            "club": "Freiburg",
-            "valor_m": 15,
-            "edad": 21
-        },
-        {
-            "nombre": "Marco Pasalic",
-            "posicion": "FW",
-            "club": "Orlando City",
-            "valor_m": 5,
-            "edad": 23
-        },
-        {
-            "nombre": "Petar Musa",
-            "posicion": "FW",
-            "club": "FC Dallas",
-            "valor_m": 8,
-            "edad": 26
-        }
+        {"nombre": "Dominik Livakovic", "posicion": "GK", "club": "Dinamo Zagreb", "valor_m": 18, "edad": 29},
+        {"nombre": "Ivor Pandur", "posicion": "GK", "club": "Hull City", "valor_m": 5, "edad": 24},
+        {"nombre": "Dominik Kotarski", "posicion": "GK", "club": "FC Kobenhavn", "valor_m": 8, "edad": 24},
+        {"nombre": "Josko Gvardiol", "posicion": "DF", "club": "Manchester City", "valor_m": 80, "edad": 22},
+        {"nombre": "Josip Stanisic", "posicion": "DF", "club": "Bayern Munich", "valor_m": 20, "edad": 24},
+        {"nombre": "Marin Pongracic", "posicion": "DF", "club": "Fiorentina", "valor_m": 20, "edad": 26},
+        {"nombre": "Duje Caleta-Car", "posicion": "DF", "club": "Real Sociedad", "valor_m": 15, "edad": 27},
+        {"nombre": "Josip Sutalo", "posicion": "DF", "club": "Ajax", "valor_m": 20, "edad": 24},
+        {"nombre": "Kristijan Jakic", "posicion": "DF", "club": "Augsburg", "valor_m": 10, "edad": 27},
+        {"nombre": "Martin Erlic", "posicion": "DF", "club": "Midtjylland", "valor_m": 8, "edad": 26},
+        {"nombre": "Luka Vuskovic", "posicion": "DF", "club": "Hamburger SV", "valor_m": 15, "edad": 17},
+        {"nombre": "Luka Modric", "posicion": "MF", "club": "AC Milan", "valor_m": 8, "edad": 38},
+        {"nombre": "Mateo Kovacic", "posicion": "MF", "club": "Manchester City", "valor_m": 35, "edad": 30},
+        {"nombre": "Mario Pasalic", "posicion": "MF", "club": "Atalanta", "valor_m": 25, "edad": 29},
+        {"nombre": "Nikola Moro", "posicion": "MF", "club": "Bologna", "valor_m": 12, "edad": 26},
+        {"nombre": "Nikola Vlasic", "posicion": "MF", "club": "Torino", "valor_m": 20, "edad": 26},
+        {"nombre": "Martin Baturina", "posicion": "MF", "club": "Como", "valor_m": 25, "edad": 21},
+        {"nombre": "Petar Sucic", "posicion": "MF", "club": "Inter Milan", "valor_m": 30, "edad": 21},
+        {"nombre": "Luka Sucic", "posicion": "MF", "club": "Real Sociedad", "valor_m": 25, "edad": 22},
+        {"nombre": "Toni Fruk", "posicion": "MF", "club": "Rijeka", "valor_m": 5, "edad": 23},
+        {"nombre": "Andrej Kramaric", "posicion": "FW", "club": "Hoffenheim", "valor_m": 15, "edad": 33},
+        {"nombre": "Ante Budimir", "posicion": "FW", "club": "Osasuna", "valor_m": 10, "edad": 33},
+        {"nombre": "Ivan Perisic", "posicion": "FW", "club": "PSV Eindhoven", "valor_m": 8, "edad": 35},
+        {"nombre": "Igor Matanovic", "posicion": "FW", "club": "Freiburg", "valor_m": 15, "edad": 21},
+        {"nombre": "Marco Pasalic", "posicion": "FW", "club": "Orlando City", "valor_m": 5, "edad": 23},
+        {"nombre": "Petar Musa", "posicion": "FW", "club": "FC Dallas", "valor_m": 8, "edad": 26},
     ],
     "Uruguay": [
-        {
-            "nombre": "Sergio Rochet",
-            "posicion": "GK",
-            "club": "Nacional",
-            "valor_m": 4,
-            "edad": 30
-        },
-        {
-            "nombre": "Sebastian Sosa",
-            "posicion": "GK",
-            "club": "Independiente",
-            "valor_m": 2,
-            "edad": 37
-        },
-        {
-            "nombre": "Guillermo Varela",
-            "posicion": "DF",
-            "club": "Flamengo",
-            "valor_m": 3,
-            "edad": 31
-        },
-        {
-            "nombre": "Jose Maria Gimenez",
-            "posicion": "DF",
-            "club": "Atletico Madrid",
-            "valor_m": 30,
-            "edad": 29
-        },
-        {
-            "nombre": "Sebastian Caceres",
-            "posicion": "DF",
-            "club": "Atlas FC",
-            "valor_m": 4,
-            "edad": 25
-        },
-        {
-            "nombre": "Martin Caceres",
-            "posicion": "DF",
-            "club": "Penarol",
-            "valor_m": 1,
-            "edad": 37
-        },
-        {
-            "nombre": "Mathias Olivera",
-            "posicion": "DF",
-            "club": "Napoli",
-            "valor_m": 28,
-            "edad": 27
-        },
-        {
-            "nombre": "Nahitan Nandez",
-            "posicion": "MF",
-            "club": "Nacional",
-            "valor_m": 6,
-            "edad": 29
-        },
-        {
-            "nombre": "Lucas Torreira",
-            "posicion": "MF",
-            "club": "Galatasaray",
-            "valor_m": 12,
-            "edad": 28
-        },
-        {
-            "nombre": "Manuel Ugarte",
-            "posicion": "MF",
-            "club": "Manchester United",
-            "valor_m": 50,
-            "edad": 23
-        },
-        {
-            "nombre": "Rodrigo Bentancur",
-            "posicion": "MF",
-            "club": "Tottenham",
-            "valor_m": 32,
-            "edad": 27
-        },
-        {
-            "nombre": "Matias Vecino",
-            "posicion": "MF",
-            "club": "Lazio",
-            "valor_m": 5,
-            "edad": 33
-        },
-        {
-            "nombre": "Nicolas De La Cruz",
-            "posicion": "MF",
-            "club": "Flamengo",
-            "valor_m": 18,
-            "edad": 27
-        },
-        {
-            "nombre": "Darwin Nunez",
-            "posicion": "FW",
-            "club": "Liverpool",
-            "valor_m": 75,
-            "edad": 25
-        },
-        {
-            "nombre": "Luis Suarez",
-            "posicion": "FW",
-            "club": "River Plate",
-            "valor_m": 3,
-            "edad": 37
-        },
-        {
-            "nombre": "Facundo Torres",
-            "posicion": "FW",
-            "club": "Orlando City SC",
-            "valor_m": 12,
-            "edad": 24
-        },
-        {
-            "nombre": "Maxi Gomez",
-            "posicion": "FW",
-            "club": "Trabzonspor",
-            "valor_m": 6,
-            "edad": 28
-        }
+        {"nombre": "Sergio Rochet", "posicion": "GK", "club": "Nacional", "valor_m": 4, "edad": 30},
+        {"nombre": "Sebastian Sosa", "posicion": "GK", "club": "Independiente", "valor_m": 2, "edad": 37},
+        {"nombre": "Guillermo Varela", "posicion": "DF", "club": "Flamengo", "valor_m": 3, "edad": 31},
+        {"nombre": "Jose Maria Gimenez", "posicion": "DF", "club": "Atletico Madrid", "valor_m": 30, "edad": 29},
+        {"nombre": "Sebastian Caceres", "posicion": "DF", "club": "Atlas FC", "valor_m": 4, "edad": 25},
+        {"nombre": "Martin Caceres", "posicion": "DF", "club": "Penarol", "valor_m": 1, "edad": 37},
+        {"nombre": "Mathias Olivera", "posicion": "DF", "club": "Napoli", "valor_m": 28, "edad": 27},
+        {"nombre": "Nahitan Nandez", "posicion": "MF", "club": "Nacional", "valor_m": 6, "edad": 29},
+        {"nombre": "Lucas Torreira", "posicion": "MF", "club": "Galatasaray", "valor_m": 12, "edad": 28},
+        {"nombre": "Manuel Ugarte", "posicion": "MF", "club": "Manchester United", "valor_m": 50, "edad": 23},
+        {"nombre": "Rodrigo Bentancur", "posicion": "MF", "club": "Tottenham", "valor_m": 32, "edad": 27},
+        {"nombre": "Matias Vecino", "posicion": "MF", "club": "Lazio", "valor_m": 5, "edad": 33},
+        {"nombre": "Nicolas De La Cruz", "posicion": "MF", "club": "Flamengo", "valor_m": 18, "edad": 27},
+        {"nombre": "Darwin Nunez", "posicion": "FW", "club": "Liverpool", "valor_m": 75, "edad": 25},
+        {"nombre": "Luis Suarez", "posicion": "FW", "club": "River Plate", "valor_m": 3, "edad": 37},
+        {"nombre": "Facundo Torres", "posicion": "FW", "club": "Orlando City SC", "valor_m": 12, "edad": 24},
+        {"nombre": "Maxi Gomez", "posicion": "FW", "club": "Trabzonspor", "valor_m": 6, "edad": 28},
+        {"nombre": "Martin Campaña", "posicion": "GK", "club": "Racing Club", "valor_m": 2, "edad": 34},
+        {"nombre": "Diego Godin", "posicion": "DF", "club": "unattached", "valor_m": 1, "edad": 38},
+        {"nombre": "Ronald Araujo", "posicion": "DF", "club": "Barcelona", "valor_m": 60, "edad": 25},
+        {"nombre": "Fede Valverde", "posicion": "MF", "club": "Real Madrid", "valor_m": 120, "edad": 25},
+        {"nombre": "Agustin Canobbio", "posicion": "FW", "club": "Athletic Club", "valor_m": 15, "edad": 25},
+        {"nombre": "Lucas Olaza", "posicion": "DF", "club": "Celta Vigo", "valor_m": 5, "edad": 29},
+        {"nombre": "Joaquin Piquerez", "posicion": "DF", "club": "Palmeiras", "valor_m": 12, "edad": 26},
+        {"nombre": "Gaston Pereiro", "posicion": "FW", "club": "Cagliari", "valor_m": 8, "edad": 29},
     ],
     "Colombia": [
-        {
-            "nombre": "David Ospina",
-            "posicion": "GK",
-            "club": "Atletico Nacional",
-            "valor_m": 3,
-            "edad": 37
-        },
-        {
-            "nombre": "Camilo Vargas",
-            "posicion": "GK",
-            "club": "Atlas FC",
-            "valor_m": 2,
-            "edad": 36
-        },
-        {
-            "nombre": "Alvaro Montero",
-            "posicion": "GK",
-            "club": "Velez Sarsfield",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Daniel Munoz",
-            "posicion": "DF",
-            "club": "Crystal Palace",
-            "valor_m": 20,
-            "edad": 29
-        },
-        {
-            "nombre": "Jhon Lucumi",
-            "posicion": "DF",
-            "club": "Bologna FC",
-            "valor_m": 20,
-            "edad": 27
-        },
-        {
-            "nombre": "Santiago Arias",
-            "posicion": "DF",
-            "club": "CA Independiente",
-            "valor_m": 3,
-            "edad": 33
-        },
-        {
-            "nombre": "Yerry Mina",
-            "posicion": "DF",
-            "club": "Cagliari",
-            "valor_m": 5,
-            "edad": 31
-        },
-        {
-            "nombre": "Johan Mojica",
-            "posicion": "DF",
-            "club": "RCD Mallorca",
-            "valor_m": 5,
-            "edad": 32
-        },
-        {
-            "nombre": "Deiver Machado",
-            "posicion": "DF",
-            "club": "FC Nantes",
-            "valor_m": 4,
-            "edad": 32
-        },
-        {
-            "nombre": "Davinson Sanchez",
-            "posicion": "DF",
-            "club": "Galatasaray",
-            "valor_m": 10,
-            "edad": 28
-        },
-        {
-            "nombre": "Gustavo Puerta",
-            "posicion": "DF",
-            "club": "Racing Santander",
-            "valor_m": 6,
-            "edad": 22
-        },
-        {
-            "nombre": "Willer Ditta",
-            "posicion": "DF",
-            "club": "Cruz Azul",
-            "valor_m": 3,
-            "edad": 27
-        },
-        {
-            "nombre": "Kevin Castano",
-            "posicion": "MF",
-            "club": "River Plate",
-            "valor_m": 15,
-            "edad": 25
-        },
-        {
-            "nombre": "Richard Rios",
-            "posicion": "MF",
-            "club": "Benfica",
-            "valor_m": 30,
-            "edad": 25
-        },
-        {
-            "nombre": "Jefferson Lerma",
-            "posicion": "MF",
-            "club": "Crystal Palace",
-            "valor_m": 12,
-            "edad": 30
-        },
-        {
-            "nombre": "Juan Portilla",
-            "posicion": "MF",
-            "club": "Athletico Paranaense",
-            "valor_m": 5,
-            "edad": 27
-        },
-        {
-            "nombre": "Juan Quintero",
-            "posicion": "MF",
-            "club": "River Plate",
-            "valor_m": 4,
-            "edad": 32
-        },
-        {
-            "nombre": "Jorge Carrascal",
-            "posicion": "MF",
-            "club": "Flamengo",
-            "valor_m": 12,
-            "edad": 27
-        },
-        {
-            "nombre": "Jhon Arias",
-            "posicion": "MF",
-            "club": "Palmeiras",
-            "valor_m": 25,
-            "edad": 27
-        },
-        {
-            "nombre": "James Rodriguez",
-            "posicion": "MF",
-            "club": "Minnesota United",
-            "valor_m": 5,
-            "edad": 33
-        },
-        {
-            "nombre": "Luis Diaz",
-            "posicion": "FW",
-            "club": "Bayern Munich",
-            "valor_m": 80,
-            "edad": 28
-        },
-        {
-            "nombre": "Cucho Hernandez",
-            "posicion": "FW",
-            "club": "Real Betis",
-            "valor_m": 25,
-            "edad": 26
-        },
-        {
-            "nombre": "Jhon Cordoba",
-            "posicion": "FW",
-            "club": "FC Krasnodar",
-            "valor_m": 10,
-            "edad": 32
-        },
-        {
-            "nombre": "Leandro Campaz",
-            "posicion": "FW",
-            "club": "CA Rosario Central",
-            "valor_m": 5,
-            "edad": 25
-        },
-        {
-            "nombre": "Luis Suarez",
-            "posicion": "FW",
-            "club": "Sporting CP",
-            "valor_m": 12,
-            "edad": 27
-        },
-        {
-            "nombre": "Andres Gomez",
-            "posicion": "FW",
-            "club": "CR Vasco Da Gama",
-            "valor_m": 8,
-            "edad": 23
-        }
+        {"nombre": "David Ospina", "posicion": "GK", "club": "Atletico Nacional", "valor_m": 3, "edad": 37},
+        {"nombre": "Camilo Vargas", "posicion": "GK", "club": "Atlas FC", "valor_m": 2, "edad": 36},
+        {"nombre": "Alvaro Montero", "posicion": "GK", "club": "Velez Sarsfield", "valor_m": 2, "edad": 30},
+        {"nombre": "Daniel Munoz", "posicion": "DF", "club": "Crystal Palace", "valor_m": 20, "edad": 29},
+        {"nombre": "Jhon Lucumi", "posicion": "DF", "club": "Bologna FC", "valor_m": 20, "edad": 27},
+        {"nombre": "Santiago Arias", "posicion": "DF", "club": "CA Independiente", "valor_m": 3, "edad": 33},
+        {"nombre": "Yerry Mina", "posicion": "DF", "club": "Cagliari", "valor_m": 5, "edad": 31},
+        {"nombre": "Johan Mojica", "posicion": "DF", "club": "RCD Mallorca", "valor_m": 5, "edad": 32},
+        {"nombre": "Deiver Machado", "posicion": "DF", "club": "FC Nantes", "valor_m": 4, "edad": 32},
+        {"nombre": "Davinson Sanchez", "posicion": "DF", "club": "Galatasaray", "valor_m": 10, "edad": 28},
+        {"nombre": "Gustavo Puerta", "posicion": "DF", "club": "Racing Santander", "valor_m": 6, "edad": 22},
+        {"nombre": "Willer Ditta", "posicion": "DF", "club": "Cruz Azul", "valor_m": 3, "edad": 27},
+        {"nombre": "Kevin Castano", "posicion": "MF", "club": "River Plate", "valor_m": 15, "edad": 25},
+        {"nombre": "Richard Rios", "posicion": "MF", "club": "Benfica", "valor_m": 30, "edad": 25},
+        {"nombre": "Jefferson Lerma", "posicion": "MF", "club": "Crystal Palace", "valor_m": 12, "edad": 30},
+        {"nombre": "Juan Portilla", "posicion": "MF", "club": "Athletico Paranaense", "valor_m": 5, "edad": 27},
+        {"nombre": "Juan Quintero", "posicion": "MF", "club": "River Plate", "valor_m": 4, "edad": 32},
+        {"nombre": "Jorge Carrascal", "posicion": "MF", "club": "Flamengo", "valor_m": 12, "edad": 27},
+        {"nombre": "Jhon Arias", "posicion": "MF", "club": "Palmeiras", "valor_m": 25, "edad": 27},
+        {"nombre": "James Rodriguez", "posicion": "MF", "club": "Minnesota United", "valor_m": 5, "edad": 33},
+        {"nombre": "Luis Diaz", "posicion": "FW", "club": "Bayern Munich", "valor_m": 80, "edad": 28},
+        {"nombre": "Cucho Hernandez", "posicion": "FW", "club": "Real Betis", "valor_m": 25, "edad": 26},
+        {"nombre": "Jhon Cordoba", "posicion": "FW", "club": "FC Krasnodar", "valor_m": 10, "edad": 32},
+        {"nombre": "Leandro Campaz", "posicion": "FW", "club": "CA Rosario Central", "valor_m": 5, "edad": 25},
+        {"nombre": "Luis Suarez", "posicion": "FW", "club": "Sporting CP", "valor_m": 12, "edad": 27},
+        {"nombre": "Andres Gomez", "posicion": "FW", "club": "CR Vasco Da Gama", "valor_m": 8, "edad": 23},
     ],
     "Morocco": [
-        {
-            "nombre": "Yassine Bounou",
-            "posicion": "GK",
-            "club": "Al Hilal SC",
-            "valor_m": 12,
-            "edad": 34
-        },
-        {
-            "nombre": "Munir El Kajoui",
-            "posicion": "GK",
-            "club": "RS Berkane",
-            "valor_m": 2,
-            "edad": 37
-        },
-        {
-            "nombre": "Ahmed Reda Tagnaouti",
-            "posicion": "GK",
-            "club": "ASFAR",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Achraf Hakimi",
-            "posicion": "DF",
-            "club": "PSG",
-            "valor_m": 70,
-            "edad": 26
-        },
-        {
-            "nombre": "Noussair Mazraoui",
-            "posicion": "DF",
-            "club": "Manchester United",
-            "valor_m": 28,
-            "edad": 27
-        },
-        {
-            "nombre": "Nayef Aguerd",
-            "posicion": "DF",
-            "club": "Olympique Marseille",
-            "valor_m": 18,
-            "edad": 29
-        },
-        {
-            "nombre": "Issa Diop",
-            "posicion": "DF",
-            "club": "Fulham FC",
-            "valor_m": 12,
-            "edad": 28
-        },
-        {
-            "nombre": "Chadi Riad",
-            "posicion": "DF",
-            "club": "Crystal Palace",
-            "valor_m": 15,
-            "edad": 22
-        },
-        {
-            "nombre": "Zakaria El Ouahdi",
-            "posicion": "DF",
-            "club": "KRC Genk",
-            "valor_m": 10,
-            "edad": 23
-        },
-        {
-            "nombre": "Youssef Belammari",
-            "posicion": "DF",
-            "club": "Al Ahly FC",
-            "valor_m": 3,
-            "edad": 27
-        },
-        {
-            "nombre": "Redouane Halhal",
-            "posicion": "DF",
-            "club": "KV Mechelen",
-            "valor_m": 5,
-            "edad": 22
-        },
-        {
-            "nombre": "Anass Salah-Eddine",
-            "posicion": "DF",
-            "club": "PSV Eindhoven",
-            "valor_m": 5,
-            "edad": 23
-        },
-        {
-            "nombre": "Sofyan Amrabat",
-            "posicion": "MF",
-            "club": "Real Betis",
-            "valor_m": 18,
-            "edad": 29
-        },
-        {
-            "nombre": "Azzedine Ounahi",
-            "posicion": "MF",
-            "club": "Girona FC",
-            "valor_m": 12,
-            "edad": 25
-        },
-        {
-            "nombre": "Ismael Saibari",
-            "posicion": "MF",
-            "club": "PSV Eindhoven",
-            "valor_m": 22,
-            "edad": 24
-        },
-        {
-            "nombre": "Bilal El Khannouss",
-            "posicion": "MF",
-            "club": "VfB Stuttgart",
-            "valor_m": 20,
-            "edad": 21
-        },
-        {
-            "nombre": "Ayyoub Bouaddi",
-            "posicion": "MF",
-            "club": "Lille OSC",
-            "valor_m": 12,
-            "edad": 18
-        },
-        {
-            "nombre": "Chemsdine Talbi",
-            "posicion": "MF",
-            "club": "Sunderland AFC",
-            "valor_m": 5,
-            "edad": 20
-        },
-        {
-            "nombre": "Neil El Aynaoui",
-            "posicion": "MF",
-            "club": "AS Roma",
-            "valor_m": 12,
-            "edad": 24
-        },
-        {
-            "nombre": "Samir El Mourabet",
-            "posicion": "MF",
-            "club": "RC Strasbourg",
-            "valor_m": 4,
-            "edad": 20
-        },
-        {
-            "nombre": "Gessime Yassine",
-            "posicion": "MF",
-            "club": "RC Strasbourg",
-            "valor_m": 3,
-            "edad": 20
-        },
-        {
-            "nombre": "Brahim Diaz",
-            "posicion": "FW",
-            "club": "Real Madrid",
-            "valor_m": 38,
-            "edad": 25
-        },
-        {
-            "nombre": "Ayoub El Kaabi",
-            "posicion": "FW",
-            "club": "Olympiacos FC",
-            "valor_m": 12,
-            "edad": 32
-        },
-        {
-            "nombre": "Abde Ezzalzouli",
-            "posicion": "FW",
-            "club": "Real Betis",
-            "valor_m": 18,
-            "edad": 23
-        },
-        {
-            "nombre": "Ayoub Amaimouni",
-            "posicion": "FW",
-            "club": "Eintracht Frankfurt",
-            "valor_m": 8,
-            "edad": 21
-        },
-        {
-            "nombre": "Souane Rahimi",
-            "posicion": "FW",
-            "club": "Al Ain FC",
-            "valor_m": 5,
-            "edad": 29
-        }
+        {"nombre": "Yassine Bounou", "posicion": "GK", "club": "Al Hilal SC", "valor_m": 12, "edad": 34},
+        {"nombre": "Munir El Kajoui", "posicion": "GK", "club": "RS Berkane", "valor_m": 2, "edad": 37},
+        {"nombre": "Ahmed Reda Tagnaouti", "posicion": "GK", "club": "ASFAR", "valor_m": 2, "edad": 29},
+        {"nombre": "Achraf Hakimi", "posicion": "DF", "club": "PSG", "valor_m": 70, "edad": 26},
+        {"nombre": "Noussair Mazraoui", "posicion": "DF", "club": "Manchester United", "valor_m": 28, "edad": 27},
+        {"nombre": "Nayef Aguerd", "posicion": "DF", "club": "Olympique Marseille", "valor_m": 18, "edad": 29},
+        {"nombre": "Issa Diop", "posicion": "DF", "club": "Fulham FC", "valor_m": 12, "edad": 28},
+        {"nombre": "Chadi Riad", "posicion": "DF", "club": "Crystal Palace", "valor_m": 15, "edad": 22},
+        {"nombre": "Zakaria El Ouahdi", "posicion": "DF", "club": "KRC Genk", "valor_m": 10, "edad": 23},
+        {"nombre": "Youssef Belammari", "posicion": "DF", "club": "Al Ahly FC", "valor_m": 3, "edad": 27},
+        {"nombre": "Redouane Halhal", "posicion": "DF", "club": "KV Mechelen", "valor_m": 5, "edad": 22},
+        {"nombre": "Anass Salah-Eddine", "posicion": "DF", "club": "PSV Eindhoven", "valor_m": 5, "edad": 23},
+        {"nombre": "Sofyan Amrabat", "posicion": "MF", "club": "Real Betis", "valor_m": 18, "edad": 29},
+        {"nombre": "Azzedine Ounahi", "posicion": "MF", "club": "Girona FC", "valor_m": 12, "edad": 25},
+        {"nombre": "Ismael Saibari", "posicion": "MF", "club": "PSV Eindhoven", "valor_m": 22, "edad": 24},
+        {"nombre": "Bilal El Khannouss", "posicion": "MF", "club": "VfB Stuttgart", "valor_m": 20, "edad": 21},
+        {"nombre": "Ayyoub Bouaddi", "posicion": "MF", "club": "Lille OSC", "valor_m": 12, "edad": 18},
+        {"nombre": "Chemsdine Talbi", "posicion": "MF", "club": "Sunderland AFC", "valor_m": 5, "edad": 20},
+        {"nombre": "Neil El Aynaoui", "posicion": "MF", "club": "AS Roma", "valor_m": 12, "edad": 24},
+        {"nombre": "Samir El Mourabet", "posicion": "MF", "club": "RC Strasbourg", "valor_m": 4, "edad": 20},
+        {"nombre": "Gessime Yassine", "posicion": "MF", "club": "RC Strasbourg", "valor_m": 3, "edad": 20},
+        {"nombre": "Brahim Diaz", "posicion": "FW", "club": "Real Madrid", "valor_m": 38, "edad": 25},
+        {"nombre": "Ayoub El Kaabi", "posicion": "FW", "club": "Olympiacos FC", "valor_m": 12, "edad": 32},
+        {"nombre": "Abde Ezzalzouli", "posicion": "FW", "club": "Real Betis", "valor_m": 18, "edad": 23},
+        {"nombre": "Ayoub Amaimouni", "posicion": "FW", "club": "Eintracht Frankfurt", "valor_m": 8, "edad": 21},
+        {"nombre": "Souane Rahimi", "posicion": "FW", "club": "Al Ain FC", "valor_m": 5, "edad": 29},
     ],
     "Japan": [
-        {
-            "nombre": "Zion Suzuki",
-            "posicion": "GK",
-            "club": "Parma",
-            "valor_m": 10,
-            "edad": 23
-        },
-        {
-            "nombre": "Keisuke Osako",
-            "posicion": "GK",
-            "club": "Sanfrecce Hiroshima",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Tomoki Hayakawa",
-            "posicion": "GK",
-            "club": "Kashima Antlers",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Takehiro Tomiyasu",
-            "posicion": "DF",
-            "club": "AFC Ajax",
-            "valor_m": 18,
-            "edad": 27
-        },
-        {
-            "nombre": "Shogo Taniguchi",
-            "posicion": "DF",
-            "club": "Sint-Truiden VV",
-            "valor_m": 3,
-            "edad": 34
-        },
-        {
-            "nombre": "Kou Itakura",
-            "posicion": "DF",
-            "club": "AFC Ajax",
-            "valor_m": 12,
-            "edad": 28
-        },
-        {
-            "nombre": "Yuto Nagatomo",
-            "posicion": "DF",
-            "club": "FC Tokyo",
-            "valor_m": 1,
-            "edad": 38
-        },
-        {
-            "nombre": "Tsuyoshi Watanabe",
-            "posicion": "DF",
-            "club": "Feyenoord Rotterdam",
-            "valor_m": 10,
-            "edad": 28
-        },
-        {
-            "nombre": "Hiroki Ito",
-            "posicion": "DF",
-            "club": "Bayern Munich",
-            "valor_m": 22,
-            "edad": 26
-        },
-        {
-            "nombre": "Yukinari Sugawara",
-            "posicion": "DF",
-            "club": "SV Werder Bremen",
-            "valor_m": 12,
-            "edad": 25
-        },
-        {
-            "nombre": "Ayumu Seko",
-            "posicion": "DF",
-            "club": "Le Havre AC",
-            "valor_m": 5,
-            "edad": 25
-        },
-        {
-            "nombre": "Junnosuke Suzuki",
-            "posicion": "DF",
-            "club": "FC Kobenhavn",
-            "valor_m": 3,
-            "edad": 22
-        },
-        {
-            "nombre": "Wataru Endo",
-            "posicion": "MF",
-            "club": "Liverpool",
-            "valor_m": 18,
-            "edad": 32
-        },
-        {
-            "nombre": "Ao Tanaka",
-            "posicion": "MF",
-            "club": "Leeds United",
-            "valor_m": 12,
-            "edad": 26
-        },
-        {
-            "nombre": "Takefusa Kubo",
-            "posicion": "MF",
-            "club": "Real Sociedad",
-            "valor_m": 50,
-            "edad": 24
-        },
-        {
-            "nombre": "Ritsu Doan",
-            "posicion": "MF",
-            "club": "Eintracht Frankfurt",
-            "valor_m": 22,
-            "edad": 27
-        },
-        {
-            "nombre": "Daizen Maeda",
-            "posicion": "MF",
-            "club": "Celtic FC",
-            "valor_m": 12,
-            "edad": 27
-        },
-        {
-            "nombre": "Daichi Kamada",
-            "posicion": "MF",
-            "club": "Crystal Palace",
-            "valor_m": 18,
-            "edad": 28
-        },
-        {
-            "nombre": "Kaishu Sano",
-            "posicion": "MF",
-            "club": "Mainz",
-            "valor_m": 6,
-            "edad": 25
-        },
-        {
-            "nombre": "Keito Nakamura",
-            "posicion": "MF",
-            "club": "Stade Reims",
-            "valor_m": 8,
-            "edad": 25
-        },
-        {
-            "nombre": "Yuito Suzuki",
-            "posicion": "MF",
-            "club": "SC Freiburg",
-            "valor_m": 5,
-            "edad": 24
-        },
-        {
-            "nombre": "Junya Ito",
-            "posicion": "FW",
-            "club": "KRC Genk",
-            "valor_m": 10,
-            "edad": 32
-        },
-        {
-            "nombre": "Ayase Ueda",
-            "posicion": "FW",
-            "club": "Feyenoord Rotterdam",
-            "valor_m": 18,
-            "edad": 27
-        },
-        {
-            "nombre": "Koki Ogawa",
-            "posicion": "FW",
-            "club": "NEC Nijmegen",
-            "valor_m": 5,
-            "edad": 28
-        },
-        {
-            "nombre": "Keisuke Goto",
-            "posicion": "FW",
-            "club": "Sint-Truiden VV",
-            "valor_m": 3,
-            "edad": 20
-        },
-        {
-            "nombre": "Kento Shiogai",
-            "posicion": "FW",
-            "club": "VfL Wolfsburg",
-            "valor_m": 3,
-            "edad": 20
-        }
+        {"nombre": "Zion Suzuki", "posicion": "GK", "club": "Parma", "valor_m": 10, "edad": 23},
+        {"nombre": "Keisuke Osako", "posicion": "GK", "club": "Sanfrecce Hiroshima", "valor_m": 2, "edad": 26},
+        {"nombre": "Tomoki Hayakawa", "posicion": "GK", "club": "Kashima Antlers", "valor_m": 2, "edad": 26},
+        {"nombre": "Takehiro Tomiyasu", "posicion": "DF", "club": "AFC Ajax", "valor_m": 18, "edad": 27},
+        {"nombre": "Shogo Taniguchi", "posicion": "DF", "club": "Sint-Truiden VV", "valor_m": 3, "edad": 34},
+        {"nombre": "Kou Itakura", "posicion": "DF", "club": "AFC Ajax", "valor_m": 12, "edad": 28},
+        {"nombre": "Yuto Nagatomo", "posicion": "DF", "club": "FC Tokyo", "valor_m": 1, "edad": 38},
+        {"nombre": "Tsuyoshi Watanabe", "posicion": "DF", "club": "Feyenoord Rotterdam", "valor_m": 10, "edad": 28},
+        {"nombre": "Hiroki Ito", "posicion": "DF", "club": "Bayern Munich", "valor_m": 22, "edad": 26},
+        {"nombre": "Yukinari Sugawara", "posicion": "DF", "club": "SV Werder Bremen", "valor_m": 12, "edad": 25},
+        {"nombre": "Ayumu Seko", "posicion": "DF", "club": "Le Havre AC", "valor_m": 5, "edad": 25},
+        {"nombre": "Junnosuke Suzuki", "posicion": "DF", "club": "FC Kobenhavn", "valor_m": 3, "edad": 22},
+        {"nombre": "Wataru Endo", "posicion": "MF", "club": "Liverpool", "valor_m": 18, "edad": 32},
+        {"nombre": "Ao Tanaka", "posicion": "MF", "club": "Leeds United", "valor_m": 12, "edad": 26},
+        {"nombre": "Takefusa Kubo", "posicion": "MF", "club": "Real Sociedad", "valor_m": 50, "edad": 24},
+        {"nombre": "Ritsu Doan", "posicion": "MF", "club": "Eintracht Frankfurt", "valor_m": 22, "edad": 27},
+        {"nombre": "Daizen Maeda", "posicion": "MF", "club": "Celtic FC", "valor_m": 12, "edad": 27},
+        {"nombre": "Daichi Kamada", "posicion": "MF", "club": "Crystal Palace", "valor_m": 18, "edad": 28},
+        {"nombre": "Kaishu Sano", "posicion": "MF", "club": "Mainz", "valor_m": 6, "edad": 25},
+        {"nombre": "Keito Nakamura", "posicion": "MF", "club": "Stade Reims", "valor_m": 8, "edad": 25},
+        {"nombre": "Yuito Suzuki", "posicion": "MF", "club": "SC Freiburg", "valor_m": 5, "edad": 24},
+        {"nombre": "Junya Ito", "posicion": "FW", "club": "KRC Genk", "valor_m": 10, "edad": 32},
+        {"nombre": "Ayase Ueda", "posicion": "FW", "club": "Feyenoord Rotterdam", "valor_m": 18, "edad": 27},
+        {"nombre": "Koki Ogawa", "posicion": "FW", "club": "NEC Nijmegen", "valor_m": 5, "edad": 28},
+        {"nombre": "Keisuke Goto", "posicion": "FW", "club": "Sint-Truiden VV", "valor_m": 3, "edad": 20},
+        {"nombre": "Kento Shiogai", "posicion": "FW", "club": "VfL Wolfsburg", "valor_m": 3, "edad": 20},
     ],
     "USA": [
-        {
-            "nombre": "Matt Turner",
-            "posicion": "GK",
-            "club": "Nottingham Forest",
-            "valor_m": 8,
-            "edad": 30
-        },
-        {
-            "nombre": "Ethan Horvath",
-            "posicion": "GK",
-            "club": "Cardiff City",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Patrick Schulte",
-            "posicion": "GK",
-            "club": "Columbus Crew",
-            "valor_m": 3,
-            "edad": 24
-        },
-        {
-            "nombre": "Sergino Dest",
-            "posicion": "DF",
-            "club": "PSV Eindhoven",
-            "valor_m": 18,
-            "edad": 24
-        },
-        {
-            "nombre": "Miles Robinson",
-            "posicion": "DF",
-            "club": "FC Cincinnati",
-            "valor_m": 6,
-            "edad": 28
-        },
-        {
-            "nombre": "Tim Ream",
-            "posicion": "DF",
-            "club": "Charlotte FC",
-            "valor_m": 2,
-            "edad": 37
-        },
-        {
-            "nombre": "Chris Richards",
-            "posicion": "DF",
-            "club": "Crystal Palace",
-            "valor_m": 12,
-            "edad": 25
-        },
-        {
-            "nombre": "Joe Scally",
-            "posicion": "DF",
-            "club": "Borussia Monchengladbach",
-            "valor_m": 10,
-            "edad": 23
-        },
-        {
-            "nombre": "Antonee Robinson",
-            "posicion": "DF",
-            "club": "Fulham FC",
-            "valor_m": 18,
-            "edad": 27
-        },
-        {
-            "nombre": "Cameron Carter-Vickers",
-            "posicion": "DF",
-            "club": "Celtic FC",
-            "valor_m": 10,
-            "edad": 26
-        },
-        {
-            "nombre": "Christian Pulisic",
-            "posicion": "MF",
-            "club": "AC Milan",
-            "valor_m": 48,
-            "edad": 26
-        },
-        {
-            "nombre": "Weston McKennie",
-            "posicion": "MF",
-            "club": "Juventus",
-            "valor_m": 18,
-            "edad": 26
-        },
-        {
-            "nombre": "Tyler Adams",
-            "posicion": "MF",
-            "club": "Bournemouth",
-            "valor_m": 18,
-            "edad": 25
-        },
-        {
-            "nombre": "Yunus Musah",
-            "posicion": "MF",
-            "club": "AC Milan",
-            "valor_m": 22,
-            "edad": 22
-        },
-        {
-            "nombre": "Brenden Aaronson",
-            "posicion": "MF",
-            "club": "Leeds United",
-            "valor_m": 12,
-            "edad": 24
-        },
-        {
-            "nombre": "Luca De La Torre",
-            "posicion": "MF",
-            "club": "Celta Vigo",
-            "valor_m": 6,
-            "edad": 26
-        },
-        {
-            "nombre": "Johnny Cardoso",
-            "posicion": "MF",
-            "club": "Real Betis",
-            "valor_m": 10,
-            "edad": 24
-        },
-        {
-            "nombre": "Josh Sargent",
-            "posicion": "FW",
-            "club": "Norwich City",
-            "valor_m": 8,
-            "edad": 25
-        },
-        {
-            "nombre": "Ricardo Pepi",
-            "posicion": "FW",
-            "club": "PSV Eindhoven",
-            "valor_m": 12,
-            "edad": 22
-        },
-        {
-            "nombre": "Folarin Balogun",
-            "posicion": "FW",
-            "club": "Monaco",
-            "valor_m": 28,
-            "edad": 23
-        },
-        {
-            "nombre": "Cade Cowell",
-            "posicion": "FW",
-            "club": "San Jose Earthquakes",
-            "valor_m": 6,
-            "edad": 22
-        },
-        {
-            "nombre": "Timothy Weah",
-            "posicion": "FW",
-            "club": "Juventus",
-            "valor_m": 12,
-            "edad": 24
-        }
+        {"nombre": "Matt Turner", "posicion": "GK", "club": "Nottingham Forest", "valor_m": 8, "edad": 30},
+        {"nombre": "Ethan Horvath", "posicion": "GK", "club": "Cardiff City", "valor_m": 2, "edad": 29},
+        {"nombre": "Patrick Schulte", "posicion": "GK", "club": "Columbus Crew", "valor_m": 3, "edad": 24},
+        {"nombre": "Sergino Dest", "posicion": "DF", "club": "PSV Eindhoven", "valor_m": 18, "edad": 24},
+        {"nombre": "Miles Robinson", "posicion": "DF", "club": "FC Cincinnati", "valor_m": 6, "edad": 28},
+        {"nombre": "Tim Ream", "posicion": "DF", "club": "Charlotte FC", "valor_m": 2, "edad": 37},
+        {"nombre": "Chris Richards", "posicion": "DF", "club": "Crystal Palace", "valor_m": 12, "edad": 25},
+        {"nombre": "Joe Scally", "posicion": "DF", "club": "Borussia Monchengladbach", "valor_m": 10, "edad": 23},
+        {"nombre": "Antonee Robinson", "posicion": "DF", "club": "Fulham FC", "valor_m": 18, "edad": 27},
+        {"nombre": "Cameron Carter-Vickers", "posicion": "DF", "club": "Celtic FC", "valor_m": 10, "edad": 26},
+        {"nombre": "Christian Pulisic", "posicion": "MF", "club": "AC Milan", "valor_m": 48, "edad": 26},
+        {"nombre": "Weston McKennie", "posicion": "MF", "club": "Juventus", "valor_m": 18, "edad": 26},
+        {"nombre": "Tyler Adams", "posicion": "MF", "club": "Bournemouth", "valor_m": 18, "edad": 25},
+        {"nombre": "Yunus Musah", "posicion": "MF", "club": "AC Milan", "valor_m": 22, "edad": 22},
+        {"nombre": "Brenden Aaronson", "posicion": "MF", "club": "Leeds United", "valor_m": 12, "edad": 24},
+        {"nombre": "Luca De La Torre", "posicion": "MF", "club": "Celta Vigo", "valor_m": 6, "edad": 26},
+        {"nombre": "Johnny Cardoso", "posicion": "MF", "club": "Real Betis", "valor_m": 10, "edad": 24},
+        {"nombre": "Josh Sargent", "posicion": "FW", "club": "Norwich City", "valor_m": 8, "edad": 25},
+        {"nombre": "Ricardo Pepi", "posicion": "FW", "club": "PSV Eindhoven", "valor_m": 12, "edad": 22},
+        {"nombre": "Folarin Balogun", "posicion": "FW", "club": "Monaco", "valor_m": 28, "edad": 23},
+        {"nombre": "Cade Cowell", "posicion": "FW", "club": "San Jose Earthquakes", "valor_m": 6, "edad": 22},
+        {"nombre": "Timothy Weah", "posicion": "FW", "club": "Juventus", "valor_m": 12, "edad": 24},
+        {"nombre": "Caleb Wiley", "posicion": "DF", "club": "Chelsea", "valor_m": 15, "edad": 20},
+        {"nombre": "Matt Miazga", "posicion": "DF", "club": "Anderlecht", "valor_m": 3, "edad": 29},
+        {"nombre": "Jordan Morris", "posicion": "FW", "club": "Seattle Sounders", "valor_m": 5, "edad": 29},
+        {"nombre": "Malik Tillman", "posicion": "MF", "club": "PSV Eindhoven", "valor_m": 20, "edad": 23},
     ],
     "Mexico": [
-        {
-            "nombre": "Raul Rangel",
-            "posicion": "GK",
-            "club": "CD Guadalajara",
-            "valor_m": 4,
-            "edad": 25
-        },
-        {
-            "nombre": "Carlos Acevedo",
-            "posicion": "GK",
-            "club": "Club Santos Laguna",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Guillermo Ochoa",
-            "posicion": "GK",
-            "club": "AEL Limassol",
-            "valor_m": 1,
-            "edad": 40
-        },
-        {
-            "nombre": "Jorge Sanchez",
-            "posicion": "DF",
-            "club": "PAOK Saloniki",
-            "valor_m": 6,
-            "edad": 27
-        },
-        {
-            "nombre": "Cesar Montes",
-            "posicion": "DF",
-            "club": "Lokomotiv Moscow",
-            "valor_m": 6,
-            "edad": 28
-        },
-        {
-            "nombre": "Johan Vasquez",
-            "posicion": "DF",
-            "club": "Genoa CFC",
-            "valor_m": 8,
-            "edad": 26
-        },
-        {
-            "nombre": "Israel Reyes",
-            "posicion": "DF",
-            "club": "Club America",
-            "valor_m": 4,
-            "edad": 25
-        },
-        {
-            "nombre": "Mateo Chavez",
-            "posicion": "DF",
-            "club": "AZ Alkmaar",
-            "valor_m": 6,
-            "edad": 21
-        },
-        {
-            "nombre": "Jesus Gallardo",
-            "posicion": "DF",
-            "club": "Deportivo Toluca",
-            "valor_m": 3,
-            "edad": 31
-        },
-        {
-            "nombre": "Edson Alvarez",
-            "posicion": "MF",
-            "club": "Fenerbahce",
-            "valor_m": 28,
-            "edad": 27
-        },
-        {
-            "nombre": "Erik Lira",
-            "posicion": "MF",
-            "club": "CF Cruz Azul",
-            "valor_m": 5,
-            "edad": 25
-        },
-        {
-            "nombre": "Luis Romo",
-            "posicion": "MF",
-            "club": "CD Guadalajara",
-            "valor_m": 4,
-            "edad": 30
-        },
-        {
-            "nombre": "Alvaro Fidalgo",
-            "posicion": "MF",
-            "club": "Real Betis",
-            "valor_m": 8,
-            "edad": 28
-        },
-        {
-            "nombre": "Orbelin Pineda",
-            "posicion": "MF",
-            "club": "AEK Athens",
-            "valor_m": 4,
-            "edad": 29
-        },
-        {
-            "nombre": "Luis Chavez",
-            "posicion": "MF",
-            "club": "Dynamo Moscow",
-            "valor_m": 4,
-            "edad": 29
-        },
-        {
-            "nombre": "Obed Vargas",
-            "posicion": "MF",
-            "club": "Atletico Madrid",
-            "valor_m": 15,
-            "edad": 20
-        },
-        {
-            "nombre": "Brian Gutierrez",
-            "posicion": "MF",
-            "club": "CD Guadalajara",
-            "valor_m": 6,
-            "edad": 22
-        },
-        {
-            "nombre": "Gilberto Mora",
-            "posicion": "MF",
-            "club": "Club Tijuana",
-            "valor_m": 2,
-            "edad": 17
-        },
-        {
-            "nombre": "Raul Jimenez",
-            "posicion": "FW",
-            "club": "Fulham FC",
-            "valor_m": 12,
-            "edad": 34
-        },
-        {
-            "nombre": "Alexis Vega",
-            "posicion": "FW",
-            "club": "Deportivo Toluca",
-            "valor_m": 5,
-            "edad": 27
-        },
-        {
-            "nombre": "Santiago Gimenez",
-            "posicion": "FW",
-            "club": "AC Milan",
-            "valor_m": 45,
-            "edad": 24
-        },
-        {
-            "nombre": "Armando Gonzalez",
-            "posicion": "FW",
-            "club": "CD Guadalajara",
-            "valor_m": 4,
-            "edad": 22
-        },
-        {
-            "nombre": "Julian Quinones",
-            "posicion": "FW",
-            "club": "Al Qadsiah FC",
-            "valor_m": 4,
-            "edad": 28
-        },
-        {
-            "nombre": "Roberto Alvarado",
-            "posicion": "FW",
-            "club": "CD Guadalajara",
-            "valor_m": 6,
-            "edad": 26
-        },
-        {
-            "nombre": "Cesar Huerta",
-            "posicion": "FW",
-            "club": "RSC Anderlecht",
-            "valor_m": 6,
-            "edad": 24
-        },
-        {
-            "nombre": "Guillermo Martinez",
-            "posicion": "FW",
-            "club": "Pumas UNAM",
-            "valor_m": 2,
-            "edad": 30
-        }
+        {"nombre": "Raul Rangel", "posicion": "GK", "club": "CD Guadalajara", "valor_m": 4, "edad": 25},
+        {"nombre": "Carlos Acevedo", "posicion": "GK", "club": "Club Santos Laguna", "valor_m": 2, "edad": 29},
+        {"nombre": "Guillermo Ochoa", "posicion": "GK", "club": "AEL Limassol", "valor_m": 1, "edad": 40},
+        {"nombre": "Jorge Sanchez", "posicion": "DF", "club": "PAOK Saloniki", "valor_m": 6, "edad": 27},
+        {"nombre": "Cesar Montes", "posicion": "DF", "club": "Lokomotiv Moscow", "valor_m": 6, "edad": 28},
+        {"nombre": "Johan Vasquez", "posicion": "DF", "club": "Genoa CFC", "valor_m": 8, "edad": 26},
+        {"nombre": "Israel Reyes", "posicion": "DF", "club": "Club America", "valor_m": 4, "edad": 25},
+        {"nombre": "Mateo Chavez", "posicion": "DF", "club": "AZ Alkmaar", "valor_m": 6, "edad": 21},
+        {"nombre": "Jesus Gallardo", "posicion": "DF", "club": "Deportivo Toluca", "valor_m": 3, "edad": 31},
+        {"nombre": "Edson Alvarez", "posicion": "MF", "club": "Fenerbahce", "valor_m": 28, "edad": 27},
+        {"nombre": "Erik Lira", "posicion": "MF", "club": "CF Cruz Azul", "valor_m": 5, "edad": 25},
+        {"nombre": "Luis Romo", "posicion": "MF", "club": "CD Guadalajara", "valor_m": 4, "edad": 30},
+        {"nombre": "Alvaro Fidalgo", "posicion": "MF", "club": "Real Betis", "valor_m": 8, "edad": 28},
+        {"nombre": "Orbelin Pineda", "posicion": "MF", "club": "AEK Athens", "valor_m": 4, "edad": 29},
+        {"nombre": "Luis Chavez", "posicion": "MF", "club": "Dynamo Moscow", "valor_m": 4, "edad": 29},
+        {"nombre": "Obed Vargas", "posicion": "MF", "club": "Atletico Madrid", "valor_m": 15, "edad": 20},
+        {"nombre": "Brian Gutierrez", "posicion": "MF", "club": "CD Guadalajara", "valor_m": 6, "edad": 22},
+        {"nombre": "Gilberto Mora", "posicion": "MF", "club": "Club Tijuana", "valor_m": 2, "edad": 17},
+        {"nombre": "Raul Jimenez", "posicion": "FW", "club": "Fulham FC", "valor_m": 12, "edad": 34},
+        {"nombre": "Alexis Vega", "posicion": "FW", "club": "Deportivo Toluca", "valor_m": 5, "edad": 27},
+        {"nombre": "Santiago Gimenez", "posicion": "FW", "club": "AC Milan", "valor_m": 45, "edad": 24},
+        {"nombre": "Armando Gonzalez", "posicion": "FW", "club": "CD Guadalajara", "valor_m": 4, "edad": 22},
+        {"nombre": "Julian Quinones", "posicion": "FW", "club": "Al Qadsiah FC", "valor_m": 4, "edad": 28},
+        {"nombre": "Roberto Alvarado", "posicion": "FW", "club": "CD Guadalajara", "valor_m": 6, "edad": 26},
+        {"nombre": "Cesar Huerta", "posicion": "FW", "club": "RSC Anderlecht", "valor_m": 6, "edad": 24},
+        {"nombre": "Guillermo Martinez", "posicion": "FW", "club": "Pumas UNAM", "valor_m": 2, "edad": 30},
     ],
     "Ecuador": [
-        {
-            "nombre": "Hernan Galindez",
-            "posicion": "GK",
-            "club": "CA Huracan",
-            "valor_m": 2,
-            "edad": 38
-        },
-        {
-            "nombre": "Moises Ramirez",
-            "posicion": "GK",
-            "club": "AE Kisia FC",
-            "valor_m": 1,
-            "edad": 25
-        },
-        {
-            "nombre": "Gonzalo Valle",
-            "posicion": "GK",
-            "club": "LDU Quito",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Felix Torres",
-            "posicion": "DF",
-            "club": "SC Internacional",
-            "valor_m": 12,
-            "edad": 28
-        },
-        {
-            "nombre": "Piero Hincapie",
-            "posicion": "DF",
-            "club": "Arsenal FC",
-            "valor_m": 45,
-            "edad": 23
-        },
-        {
-            "nombre": "Joel Ordonez",
-            "posicion": "DF",
-            "club": "Club Brugge",
-            "valor_m": 15,
-            "edad": 21
-        },
-        {
-            "nombre": "Willian Pacho",
-            "posicion": "DF",
-            "club": "PSG",
-            "valor_m": 40,
-            "edad": 23
-        },
-        {
-            "nombre": "Pervis Estupinan",
-            "posicion": "DF",
-            "club": "AC Milan",
-            "valor_m": 30,
-            "edad": 27
-        },
-        {
-            "nombre": "Angelo Preciado",
-            "posicion": "DF",
-            "club": "Atletico Mineiro",
-            "valor_m": 5,
-            "edad": 27
-        },
-        {
-            "nombre": "Jackson Porozo",
-            "posicion": "DF",
-            "club": "Club Tijuana",
-            "valor_m": 3,
-            "edad": 25
-        },
-        {
-            "nombre": "Yaimar Medina",
-            "posicion": "DF",
-            "club": "KRC Genk",
-            "valor_m": 3,
-            "edad": 21
-        },
-        {
-            "nombre": "Jordy Alcivar",
-            "posicion": "MF",
-            "club": "Independiente del Valle",
-            "valor_m": 4,
-            "edad": 26
-        },
-        {
-            "nombre": "Anthony Valencia",
-            "posicion": "MF",
-            "club": "Royal Antwerp FC",
-            "valor_m": 6,
-            "edad": 22
-        },
-        {
-            "nombre": "Kendry Paez",
-            "posicion": "MF",
-            "club": "River Plate",
-            "valor_m": 25,
-            "edad": 18
-        },
-        {
-            "nombre": "Alan Franco",
-            "posicion": "MF",
-            "club": "Atletico Mineiro",
-            "valor_m": 6,
-            "edad": 27
-        },
-        {
-            "nombre": "Alan Minda",
-            "posicion": "MF",
-            "club": "Atletico Mineiro",
-            "valor_m": 4,
-            "edad": 22
-        },
-        {
-            "nombre": "Denil Castillo",
-            "posicion": "MF",
-            "club": "FC Midtjylland",
-            "valor_m": 5,
-            "edad": 21
-        },
-        {
-            "nombre": "Pedro Vite",
-            "posicion": "MF",
-            "club": "Pumas UNAM",
-            "valor_m": 3,
-            "edad": 23
-        },
-        {
-            "nombre": "Moises Caicedo",
-            "posicion": "MF",
-            "club": "Chelsea FC",
-            "valor_m": 100,
-            "edad": 23
-        },
-        {
-            "nombre": "Enner Valencia",
-            "posicion": "FW",
-            "club": "CF Pachuca",
-            "valor_m": 3,
-            "edad": 36
-        },
-        {
-            "nombre": "Gonzalo Plata",
-            "posicion": "FW",
-            "club": "Flamengo",
-            "valor_m": 18,
-            "edad": 24
-        },
-        {
-            "nombre": "Kevin Rodriguez",
-            "posicion": "FW",
-            "club": "Royale Union Saint-Gilloise",
-            "valor_m": 10,
-            "edad": 25
-        },
-        {
-            "nombre": "John Yeboah",
-            "posicion": "FW",
-            "club": "Venezia FC",
-            "valor_m": 5,
-            "edad": 25
-        },
-        {
-            "nombre": "Jordy Caicedo",
-            "posicion": "FW",
-            "club": "CA Huracan",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Nilson Angulo",
-            "posicion": "FW",
-            "club": "Sunderland AFC",
-            "valor_m": 5,
-            "edad": 22
-        },
-        {
-            "nombre": "Jeremy Arevalo",
-            "posicion": "FW",
-            "club": "VfB Stuttgart",
-            "valor_m": 5,
-            "edad": 20
-        }
+        {"nombre": "Hernan Galindez", "posicion": "GK", "club": "CA Huracan", "valor_m": 2, "edad": 38},
+        {"nombre": "Moises Ramirez", "posicion": "GK", "club": "AE Kisia FC", "valor_m": 1, "edad": 25},
+        {"nombre": "Gonzalo Valle", "posicion": "GK", "club": "LDU Quito", "valor_m": 1, "edad": 29},
+        {"nombre": "Felix Torres", "posicion": "DF", "club": "SC Internacional", "valor_m": 12, "edad": 28},
+        {"nombre": "Piero Hincapie", "posicion": "DF", "club": "Arsenal FC", "valor_m": 45, "edad": 23},
+        {"nombre": "Joel Ordonez", "posicion": "DF", "club": "Club Brugge", "valor_m": 15, "edad": 21},
+        {"nombre": "Willian Pacho", "posicion": "DF", "club": "PSG", "valor_m": 40, "edad": 23},
+        {"nombre": "Pervis Estupinan", "posicion": "DF", "club": "AC Milan", "valor_m": 30, "edad": 27},
+        {"nombre": "Angelo Preciado", "posicion": "DF", "club": "Atletico Mineiro", "valor_m": 5, "edad": 27},
+        {"nombre": "Jackson Porozo", "posicion": "DF", "club": "Club Tijuana", "valor_m": 3, "edad": 25},
+        {"nombre": "Yaimar Medina", "posicion": "DF", "club": "KRC Genk", "valor_m": 3, "edad": 21},
+        {"nombre": "Jordy Alcivar", "posicion": "MF", "club": "Independiente del Valle", "valor_m": 4, "edad": 26},
+        {"nombre": "Anthony Valencia", "posicion": "MF", "club": "Royal Antwerp FC", "valor_m": 6, "edad": 22},
+        {"nombre": "Kendry Paez", "posicion": "MF", "club": "River Plate", "valor_m": 25, "edad": 18},
+        {"nombre": "Alan Franco", "posicion": "MF", "club": "Atletico Mineiro", "valor_m": 6, "edad": 27},
+        {"nombre": "Alan Minda", "posicion": "MF", "club": "Atletico Mineiro", "valor_m": 4, "edad": 22},
+        {"nombre": "Denil Castillo", "posicion": "MF", "club": "FC Midtjylland", "valor_m": 5, "edad": 21},
+        {"nombre": "Pedro Vite", "posicion": "MF", "club": "Pumas UNAM", "valor_m": 3, "edad": 23},
+        {"nombre": "Moises Caicedo", "posicion": "MF", "club": "Chelsea FC", "valor_m": 100, "edad": 23},
+        {"nombre": "Enner Valencia", "posicion": "FW", "club": "CF Pachuca", "valor_m": 3, "edad": 36},
+        {"nombre": "Gonzalo Plata", "posicion": "FW", "club": "Flamengo", "valor_m": 18, "edad": 24},
+        {"nombre": "Kevin Rodriguez", "posicion": "FW", "club": "Royale Union Saint-Gilloise", "valor_m": 10, "edad": 25},
+        {"nombre": "John Yeboah", "posicion": "FW", "club": "Venezia FC", "valor_m": 5, "edad": 25},
+        {"nombre": "Jordy Caicedo", "posicion": "FW", "club": "CA Huracan", "valor_m": 2, "edad": 27},
+        {"nombre": "Nilson Angulo", "posicion": "FW", "club": "Sunderland AFC", "valor_m": 5, "edad": 22},
+        {"nombre": "Jeremy Arevalo", "posicion": "FW", "club": "VfB Stuttgart", "valor_m": 5, "edad": 20},
     ],
     "Canada": [
-        {
-            "nombre": "Dayne St. Clair",
-            "posicion": "GK",
-            "club": "Inter Miami",
-            "valor_m": 8,
-            "edad": 28
-        },
-        {
-            "nombre": "Maxime Crepeau",
-            "posicion": "GK",
-            "club": "Orlando City",
-            "valor_m": 4,
-            "edad": 31
-        },
-        {
-            "nombre": "Owen Goodman",
-            "posicion": "GK",
-            "club": "Barnsley",
-            "valor_m": 2,
-            "edad": 22
-        },
-        {
-            "nombre": "Alphonso Davies",
-            "posicion": "DF",
-            "club": "Bayern Munich",
-            "valor_m": 70,
-            "edad": 25
-        },
-        {
-            "nombre": "Alistair Johnston",
-            "posicion": "DF",
-            "club": "Celtic FC",
-            "valor_m": 12,
-            "edad": 27
-        },
-        {
-            "nombre": "Ale Jones",
-            "posicion": "DF",
-            "club": "Middlesbrough",
-            "valor_m": 5,
-            "edad": 28
-        },
-        {
-            "nombre": "Luc De Fougerolles",
-            "posicion": "DF",
-            "club": "FCV Dender EH",
-            "valor_m": 3,
-            "edad": 20
-        },
-        {
-            "nombre": "Joel Waterman",
-            "posicion": "DF",
-            "club": "Chicago Fire",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Derek Cornelius",
-            "posicion": "DF",
-            "club": "Rangers FC",
-            "valor_m": 5,
-            "edad": 28
-        },
-        {
-            "nombre": "Moise Bombito",
-            "posicion": "DF",
-            "club": "OGC Nice",
-            "valor_m": 15,
-            "edad": 25
-        },
-        {
-            "nombre": "Richie Laryea",
-            "posicion": "DF",
-            "club": "Toronto FC",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Niko Sigur",
-            "posicion": "DF",
-            "club": "HNK Hajduk Split",
-            "valor_m": 2,
-            "edad": 22
-        },
-        {
-            "nombre": "Stephen Eustaquio",
-            "posicion": "MF",
-            "club": "LAFC",
-            "valor_m": 18,
-            "edad": 29
-        },
-        {
-            "nombre": "Mathieu Choiniere",
-            "posicion": "MF",
-            "club": "LAFC",
-            "valor_m": 4,
-            "edad": 26
-        },
-        {
-            "nombre": "Ismael Kone",
-            "posicion": "MF",
-            "club": "US Sassuolo",
-            "valor_m": 18,
-            "edad": 23
-        },
-        {
-            "nombre": "Jacob Shaffelburg",
-            "posicion": "MF",
-            "club": "LAFC",
-            "valor_m": 4,
-            "edad": 26
-        },
-        {
-            "nombre": "Jonathan Osorio",
-            "posicion": "MF",
-            "club": "Toronto FC",
-            "valor_m": 2,
-            "edad": 33
-        },
-        {
-            "nombre": "Liam Millar",
-            "posicion": "MF",
-            "club": "Hull City",
-            "valor_m": 4,
-            "edad": 26
-        },
-        {
-            "nombre": "Marcelo Flores",
-            "posicion": "MF",
-            "club": "Tigres UANL",
-            "valor_m": 4,
-            "edad": 22
-        },
-        {
-            "nombre": "Nathan Saliba",
-            "posicion": "MF",
-            "club": "RSC Anderlecht",
-            "valor_m": 3,
-            "edad": 21
-        },
-        {
-            "nombre": "Jonathan David",
-            "posicion": "FW",
-            "club": "Juventus",
-            "valor_m": 65,
-            "edad": 25
-        },
-        {
-            "nombre": "Cyle Larin",
-            "posicion": "FW",
-            "club": "Southampton",
-            "valor_m": 6,
-            "edad": 30
-        },
-        {
-            "nombre": "Tajon Buchanan",
-            "posicion": "FW",
-            "club": "Villarreal CF",
-            "valor_m": 18,
-            "edad": 26
-        },
-        {
-            "nombre": "Tani Oluwaseyi",
-            "posicion": "FW",
-            "club": "Villarreal CF",
-            "valor_m": 8,
-            "edad": 25
-        },
-        {
-            "nombre": "Ali Ahmed",
-            "posicion": "FW",
-            "club": "Norwich City",
-            "valor_m": 4,
-            "edad": 25
-        },
-        {
-            "nombre": "Promise David",
-            "posicion": "FW",
-            "club": "Royale Union Saint-Gilloise",
-            "valor_m": 4,
-            "edad": 24
-        }
+        {"nombre": "Dayne St. Clair", "posicion": "GK", "club": "Inter Miami", "valor_m": 8, "edad": 28},
+        {"nombre": "Maxime Crepeau", "posicion": "GK", "club": "Orlando City", "valor_m": 4, "edad": 31},
+        {"nombre": "Owen Goodman", "posicion": "GK", "club": "Barnsley", "valor_m": 2, "edad": 22},
+        {"nombre": "Alphonso Davies", "posicion": "DF", "club": "Bayern Munich", "valor_m": 70, "edad": 25},
+        {"nombre": "Alistair Johnston", "posicion": "DF", "club": "Celtic FC", "valor_m": 12, "edad": 27},
+        {"nombre": "Ale Jones", "posicion": "DF", "club": "Middlesbrough", "valor_m": 5, "edad": 28},
+        {"nombre": "Luc De Fougerolles", "posicion": "DF", "club": "FCV Dender EH", "valor_m": 3, "edad": 20},
+        {"nombre": "Joel Waterman", "posicion": "DF", "club": "Chicago Fire", "valor_m": 2, "edad": 29},
+        {"nombre": "Derek Cornelius", "posicion": "DF", "club": "Rangers FC", "valor_m": 5, "edad": 28},
+        {"nombre": "Moise Bombito", "posicion": "DF", "club": "OGC Nice", "valor_m": 15, "edad": 25},
+        {"nombre": "Richie Laryea", "posicion": "DF", "club": "Toronto FC", "valor_m": 2, "edad": 30},
+        {"nombre": "Niko Sigur", "posicion": "DF", "club": "HNK Hajduk Split", "valor_m": 2, "edad": 22},
+        {"nombre": "Stephen Eustaquio", "posicion": "MF", "club": "LAFC", "valor_m": 18, "edad": 29},
+        {"nombre": "Mathieu Choiniere", "posicion": "MF", "club": "LAFC", "valor_m": 4, "edad": 26},
+        {"nombre": "Ismael Kone", "posicion": "MF", "club": "US Sassuolo", "valor_m": 18, "edad": 23},
+        {"nombre": "Jacob Shaffelburg", "posicion": "MF", "club": "LAFC", "valor_m": 4, "edad": 26},
+        {"nombre": "Jonathan Osorio", "posicion": "MF", "club": "Toronto FC", "valor_m": 2, "edad": 33},
+        {"nombre": "Liam Millar", "posicion": "MF", "club": "Hull City", "valor_m": 4, "edad": 26},
+        {"nombre": "Marcelo Flores", "posicion": "MF", "club": "Tigres UANL", "valor_m": 4, "edad": 22},
+        {"nombre": "Nathan Saliba", "posicion": "MF", "club": "RSC Anderlecht", "valor_m": 3, "edad": 21},
+        {"nombre": "Jonathan David", "posicion": "FW", "club": "Juventus", "valor_m": 65, "edad": 25},
+        {"nombre": "Cyle Larin", "posicion": "FW", "club": "Southampton", "valor_m": 6, "edad": 30},
+        {"nombre": "Tajon Buchanan", "posicion": "FW", "club": "Villarreal CF", "valor_m": 18, "edad": 26},
+        {"nombre": "Tani Oluwaseyi", "posicion": "FW", "club": "Villarreal CF", "valor_m": 8, "edad": 25},
+        {"nombre": "Ali Ahmed", "posicion": "FW", "club": "Norwich City", "valor_m": 4, "edad": 25},
+        {"nombre": "Promise David", "posicion": "FW", "club": "Royale Union Saint-Gilloise", "valor_m": 4, "edad": 24},
     ],
     "Senegal": [
-        {
-            "nombre": "Edouard Mendy",
-            "posicion": "GK",
-            "club": "Al Ahli FC",
-            "valor_m": 6,
-            "edad": 33
-        },
-        {
-            "nombre": "Yehvann Diouf",
-            "posicion": "GK",
-            "club": "OGC Nice",
-            "valor_m": 8,
-            "edad": 25
-        },
-        {
-            "nombre": "Mory Diaw",
-            "posicion": "GK",
-            "club": "Le Havre AC",
-            "valor_m": 2,
-            "edad": 32
-        },
-        {
-            "nombre": "Kalidou Koulibaly",
-            "posicion": "DF",
-            "club": "Al Hilal SC",
-            "valor_m": 10,
-            "edad": 34
-        },
-        {
-            "nombre": "Mamadou Sarr",
-            "posicion": "DF",
-            "club": "Chelsea FC",
-            "valor_m": 18,
-            "edad": 20
-        },
-        {
-            "nombre": "Abdoulaye Seck",
-            "posicion": "DF",
-            "club": "Maccabi Haifa",
-            "valor_m": 2,
-            "edad": 33
-        },
-        {
-            "nombre": "Moussa Niakhate",
-            "posicion": "DF",
-            "club": "Olympique Lyon",
-            "valor_m": 12,
-            "edad": 29
-        },
-        {
-            "nombre": "Ismail Jakobs",
-            "posicion": "DF",
-            "club": "Galatasaray SK",
-            "valor_m": 12,
-            "edad": 25
-        },
-        {
-            "nombre": "Antoine Mendy",
-            "posicion": "DF",
-            "club": "OGC Nice",
-            "valor_m": 5,
-            "edad": 21
-        },
-        {
-            "nombre": "El Hadji Malick Diouf",
-            "posicion": "DF",
-            "club": "West Ham United",
-            "valor_m": 12,
-            "edad": 21
-        },
-        {
-            "nombre": "Krepin Diatta",
-            "posicion": "DF",
-            "club": "AS Monaco",
-            "valor_m": 12,
-            "edad": 26
-        },
-        {
-            "nombre": "Idrissa Gueye",
-            "posicion": "MF",
-            "club": "Everton FC",
-            "valor_m": 4,
-            "edad": 35
-        },
-        {
-            "nombre": "Pathe Ciss",
-            "posicion": "MF",
-            "club": "Rayo Vallecano",
-            "valor_m": 4,
-            "edad": 31
-        },
-        {
-            "nombre": "Lamine Camara",
-            "posicion": "MF",
-            "club": "AS Monaco",
-            "valor_m": 35,
-            "edad": 21
-        },
-        {
-            "nombre": "Pape Matar Sarr",
-            "posicion": "MF",
-            "club": "Tottenham",
-            "valor_m": 35,
-            "edad": 22
-        },
-        {
-            "nombre": "Habib Diarra",
-            "posicion": "MF",
-            "club": "Sunderland AFC",
-            "valor_m": 8,
-            "edad": 21
-        },
-        {
-            "nombre": "Pape Gueye",
-            "posicion": "MF",
-            "club": "Villarreal CF",
-            "valor_m": 6,
-            "edad": 26
-        },
-        {
-            "nombre": "Bara Ndiaye",
-            "posicion": "MF",
-            "club": "Bayern Munich",
-            "valor_m": 5,
-            "edad": 18
-        },
-        {
-            "nombre": "Sadio Mane",
-            "posicion": "FW",
-            "club": "Al Nassr FC",
-            "valor_m": 8,
-            "edad": 33
-        },
-        {
-            "nombre": "Nicolas Jackson",
-            "posicion": "FW",
-            "club": "Bayern Munich",
-            "valor_m": 60,
-            "edad": 24
-        },
-        {
-            "nombre": "Ismaila Sarr",
-            "posicion": "FW",
-            "club": "Crystal Palace",
-            "valor_m": 22,
-            "edad": 27
-        },
-        {
-            "nombre": "Iliman Ndiaye",
-            "posicion": "FW",
-            "club": "Everton FC",
-            "valor_m": 18,
-            "edad": 25
-        },
-        {
-            "nombre": "Bamba Dieng",
-            "posicion": "FW",
-            "club": "FC Lorient",
-            "valor_m": 6,
-            "edad": 24
-        },
-        {
-            "nombre": "Assane Diao",
-            "posicion": "FW",
-            "club": "Como",
-            "valor_m": 18,
-            "edad": 20
-        },
-        {
-            "nombre": "Cherif Ndiaye",
-            "posicion": "FW",
-            "club": "Samsunspor",
-            "valor_m": 3,
-            "edad": 29
-        },
-        {
-            "nombre": "Ibrahim Mbaye",
-            "posicion": "FW",
-            "club": "PSG",
-            "valor_m": 5,
-            "edad": 17
-        }
+        {"nombre": "Edouard Mendy", "posicion": "GK", "club": "Al Ahli FC", "valor_m": 6, "edad": 33},
+        {"nombre": "Yehvann Diouf", "posicion": "GK", "club": "OGC Nice", "valor_m": 8, "edad": 25},
+        {"nombre": "Mory Diaw", "posicion": "GK", "club": "Le Havre AC", "valor_m": 2, "edad": 32},
+        {"nombre": "Kalidou Koulibaly", "posicion": "DF", "club": "Al Hilal SC", "valor_m": 10, "edad": 34},
+        {"nombre": "Mamadou Sarr", "posicion": "DF", "club": "Chelsea FC", "valor_m": 18, "edad": 20},
+        {"nombre": "Abdoulaye Seck", "posicion": "DF", "club": "Maccabi Haifa", "valor_m": 2, "edad": 33},
+        {"nombre": "Moussa Niakhate", "posicion": "DF", "club": "Olympique Lyon", "valor_m": 12, "edad": 29},
+        {"nombre": "Ismail Jakobs", "posicion": "DF", "club": "Galatasaray SK", "valor_m": 12, "edad": 25},
+        {"nombre": "Antoine Mendy", "posicion": "DF", "club": "OGC Nice", "valor_m": 5, "edad": 21},
+        {"nombre": "El Hadji Malick Diouf", "posicion": "DF", "club": "West Ham United", "valor_m": 12, "edad": 21},
+        {"nombre": "Krepin Diatta", "posicion": "DF", "club": "AS Monaco", "valor_m": 12, "edad": 26},
+        {"nombre": "Idrissa Gueye", "posicion": "MF", "club": "Everton FC", "valor_m": 4, "edad": 35},
+        {"nombre": "Pathe Ciss", "posicion": "MF", "club": "Rayo Vallecano", "valor_m": 4, "edad": 31},
+        {"nombre": "Lamine Camara", "posicion": "MF", "club": "AS Monaco", "valor_m": 35, "edad": 21},
+        {"nombre": "Pape Matar Sarr", "posicion": "MF", "club": "Tottenham", "valor_m": 35, "edad": 22},
+        {"nombre": "Habib Diarra", "posicion": "MF", "club": "Sunderland AFC", "valor_m": 8, "edad": 21},
+        {"nombre": "Pape Gueye", "posicion": "MF", "club": "Villarreal CF", "valor_m": 6, "edad": 26},
+        {"nombre": "Bara Ndiaye", "posicion": "MF", "club": "Bayern Munich", "valor_m": 5, "edad": 18},
+        {"nombre": "Sadio Mane", "posicion": "FW", "club": "Al Nassr FC", "valor_m": 8, "edad": 33},
+        {"nombre": "Nicolas Jackson", "posicion": "FW", "club": "Bayern Munich", "valor_m": 60, "edad": 24},
+        {"nombre": "Ismaila Sarr", "posicion": "FW", "club": "Crystal Palace", "valor_m": 22, "edad": 27},
+        {"nombre": "Iliman Ndiaye", "posicion": "FW", "club": "Everton FC", "valor_m": 18, "edad": 25},
+        {"nombre": "Bamba Dieng", "posicion": "FW", "club": "FC Lorient", "valor_m": 6, "edad": 24},
+        {"nombre": "Assane Diao", "posicion": "FW", "club": "Como", "valor_m": 18, "edad": 20},
+        {"nombre": "Cherif Ndiaye", "posicion": "FW", "club": "Samsunspor", "valor_m": 3, "edad": 29},
+        {"nombre": "Ibrahim Mbaye", "posicion": "FW", "club": "PSG", "valor_m": 5, "edad": 17},
     ],
     "Australia": [
-        {
-            "nombre": "Mathew Ryan",
-            "posicion": "GK",
-            "club": "Levante UD",
-            "valor_m": 4,
-            "edad": 33
-        },
-        {
-            "nombre": "Paul Izzo",
-            "posicion": "GK",
-            "club": "Randers FC",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Patrick Beach",
-            "posicion": "GK",
-            "club": "Melbourne City",
-            "valor_m": 1,
-            "edad": 22
-        },
-        {
-            "nombre": "Milos Degenek",
-            "posicion": "DF",
-            "club": "APOEL FC",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Alessandro Circati",
-            "posicion": "DF",
-            "club": "Parma",
-            "valor_m": 5,
-            "edad": 22
-        },
-        {
-            "nombre": "Jacob Italiano",
-            "posicion": "DF",
-            "club": "Grazer AK",
-            "valor_m": 2,
-            "edad": 24
-        },
-        {
-            "nombre": "Jordan Bos",
-            "posicion": "DF",
-            "club": "Feyenoord Rotterdam",
-            "valor_m": 5,
-            "edad": 23
-        },
-        {
-            "nombre": "Jason Geria",
-            "posicion": "DF",
-            "club": "Albirex Niigata",
-            "valor_m": 1,
-            "edad": 32
-        },
-        {
-            "nombre": "Harry Souttar",
-            "posicion": "DF",
-            "club": "Leicester City",
-            "valor_m": 8,
-            "edad": 27
-        },
-        {
-            "nombre": "Cameron Burgess",
-            "posicion": "DF",
-            "club": "Swansea City",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Kai Trewin",
-            "posicion": "DF",
-            "club": "New York City",
-            "valor_m": 2,
-            "edad": 24
-        },
-        {
-            "nombre": "Aziz Behich",
-            "posicion": "DF",
-            "club": "Melbourne City",
-            "valor_m": 1,
-            "edad": 34
-        },
-        {
-            "nombre": "Lucas Herrington",
-            "posicion": "DF",
-            "club": "Colorado Rapids",
-            "valor_m": 1,
-            "edad": 18
-        },
-        {
-            "nombre": "Jackson Irvine",
-            "posicion": "MF",
-            "club": "FC St. Pauli",
-            "valor_m": 4,
-            "edad": 32
-        },
-        {
-            "nombre": "Connor Metcalfe",
-            "posicion": "MF",
-            "club": "FC St. Pauli",
-            "valor_m": 4,
-            "edad": 26
-        },
-        {
-            "nombre": "Aiden ONeill",
-            "posicion": "MF",
-            "club": "New York City",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Cameron Devlin",
-            "posicion": "MF",
-            "club": "Heart of Midlothian",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Paul Okon-Engstler",
-            "posicion": "MF",
-            "club": "Sydney FC",
-            "valor_m": 1,
-            "edad": 21
-        },
-        {
-            "nombre": "Mathew Leckie",
-            "posicion": "FW",
-            "club": "Melbourne City",
-            "valor_m": 2,
-            "edad": 34
-        },
-        {
-            "nombre": "Nestory Irankunda",
-            "posicion": "FW",
-            "club": "Watford",
-            "valor_m": 15,
-            "edad": 19
-        },
-        {
-            "nombre": "Mohamed Toure",
-            "posicion": "FW",
-            "club": "Norwich City",
-            "valor_m": 4,
-            "edad": 21
-        },
-        {
-            "nombre": "Ajdin Hrustic",
-            "posicion": "FW",
-            "club": "SC Heracles Almelo",
-            "valor_m": 3,
-            "edad": 29
-        },
-        {
-            "nombre": "Awer Mabil",
-            "posicion": "FW",
-            "club": "CD Castellon",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Cristian Volpato",
-            "posicion": "FW",
-            "club": "US Sassuolo",
-            "valor_m": 6,
-            "edad": 22
-        },
-        {
-            "nombre": "Nishan Velupillay",
-            "posicion": "FW",
-            "club": "Melbourne Victory",
-            "valor_m": 1,
-            "edad": 24
-        },
-        {
-            "nombre": "Tete Yengi",
-            "posicion": "FW",
-            "club": "FC Machida Zelvia",
-            "valor_m": 2,
-            "edad": 25
-        }
+        {"nombre": "Mathew Ryan", "posicion": "GK", "club": "Levante UD", "valor_m": 4, "edad": 33},
+        {"nombre": "Paul Izzo", "posicion": "GK", "club": "Randers FC", "valor_m": 2, "edad": 30},
+        {"nombre": "Patrick Beach", "posicion": "GK", "club": "Melbourne City", "valor_m": 1, "edad": 22},
+        {"nombre": "Milos Degenek", "posicion": "DF", "club": "APOEL FC", "valor_m": 2, "edad": 31},
+        {"nombre": "Alessandro Circati", "posicion": "DF", "club": "Parma", "valor_m": 5, "edad": 22},
+        {"nombre": "Jacob Italiano", "posicion": "DF", "club": "Grazer AK", "valor_m": 2, "edad": 24},
+        {"nombre": "Jordan Bos", "posicion": "DF", "club": "Feyenoord Rotterdam", "valor_m": 5, "edad": 23},
+        {"nombre": "Jason Geria", "posicion": "DF", "club": "Albirex Niigata", "valor_m": 1, "edad": 32},
+        {"nombre": "Harry Souttar", "posicion": "DF", "club": "Leicester City", "valor_m": 8, "edad": 27},
+        {"nombre": "Cameron Burgess", "posicion": "DF", "club": "Swansea City", "valor_m": 2, "edad": 30},
+        {"nombre": "Kai Trewin", "posicion": "DF", "club": "New York City", "valor_m": 2, "edad": 24},
+        {"nombre": "Aziz Behich", "posicion": "DF", "club": "Melbourne City", "valor_m": 1, "edad": 34},
+        {"nombre": "Lucas Herrington", "posicion": "DF", "club": "Colorado Rapids", "valor_m": 1, "edad": 18},
+        {"nombre": "Jackson Irvine", "posicion": "MF", "club": "FC St. Pauli", "valor_m": 4, "edad": 32},
+        {"nombre": "Connor Metcalfe", "posicion": "MF", "club": "FC St. Pauli", "valor_m": 4, "edad": 26},
+        {"nombre": "Aiden ONeill", "posicion": "MF", "club": "New York City", "valor_m": 2, "edad": 27},
+        {"nombre": "Cameron Devlin", "posicion": "MF", "club": "Heart of Midlothian", "valor_m": 2, "edad": 27},
+        {"nombre": "Paul Okon-Engstler", "posicion": "MF", "club": "Sydney FC", "valor_m": 1, "edad": 21},
+        {"nombre": "Mathew Leckie", "posicion": "FW", "club": "Melbourne City", "valor_m": 2, "edad": 34},
+        {"nombre": "Nestory Irankunda", "posicion": "FW", "club": "Watford", "valor_m": 15, "edad": 19},
+        {"nombre": "Mohamed Toure", "posicion": "FW", "club": "Norwich City", "valor_m": 4, "edad": 21},
+        {"nombre": "Ajdin Hrustic", "posicion": "FW", "club": "SC Heracles Almelo", "valor_m": 3, "edad": 29},
+        {"nombre": "Awer Mabil", "posicion": "FW", "club": "CD Castellon", "valor_m": 2, "edad": 30},
+        {"nombre": "Cristian Volpato", "posicion": "FW", "club": "US Sassuolo", "valor_m": 6, "edad": 22},
+        {"nombre": "Nishan Velupillay", "posicion": "FW", "club": "Melbourne Victory", "valor_m": 1, "edad": 24},
+        {"nombre": "Tete Yengi", "posicion": "FW", "club": "FC Machida Zelvia", "valor_m": 2, "edad": 25},
     ],
     "South Korea": [
-        {
-            "nombre": "Kim Seunggyu",
-            "posicion": "GK",
-            "club": "FC Tokyo",
-            "valor_m": 2,
-            "edad": 35
-        },
-        {
-            "nombre": "Song Bumkeun",
-            "posicion": "GK",
-            "club": "Jeonbuk Hyundai Motors",
-            "valor_m": 1,
-            "edad": 28
-        },
-        {
-            "nombre": "Jo Hyeonwoo",
-            "posicion": "GK",
-            "club": "Ulsan HD",
-            "valor_m": 2,
-            "edad": 34
-        },
-        {
-            "nombre": "Kim Minjae",
-            "posicion": "DF",
-            "club": "Bayern Munich",
-            "valor_m": 50,
-            "edad": 28
-        },
-        {
-            "nombre": "Lee Hanbeom",
-            "posicion": "DF",
-            "club": "FC Midtjylland",
-            "valor_m": 4,
-            "edad": 23
-        },
-        {
-            "nombre": "Kim Taehyeon",
-            "posicion": "DF",
-            "club": "Kashima Antlers",
-            "valor_m": 3,
-            "edad": 25
-        },
-        {
-            "nombre": "Park Jinseob",
-            "posicion": "DF",
-            "club": "Zhejiang FC",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Lee Taeseok",
-            "posicion": "DF",
-            "club": "FK Austria Wien",
-            "valor_m": 4,
-            "edad": 23
-        },
-        {
-            "nombre": "Cho Wije",
-            "posicion": "DF",
-            "club": "Jeonbuk Hyundai Motors",
-            "valor_m": 2,
-            "edad": 24
-        },
-        {
-            "nombre": "Kim Moonhwan",
-            "posicion": "DF",
-            "club": "Daejeon Hana Citizen",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Seol Youngwoo",
-            "posicion": "DF",
-            "club": "FK Crvena Zvezda",
-            "valor_m": 3,
-            "edad": 27
-        },
-        {
-            "nombre": "Jens Castrop",
-            "posicion": "DF",
-            "club": "Borussia Monchengladbach",
-            "valor_m": 4,
-            "edad": 22
-        },
-        {
-            "nombre": "Hwang Inbeom",
-            "posicion": "MF",
-            "club": "Feyenoord Rotterdam",
-            "valor_m": 12,
-            "edad": 29
-        },
-        {
-            "nombre": "Paik Seungho",
-            "posicion": "MF",
-            "club": "Birmingham City",
-            "valor_m": 4,
-            "edad": 28
-        },
-        {
-            "nombre": "Lee Jaesung",
-            "posicion": "MF",
-            "club": "Mainz",
-            "valor_m": 6,
-            "edad": 33
-        },
-        {
-            "nombre": "Bae Junho",
-            "posicion": "MF",
-            "club": "Stoke City",
-            "valor_m": 4,
-            "edad": 22
-        },
-        {
-            "nombre": "Lee Kangin",
-            "posicion": "MF",
-            "club": "PSG",
-            "valor_m": 35,
-            "edad": 24
-        },
-        {
-            "nombre": "Lee Gihyuk",
-            "posicion": "MF",
-            "club": "Gangwon FC",
-            "valor_m": 3,
-            "edad": 25
-        },
-        {
-            "nombre": "Kim Jingyu",
-            "posicion": "MF",
-            "club": "Jeonbuk Hyundai Motors",
-            "valor_m": 2,
-            "edad": 28
-        },
-        {
-            "nombre": "Lee Donggyeong",
-            "posicion": "MF",
-            "club": "Ulsan HD",
-            "valor_m": 3,
-            "edad": 28
-        },
-        {
-            "nombre": "Eom Jisung",
-            "posicion": "MF",
-            "club": "Swansea City",
-            "valor_m": 2,
-            "edad": 23
-        },
-        {
-            "nombre": "Son Heungmin",
-            "posicion": "FW",
-            "club": "LAFC",
-            "valor_m": 20,
-            "edad": 33
-        },
-        {
-            "nombre": "Hwang Heechan",
-            "posicion": "FW",
-            "club": "Wolverhampton",
-            "valor_m": 18,
-            "edad": 29
-        },
-        {
-            "nombre": "Cho Guesung",
-            "posicion": "FW",
-            "club": "FC Midtjylland",
-            "valor_m": 6,
-            "edad": 27
-        },
-        {
-            "nombre": "Oh Hyeongyu",
-            "posicion": "FW",
-            "club": "Besiktas JK",
-            "valor_m": 6,
-            "edad": 24
-        },
-        {
-            "nombre": "Yang Hyunjun",
-            "posicion": "FW",
-            "club": "Celtic FC",
-            "valor_m": 6,
-            "edad": 23
-        }
+        {"nombre": "Kim Seunggyu", "posicion": "GK", "club": "FC Tokyo", "valor_m": 2, "edad": 35},
+        {"nombre": "Song Bumkeun", "posicion": "GK", "club": "Jeonbuk Hyundai Motors", "valor_m": 1, "edad": 28},
+        {"nombre": "Jo Hyeonwoo", "posicion": "GK", "club": "Ulsan HD", "valor_m": 2, "edad": 34},
+        {"nombre": "Kim Minjae", "posicion": "DF", "club": "Bayern Munich", "valor_m": 50, "edad": 28},
+        {"nombre": "Lee Hanbeom", "posicion": "DF", "club": "FC Midtjylland", "valor_m": 4, "edad": 23},
+        {"nombre": "Kim Taehyeon", "posicion": "DF", "club": "Kashima Antlers", "valor_m": 3, "edad": 25},
+        {"nombre": "Park Jinseob", "posicion": "DF", "club": "Zhejiang FC", "valor_m": 2, "edad": 30},
+        {"nombre": "Lee Taeseok", "posicion": "DF", "club": "FK Austria Wien", "valor_m": 4, "edad": 23},
+        {"nombre": "Cho Wije", "posicion": "DF", "club": "Jeonbuk Hyundai Motors", "valor_m": 2, "edad": 24},
+        {"nombre": "Kim Moonhwan", "posicion": "DF", "club": "Daejeon Hana Citizen", "valor_m": 2, "edad": 30},
+        {"nombre": "Seol Youngwoo", "posicion": "DF", "club": "FK Crvena Zvezda", "valor_m": 3, "edad": 27},
+        {"nombre": "Jens Castrop", "posicion": "DF", "club": "Borussia Monchengladbach", "valor_m": 4, "edad": 22},
+        {"nombre": "Hwang Inbeom", "posicion": "MF", "club": "Feyenoord Rotterdam", "valor_m": 12, "edad": 29},
+        {"nombre": "Paik Seungho", "posicion": "MF", "club": "Birmingham City", "valor_m": 4, "edad": 28},
+        {"nombre": "Lee Jaesung", "posicion": "MF", "club": "Mainz", "valor_m": 6, "edad": 33},
+        {"nombre": "Bae Junho", "posicion": "MF", "club": "Stoke City", "valor_m": 4, "edad": 22},
+        {"nombre": "Lee Kangin", "posicion": "MF", "club": "PSG", "valor_m": 35, "edad": 24},
+        {"nombre": "Lee Gihyuk", "posicion": "MF", "club": "Gangwon FC", "valor_m": 3, "edad": 25},
+        {"nombre": "Kim Jingyu", "posicion": "MF", "club": "Jeonbuk Hyundai Motors", "valor_m": 2, "edad": 28},
+        {"nombre": "Lee Donggyeong", "posicion": "MF", "club": "Ulsan HD", "valor_m": 3, "edad": 28},
+        {"nombre": "Eom Jisung", "posicion": "MF", "club": "Swansea City", "valor_m": 2, "edad": 23},
+        {"nombre": "Son Heungmin", "posicion": "FW", "club": "LAFC", "valor_m": 20, "edad": 33},
+        {"nombre": "Hwang Heechan", "posicion": "FW", "club": "Wolverhampton", "valor_m": 18, "edad": 29},
+        {"nombre": "Cho Guesung", "posicion": "FW", "club": "FC Midtjylland", "valor_m": 6, "edad": 27},
+        {"nombre": "Oh Hyeongyu", "posicion": "FW", "club": "Besiktas JK", "valor_m": 6, "edad": 24},
+        {"nombre": "Yang Hyunjun", "posicion": "FW", "club": "Celtic FC", "valor_m": 6, "edad": 23},
     ],
     "Saudi Arabia": [
-        {
-            "nombre": "Mohammed Alowais",
-            "posicion": "GK",
-            "club": "Al Ula Saudi FC",
-            "valor_m": 4,
-            "edad": 34
-        },
-        {
-            "nombre": "Nawaf Alaqidi",
-            "posicion": "GK",
-            "club": "Al Nassr FC",
-            "valor_m": 3,
-            "edad": 25
-        },
-        {
-            "nombre": "Ahmed Alkassar",
-            "posicion": "GK",
-            "club": "Al Qadsiah FC",
-            "valor_m": 1,
-            "edad": 34
-        },
-        {
-            "nombre": "Ali Majrashi",
-            "posicion": "DF",
-            "club": "Al Ahli FC",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Ali Lajami",
-            "posicion": "DF",
-            "club": "Al Hilal SC",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Abdulelah Alamri",
-            "posicion": "DF",
-            "club": "Al Nassr FC",
-            "valor_m": 2,
-            "edad": 28
-        },
-        {
-            "nombre": "Hassan Altambakti",
-            "posicion": "DF",
-            "club": "Al Hilal SC",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Saud Abdulhamid",
-            "posicion": "DF",
-            "club": "RC Lens",
-            "valor_m": 8,
-            "edad": 26
-        },
-        {
-            "nombre": "Nawaf Bu Washl",
-            "posicion": "DF",
-            "club": "Al Nassr FC",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Hassan Kadish",
-            "posicion": "DF",
-            "club": "Al Ittihad",
-            "valor_m": 1,
-            "edad": 33
-        },
-        {
-            "nombre": "Moteb Alharbi",
-            "posicion": "DF",
-            "club": "Al Hilal SC",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Jehad Thikri",
-            "posicion": "DF",
-            "club": "Al Qadsiah FC",
-            "valor_m": 2,
-            "edad": 24
-        },
-        {
-            "nombre": "Mohammed Abu Alshamat",
-            "posicion": "DF",
-            "club": "Al Qadsiah FC",
-            "valor_m": 1,
-            "edad": 23
-        },
-        {
-            "nombre": "Nasser Aldawsari",
-            "posicion": "MF",
-            "club": "Al Hilal SC",
-            "valor_m": 5,
-            "edad": 27
-        },
-        {
-            "nombre": "Musab Aljuwayr",
-            "posicion": "MF",
-            "club": "Al Qadsiah FC",
-            "valor_m": 4,
-            "edad": 22
-        },
-        {
-            "nombre": "Abdullah Alkhaibari",
-            "posicion": "MF",
-            "club": "Al Nassr FC",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Ziyad Aljohani",
-            "posicion": "MF",
-            "club": "Al Ahli FC",
-            "valor_m": 2,
-            "edad": 24
-        },
-        {
-            "nombre": "Ala Alhajji",
-            "posicion": "MF",
-            "club": "Neom SC",
-            "valor_m": 1,
-            "edad": 30
-        },
-        {
-            "nombre": "Mohamed Kanno",
-            "posicion": "MF",
-            "club": "Al Hilal SC",
-            "valor_m": 4,
-            "edad": 31
-        },
-        {
-            "nombre": "Salem Aldawsari",
-            "posicion": "FW",
-            "club": "Al Hilal SC",
-            "valor_m": 6,
-            "edad": 34
-        },
-        {
-            "nombre": "Saleh Alshehri",
-            "posicion": "FW",
-            "club": "Al Ittihad",
-            "valor_m": 4,
-            "edad": 32
-        },
-        {
-            "nombre": "Feras Albrikan",
-            "posicion": "FW",
-            "club": "Al Ahli FC",
-            "valor_m": 4,
-            "edad": 25
-        },
-        {
-            "nombre": "Aiman Yahya",
-            "posicion": "FW",
-            "club": "Al Nassr FC",
-            "valor_m": 3,
-            "edad": 24
-        },
-        {
-            "nombre": "Abdullah Alhamddan",
-            "posicion": "FW",
-            "club": "Al Nassr FC",
-            "valor_m": 4,
-            "edad": 26
-        },
-        {
-            "nombre": "Khalid Alghannam",
-            "posicion": "FW",
-            "club": "Al Ettifaq FC",
-            "valor_m": 3,
-            "edad": 25
-        },
-        {
-            "nombre": "Sultan Mandash",
-            "posicion": "FW",
-            "club": "Al Hilal SC",
-            "valor_m": 2,
-            "edad": 31
-        }
+        {"nombre": "Mohammed Alowais", "posicion": "GK", "club": "Al Ula Saudi FC", "valor_m": 4, "edad": 34},
+        {"nombre": "Nawaf Alaqidi", "posicion": "GK", "club": "Al Nassr FC", "valor_m": 3, "edad": 25},
+        {"nombre": "Ahmed Alkassar", "posicion": "GK", "club": "Al Qadsiah FC", "valor_m": 1, "edad": 34},
+        {"nombre": "Ali Majrashi", "posicion": "DF", "club": "Al Ahli FC", "valor_m": 2, "edad": 26},
+        {"nombre": "Ali Lajami", "posicion": "DF", "club": "Al Hilal SC", "valor_m": 2, "edad": 29},
+        {"nombre": "Abdulelah Alamri", "posicion": "DF", "club": "Al Nassr FC", "valor_m": 2, "edad": 28},
+        {"nombre": "Hassan Altambakti", "posicion": "DF", "club": "Al Hilal SC", "valor_m": 2, "edad": 26},
+        {"nombre": "Saud Abdulhamid", "posicion": "DF", "club": "RC Lens", "valor_m": 8, "edad": 26},
+        {"nombre": "Nawaf Bu Washl", "posicion": "DF", "club": "Al Nassr FC", "valor_m": 2, "edad": 26},
+        {"nombre": "Hassan Kadish", "posicion": "DF", "club": "Al Ittihad", "valor_m": 1, "edad": 33},
+        {"nombre": "Moteb Alharbi", "posicion": "DF", "club": "Al Hilal SC", "valor_m": 2, "edad": 25},
+        {"nombre": "Jehad Thikri", "posicion": "DF", "club": "Al Qadsiah FC", "valor_m": 2, "edad": 24},
+        {"nombre": "Mohammed Abu Alshamat", "posicion": "DF", "club": "Al Qadsiah FC", "valor_m": 1, "edad": 23},
+        {"nombre": "Nasser Aldawsari", "posicion": "MF", "club": "Al Hilal SC", "valor_m": 5, "edad": 27},
+        {"nombre": "Musab Aljuwayr", "posicion": "MF", "club": "Al Qadsiah FC", "valor_m": 4, "edad": 22},
+        {"nombre": "Abdullah Alkhaibari", "posicion": "MF", "club": "Al Nassr FC", "valor_m": 2, "edad": 29},
+        {"nombre": "Ziyad Aljohani", "posicion": "MF", "club": "Al Ahli FC", "valor_m": 2, "edad": 24},
+        {"nombre": "Ala Alhajji", "posicion": "MF", "club": "Neom SC", "valor_m": 1, "edad": 30},
+        {"nombre": "Mohamed Kanno", "posicion": "MF", "club": "Al Hilal SC", "valor_m": 4, "edad": 31},
+        {"nombre": "Salem Aldawsari", "posicion": "FW", "club": "Al Hilal SC", "valor_m": 6, "edad": 34},
+        {"nombre": "Saleh Alshehri", "posicion": "FW", "club": "Al Ittihad", "valor_m": 4, "edad": 32},
+        {"nombre": "Feras Albrikan", "posicion": "FW", "club": "Al Ahli FC", "valor_m": 4, "edad": 25},
+        {"nombre": "Aiman Yahya", "posicion": "FW", "club": "Al Nassr FC", "valor_m": 3, "edad": 24},
+        {"nombre": "Abdullah Alhamddan", "posicion": "FW", "club": "Al Nassr FC", "valor_m": 4, "edad": 26},
+        {"nombre": "Khalid Alghannam", "posicion": "FW", "club": "Al Ettifaq FC", "valor_m": 3, "edad": 25},
+        {"nombre": "Sultan Mandash", "posicion": "FW", "club": "Al Hilal SC", "valor_m": 2, "edad": 31},
     ],
     "Qatar": [
-        {
-            "nombre": "Meshaal Barsham",
-            "posicion": "GK",
-            "club": "Al Sadd SC",
-            "valor_m": 3,
-            "edad": 27
-        },
-        {
-            "nombre": "Mahmoud Abunada",
-            "posicion": "GK",
-            "club": "Al Rayyan SC",
-            "valor_m": 1,
-            "edad": 25
-        },
-        {
-            "nombre": "Salah Zakaria",
-            "posicion": "GK",
-            "club": "Al Duhail SC",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Pedro Miguel",
-            "posicion": "DF",
-            "club": "Al Sadd SC",
-            "valor_m": 2,
-            "edad": 35
-        },
-        {
-            "nombre": "Lucas Mendes",
-            "posicion": "DF",
-            "club": "Al Wakrah SC",
-            "valor_m": 1,
-            "edad": 35
-        },
-        {
-            "nombre": "Issa Laye",
-            "posicion": "DF",
-            "club": "Al Arabi SC",
-            "valor_m": 1,
-            "edad": 28
-        },
-        {
-            "nombre": "Jassem Gaber",
-            "posicion": "DF",
-            "club": "Al Rayyan SC",
-            "valor_m": 1,
-            "edad": 23
-        },
-        {
-            "nombre": "Boualem Khoukhi",
-            "posicion": "DF",
-            "club": "Al Sadd SC",
-            "valor_m": 1,
-            "edad": 35
-        },
-        {
-            "nombre": "Ayoub Aloui",
-            "posicion": "DF",
-            "club": "Al Gharafa SC",
-            "valor_m": 1,
-            "edad": 20
-        },
-        {
-            "nombre": "Homam Ahmed",
-            "posicion": "DF",
-            "club": "Cultural Leonesa",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Sultan Albrake",
-            "posicion": "DF",
-            "club": "Al Duhail SC",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Alhashmi Alhussein",
-            "posicion": "DF",
-            "club": "Al Arabi SC",
-            "valor_m": 1,
-            "edad": 22
-        },
-        {
-            "nombre": "Abdulaziz Hatem",
-            "posicion": "MF",
-            "club": "Al Rayyan SC",
-            "valor_m": 2,
-            "edad": 35
-        },
-        {
-            "nombre": "Karim Boudiaf",
-            "posicion": "MF",
-            "club": "Al Duhail SC",
-            "valor_m": 2,
-            "edad": 35
-        },
-        {
-            "nombre": "Ahmed Fathy",
-            "posicion": "MF",
-            "club": "Al Arabi SC",
-            "valor_m": 1,
-            "edad": 32
-        },
-        {
-            "nombre": "Ahmed Alganehi",
-            "posicion": "MF",
-            "club": "Al Gharafa SC",
-            "valor_m": 1,
-            "edad": 25
-        },
-        {
-            "nombre": "Assim Madibo",
-            "posicion": "MF",
-            "club": "Al Wakrah SC",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Mohamed Kanno",
-            "posicion": "MF",
-            "club": "Al Hilal SC",
-            "valor_m": 3,
-            "edad": 31
-        },
-        {
-            "nombre": "Akram Afif",
-            "posicion": "FW",
-            "club": "Al Sadd SC",
-            "valor_m": 10,
-            "edad": 28
-        },
-        {
-            "nombre": "Almoez Ali",
-            "posicion": "FW",
-            "club": "Al Duhail SC",
-            "valor_m": 5,
-            "edad": 29
-        },
-        {
-            "nombre": "Hassan Alhaydos",
-            "posicion": "FW",
-            "club": "Al Sadd SC",
-            "valor_m": 3,
-            "edad": 35
-        },
-        {
-            "nombre": "Edmilson Junior",
-            "posicion": "FW",
-            "club": "Al Duhail SC",
-            "valor_m": 3,
-            "edad": 31
-        },
-        {
-            "nombre": "Mohammed Muntari",
-            "posicion": "FW",
-            "club": "Al Gharafa SC",
-            "valor_m": 3,
-            "edad": 32
-        },
-        {
-            "nombre": "Ahmed Alaaeldin",
-            "posicion": "FW",
-            "club": "Al Rayyan SC",
-            "valor_m": 2,
-            "edad": 32
-        },
-        {
-            "nombre": "Yusuf Abdurisag",
-            "posicion": "FW",
-            "club": "Al Wakrah SC",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Tahsin Jamshid",
-            "posicion": "FW",
-            "club": "Al Duhail SC",
-            "valor_m": 1,
-            "edad": 19
-        },
-        {
-            "nombre": "Mohamed Manai",
-            "posicion": "FW",
-            "club": "Al Shamal SC",
-            "valor_m": 1,
-            "edad": 23
-        }
+        {"nombre": "Meshaal Barsham", "posicion": "GK", "club": "Al Sadd SC", "valor_m": 3, "edad": 27},
+        {"nombre": "Mahmoud Abunada", "posicion": "GK", "club": "Al Rayyan SC", "valor_m": 1, "edad": 25},
+        {"nombre": "Salah Zakaria", "posicion": "GK", "club": "Al Duhail SC", "valor_m": 1, "edad": 26},
+        {"nombre": "Pedro Miguel", "posicion": "DF", "club": "Al Sadd SC", "valor_m": 2, "edad": 35},
+        {"nombre": "Lucas Mendes", "posicion": "DF", "club": "Al Wakrah SC", "valor_m": 1, "edad": 35},
+        {"nombre": "Issa Laye", "posicion": "DF", "club": "Al Arabi SC", "valor_m": 1, "edad": 28},
+        {"nombre": "Jassem Gaber", "posicion": "DF", "club": "Al Rayyan SC", "valor_m": 1, "edad": 23},
+        {"nombre": "Boualem Khoukhi", "posicion": "DF", "club": "Al Sadd SC", "valor_m": 1, "edad": 35},
+        {"nombre": "Ayoub Aloui", "posicion": "DF", "club": "Al Gharafa SC", "valor_m": 1, "edad": 20},
+        {"nombre": "Homam Ahmed", "posicion": "DF", "club": "Cultural Leonesa", "valor_m": 1, "edad": 26},
+        {"nombre": "Sultan Albrake", "posicion": "DF", "club": "Al Duhail SC", "valor_m": 1, "edad": 29},
+        {"nombre": "Alhashmi Alhussein", "posicion": "DF", "club": "Al Arabi SC", "valor_m": 1, "edad": 22},
+        {"nombre": "Abdulaziz Hatem", "posicion": "MF", "club": "Al Rayyan SC", "valor_m": 2, "edad": 35},
+        {"nombre": "Karim Boudiaf", "posicion": "MF", "club": "Al Duhail SC", "valor_m": 2, "edad": 35},
+        {"nombre": "Ahmed Fathy", "posicion": "MF", "club": "Al Arabi SC", "valor_m": 1, "edad": 32},
+        {"nombre": "Ahmed Alganehi", "posicion": "MF", "club": "Al Gharafa SC", "valor_m": 1, "edad": 25},
+        {"nombre": "Assim Madibo", "posicion": "MF", "club": "Al Wakrah SC", "valor_m": 1, "edad": 29},
+        {"nombre": "Mohamed Kanno", "posicion": "MF", "club": "Al Hilal SC", "valor_m": 3, "edad": 31},
+        {"nombre": "Akram Afif", "posicion": "FW", "club": "Al Sadd SC", "valor_m": 10, "edad": 28},
+        {"nombre": "Almoez Ali", "posicion": "FW", "club": "Al Duhail SC", "valor_m": 5, "edad": 29},
+        {"nombre": "Hassan Alhaydos", "posicion": "FW", "club": "Al Sadd SC", "valor_m": 3, "edad": 35},
+        {"nombre": "Edmilson Junior", "posicion": "FW", "club": "Al Duhail SC", "valor_m": 3, "edad": 31},
+        {"nombre": "Mohammed Muntari", "posicion": "FW", "club": "Al Gharafa SC", "valor_m": 3, "edad": 32},
+        {"nombre": "Ahmed Alaaeldin", "posicion": "FW", "club": "Al Rayyan SC", "valor_m": 2, "edad": 32},
+        {"nombre": "Yusuf Abdurisag", "posicion": "FW", "club": "Al Wakrah SC", "valor_m": 1, "edad": 26},
+        {"nombre": "Tahsin Jamshid", "posicion": "FW", "club": "Al Duhail SC", "valor_m": 1, "edad": 19},
+        {"nombre": "Mohamed Manai", "posicion": "FW", "club": "Al Shamal SC", "valor_m": 1, "edad": 23},
     ],
     "Denmark": [
-        {
-            "nombre": "Kasper Schmeichel",
-            "posicion": "GK",
-            "club": "Anderlecht",
-            "valor_m": 5,
-            "edad": 37
-        },
-        {
-            "nombre": "Oliver Christensen",
-            "posicion": "GK",
-            "club": "Fiorentina",
-            "valor_m": 8,
-            "edad": 23
-        },
-        {
-            "nombre": "Frederik Ronnow",
-            "posicion": "GK",
-            "club": "Union Berlin",
-            "valor_m": 5,
-            "edad": 32
-        },
-        {
-            "nombre": "Joakim Maehle",
-            "posicion": "DF",
-            "club": "Atalanta",
-            "valor_m": 20,
-            "edad": 27
-        },
-        {
-            "nombre": "Andreas Christensen",
-            "posicion": "DF",
-            "club": "Barcelona",
-            "valor_m": 30,
-            "edad": 28
-        },
-        {
-            "nombre": "Victor Nelsson",
-            "posicion": "DF",
-            "club": "Galatasaray",
-            "valor_m": 20,
-            "edad": 25
-        },
-        {
-            "nombre": "Jannik Vestergaard",
-            "posicion": "DF",
-            "club": "Leicester City",
-            "valor_m": 8,
-            "edad": 31
-        },
-        {
-            "nombre": "Alexander Bah",
-            "posicion": "DF",
-            "club": "Benfica",
-            "valor_m": 20,
-            "edad": 24
-        },
-        {
-            "nombre": "Daniel Wass",
-            "posicion": "DF",
-            "club": "Brondby",
-            "valor_m": 3,
-            "edad": 34
-        },
-        {
-            "nombre": "Thomas Delaney",
-            "posicion": "MF",
-            "club": "Anderlecht",
-            "valor_m": 5,
-            "edad": 32
-        },
-        {
-            "nombre": "Christian Eriksen",
-            "posicion": "MF",
-            "club": "Manchester United",
-            "valor_m": 10,
-            "edad": 32
-        },
-        {
-            "nombre": "Pierre-Emile Hojbjerg",
-            "posicion": "MF",
-            "club": "Marseille",
-            "valor_m": 20,
-            "edad": 28
-        },
-        {
-            "nombre": "Mathias Jensen",
-            "posicion": "MF",
-            "club": "Brentford",
-            "valor_m": 12,
-            "edad": 27
-        },
-        {
-            "nombre": "Morten Hjulmand",
-            "posicion": "MF",
-            "club": "Sporting CP",
-            "valor_m": 35,
-            "edad": 24
-        },
-        {
-            "nombre": "Robert Skov",
-            "posicion": "MF",
-            "club": "Hoffenheim",
-            "valor_m": 10,
-            "edad": 27
-        },
-        {
-            "nombre": "Rasmus Hojlund",
-            "posicion": "FW",
-            "club": "Manchester United",
-            "valor_m": 60,
-            "edad": 21
-        },
-        {
-            "nombre": "Andreas Skov Olsen",
-            "posicion": "FW",
-            "club": "Club Brugge",
-            "valor_m": 20,
-            "edad": 24
-        },
-        {
-            "nombre": "Kasper Dolberg",
-            "posicion": "FW",
-            "club": "Anderlecht",
-            "valor_m": 10,
-            "edad": 26
-        },
-        {
-            "nombre": "Gustav Isaksen",
-            "posicion": "FW",
-            "club": "Lazio",
-            "valor_m": 20,
-            "edad": 22
-        },
-        {
-            "nombre": "Jonas Wind",
-            "posicion": "FW",
-            "club": "Wolfsburg",
-            "valor_m": 15,
-            "edad": 24
-        }
+        {"nombre": "Kasper Schmeichel", "posicion": "GK", "club": "Anderlecht", "valor_m": 5, "edad": 37},
+        {"nombre": "Oliver Christensen", "posicion": "GK", "club": "Fiorentina", "valor_m": 8, "edad": 23},
+        {"nombre": "Frederik Ronnow", "posicion": "GK", "club": "Union Berlin", "valor_m": 5, "edad": 32},
+        {"nombre": "Joakim Maehle", "posicion": "DF", "club": "Atalanta", "valor_m": 20, "edad": 27},
+        {"nombre": "Andreas Christensen", "posicion": "DF", "club": "Barcelona", "valor_m": 30, "edad": 28},
+        {"nombre": "Victor Nelsson", "posicion": "DF", "club": "Galatasaray", "valor_m": 20, "edad": 25},
+        {"nombre": "Jannik Vestergaard", "posicion": "DF", "club": "Leicester City", "valor_m": 8, "edad": 31},
+        {"nombre": "Alexander Bah", "posicion": "DF", "club": "Benfica", "valor_m": 20, "edad": 24},
+        {"nombre": "Daniel Wass", "posicion": "DF", "club": "Brondby", "valor_m": 3, "edad": 34},
+        {"nombre": "Thomas Delaney", "posicion": "MF", "club": "Anderlecht", "valor_m": 5, "edad": 32},
+        {"nombre": "Christian Eriksen", "posicion": "MF", "club": "Manchester United", "valor_m": 10, "edad": 32},
+        {"nombre": "Pierre-Emile Hojbjerg", "posicion": "MF", "club": "Marseille", "valor_m": 20, "edad": 28},
+        {"nombre": "Mathias Jensen", "posicion": "MF", "club": "Brentford", "valor_m": 12, "edad": 27},
+        {"nombre": "Morten Hjulmand", "posicion": "MF", "club": "Sporting CP", "valor_m": 35, "edad": 24},
+        {"nombre": "Robert Skov", "posicion": "MF", "club": "Hoffenheim", "valor_m": 10, "edad": 27},
+        {"nombre": "Rasmus Hojlund", "posicion": "FW", "club": "Manchester United", "valor_m": 60, "edad": 21},
+        {"nombre": "Andreas Skov Olsen", "posicion": "FW", "club": "Club Brugge", "valor_m": 20, "edad": 24},
+        {"nombre": "Kasper Dolberg", "posicion": "FW", "club": "Anderlecht", "valor_m": 10, "edad": 26},
+        {"nombre": "Gustav Isaksen", "posicion": "FW", "club": "Lazio", "valor_m": 20, "edad": 22},
+        {"nombre": "Jonas Wind", "posicion": "FW", "club": "Wolfsburg", "valor_m": 15, "edad": 24},
     ],
     "Switzerland": [
-        {
-            "nombre": "Yann Sommer",
-            "posicion": "GK",
-            "club": "Inter Milan",
-            "valor_m": 12,
-            "edad": 35
-        },
-        {
-            "nombre": "Gregor Kobel",
-            "posicion": "GK",
-            "club": "Borussia Dortmund",
-            "valor_m": 30,
-            "edad": 26
-        },
-        {
-            "nombre": "Nico Elvedi",
-            "posicion": "DF",
-            "club": "Borussia Monchengladbach",
-            "valor_m": 15,
-            "edad": 27
-        },
-        {
-            "nombre": "Manuel Akanji",
-            "posicion": "DF",
-            "club": "Manchester City",
-            "valor_m": 35,
-            "edad": 28
-        },
-        {
-            "nombre": "Ricardo Rodriguez",
-            "posicion": "DF",
-            "club": "Torino",
-            "valor_m": 5,
-            "edad": 31
-        },
-        {
-            "nombre": "Silvan Widmer",
-            "posicion": "DF",
-            "club": "Mainz",
-            "valor_m": 10,
-            "edad": 30
-        },
-        {
-            "nombre": "Fabian Schar",
-            "posicion": "DF",
-            "club": "Newcastle",
-            "valor_m": 10,
-            "edad": 31
-        },
-        {
-            "nombre": "Granit Xhaka",
-            "posicion": "MF",
-            "club": "Bayer Leverkusen",
-            "valor_m": 20,
-            "edad": 31
-        },
-        {
-            "nombre": "Remo Freuler",
-            "posicion": "MF",
-            "club": "Bologna",
-            "valor_m": 12,
-            "edad": 31
-        },
-        {
-            "nombre": "Djibril Sow",
-            "posicion": "MF",
-            "club": "Sevilla",
-            "valor_m": 15,
-            "edad": 27
-        },
-        {
-            "nombre": "Denis Zakaria",
-            "posicion": "MF",
-            "club": "Monaco",
-            "valor_m": 18,
-            "edad": 27
-        },
-        {
-            "nombre": "Xherdan Shaqiri",
-            "posicion": "FW",
-            "club": "Basel",
-            "valor_m": 5,
-            "edad": 32
-        },
-        {
-            "nombre": "Breel Embolo",
-            "posicion": "FW",
-            "club": "Monaco",
-            "valor_m": 20,
-            "edad": 27
-        },
-        {
-            "nombre": "Ruben Vargas",
-            "posicion": "FW",
-            "club": "Augsburg",
-            "valor_m": 15,
-            "edad": 25
-        },
-        {
-            "nombre": "Zeki Amdouni",
-            "posicion": "FW",
-            "club": "Burnley",
-            "valor_m": 15,
-            "edad": 23
-        },
-        {
-            "nombre": "Dan Ndoye",
-            "posicion": "FW",
-            "club": "Bologna",
-            "valor_m": 25,
-            "edad": 23
-        },
-        {
-            "nombre": "Michel Aebischer",
-            "posicion": "MF",
-            "club": "Bologna",
-            "valor_m": 12,
-            "edad": 27
-        }
+        {"nombre": "Yann Sommer", "posicion": "GK", "club": "Inter Milan", "valor_m": 12, "edad": 35},
+        {"nombre": "Gregor Kobel", "posicion": "GK", "club": "Borussia Dortmund", "valor_m": 30, "edad": 26},
+        {"nombre": "Nico Elvedi", "posicion": "DF", "club": "Borussia Monchengladbach", "valor_m": 15, "edad": 27},
+        {"nombre": "Manuel Akanji", "posicion": "DF", "club": "Manchester City", "valor_m": 35, "edad": 28},
+        {"nombre": "Ricardo Rodriguez", "posicion": "DF", "club": "Torino", "valor_m": 5, "edad": 31},
+        {"nombre": "Silvan Widmer", "posicion": "DF", "club": "Mainz", "valor_m": 10, "edad": 30},
+        {"nombre": "Fabian Schar", "posicion": "DF", "club": "Newcastle", "valor_m": 10, "edad": 31},
+        {"nombre": "Granit Xhaka", "posicion": "MF", "club": "Bayer Leverkusen", "valor_m": 20, "edad": 31},
+        {"nombre": "Remo Freuler", "posicion": "MF", "club": "Bologna", "valor_m": 12, "edad": 31},
+        {"nombre": "Djibril Sow", "posicion": "MF", "club": "Sevilla", "valor_m": 15, "edad": 27},
+        {"nombre": "Denis Zakaria", "posicion": "MF", "club": "Monaco", "valor_m": 18, "edad": 27},
+        {"nombre": "Xherdan Shaqiri", "posicion": "FW", "club": "Basel", "valor_m": 5, "edad": 32},
+        {"nombre": "Breel Embolo", "posicion": "FW", "club": "Monaco", "valor_m": 20, "edad": 27},
+        {"nombre": "Ruben Vargas", "posicion": "FW", "club": "Augsburg", "valor_m": 15, "edad": 25},
+        {"nombre": "Zeki Amdouni", "posicion": "FW", "club": "Burnley", "valor_m": 15, "edad": 23},
+        {"nombre": "Dan Ndoye", "posicion": "FW", "club": "Bologna", "valor_m": 25, "edad": 23},
+        {"nombre": "Michel Aebischer", "posicion": "MF", "club": "Bologna", "valor_m": 12, "edad": 27},
+        {"nombre": "Fabian Rieder", "posicion": "MF", "club": "Stade Rennais", "valor_m": 20, "edad": 22},
+        {"nombre": "Christian Fassnacht", "posicion": "FW", "club": "Young Boys", "valor_m": 10, "edad": 30},
+        {"nombre": "Ardon Jashari", "posicion": "MF", "club": "Club Brugge", "valor_m": 18, "edad": 22},
+        {"nombre": "Edimilson Fernandes", "posicion": "MF", "club": "Mainz", "valor_m": 8, "edad": 28},
+        {"nombre": "Renato Steffen", "posicion": "FW", "club": "Lugano", "valor_m": 3, "edad": 32},
     ],
     "Serbia": [
-        {
-            "nombre": "Vanja Milinkovic-Savic",
-            "posicion": "GK",
-            "club": "Torino",
-            "valor_m": 12,
-            "edad": 26
-        },
-        {
-            "nombre": "Predrag Rajkovic",
-            "posicion": "GK",
-            "club": "Mallorca",
-            "valor_m": 8,
-            "edad": 29
-        },
-        {
-            "nombre": "Nikola Milenkovic",
-            "posicion": "DF",
-            "club": "Nottingham Forest",
-            "valor_m": 20,
-            "edad": 26
-        },
-        {
-            "nombre": "Stefan Mitrovic",
-            "posicion": "DF",
-            "club": "Fulham",
-            "valor_m": 10,
-            "edad": 27
-        },
-        {
-            "nombre": "Strahinja Pavlovic",
-            "posicion": "DF",
-            "club": "AC Milan",
-            "valor_m": 30,
-            "edad": 22
-        },
-        {
-            "nombre": "Strahinja Erakovic",
-            "posicion": "DF",
-            "club": "Red Star Belgrade",
-            "valor_m": 15,
-            "edad": 22
-        },
-        {
-            "nombre": "Nemanja Gudelj",
-            "posicion": "MF",
-            "club": "Sevilla",
-            "valor_m": 8,
-            "edad": 32
-        },
-        {
-            "nombre": "Sasa Lukic",
-            "posicion": "MF",
-            "club": "Fulham",
-            "valor_m": 10,
-            "edad": 26
-        },
-        {
-            "nombre": "Nemanja Maksimovic",
-            "posicion": "MF",
-            "club": "Getafe",
-            "valor_m": 8,
-            "edad": 29
-        },
-        {
-            "nombre": "Sergej Milinkovic-Savic",
-            "posicion": "MF",
-            "club": "Al Hilal",
-            "valor_m": 25,
-            "edad": 28
-        },
-        {
-            "nombre": "Filip Kostic",
-            "posicion": "MF",
-            "club": "Juventus",
-            "valor_m": 20,
-            "edad": 31
-        },
-        {
-            "nombre": "Aleksandar Mitrovic",
-            "posicion": "FW",
-            "club": "Al Hilal",
-            "valor_m": 20,
-            "edad": 29
-        },
-        {
-            "nombre": "Luka Jovic",
-            "posicion": "FW",
-            "club": "AC Milan",
-            "valor_m": 12,
-            "edad": 26
-        },
-        {
-            "nombre": "Dusan Vlahovic",
-            "posicion": "FW",
-            "club": "Juventus",
-            "valor_m": 60,
-            "edad": 24
-        },
-        {
-            "nombre": "Andrija Zivkovic",
-            "posicion": "FW",
-            "club": "PAOK",
-            "valor_m": 8,
-            "edad": 27
-        }
+        {"nombre": "Vanja Milinkovic-Savic", "posicion": "GK", "club": "Torino", "valor_m": 12, "edad": 26},
+        {"nombre": "Predrag Rajkovic", "posicion": "GK", "club": "Mallorca", "valor_m": 8, "edad": 29},
+        {"nombre": "Nikola Milenkovic", "posicion": "DF", "club": "Nottingham Forest", "valor_m": 20, "edad": 26},
+        {"nombre": "Stefan Mitrovic", "posicion": "DF", "club": "Fulham", "valor_m": 10, "edad": 27},
+        {"nombre": "Strahinja Pavlovic", "posicion": "DF", "club": "AC Milan", "valor_m": 30, "edad": 22},
+        {"nombre": "Strahinja Erakovic", "posicion": "DF", "club": "Red Star Belgrade", "valor_m": 15, "edad": 22},
+        {"nombre": "Nemanja Gudelj", "posicion": "MF", "club": "Sevilla", "valor_m": 8, "edad": 32},
+        {"nombre": "Sasa Lukic", "posicion": "MF", "club": "Fulham", "valor_m": 10, "edad": 26},
+        {"nombre": "Nemanja Maksimovic", "posicion": "MF", "club": "Getafe", "valor_m": 8, "edad": 29},
+        {"nombre": "Sergej Milinkovic-Savic", "posicion": "MF", "club": "Al Hilal", "valor_m": 25, "edad": 28},
+        {"nombre": "Filip Kostic", "posicion": "MF", "club": "Juventus", "valor_m": 20, "edad": 31},
+        {"nombre": "Aleksandar Mitrovic", "posicion": "FW", "club": "Al Hilal", "valor_m": 20, "edad": 29},
+        {"nombre": "Luka Jovic", "posicion": "FW", "club": "AC Milan", "valor_m": 12, "edad": 26},
+        {"nombre": "Dusan Vlahovic", "posicion": "FW", "club": "Juventus", "valor_m": 60, "edad": 24},
+        {"nombre": "Andrija Zivkovic", "posicion": "FW", "club": "PAOK", "valor_m": 8, "edad": 27},
     ],
     "Poland": [
-        {
-            "nombre": "Wojciech Szczesny",
-            "posicion": "GK",
-            "club": "Barcelona",
-            "valor_m": 5,
-            "edad": 33
-        },
-        {
-            "nombre": "Lukasz Skorupski",
-            "posicion": "GK",
-            "club": "Bologna",
-            "valor_m": 5,
-            "edad": 32
-        },
-        {
-            "nombre": "Jan Bednarek",
-            "posicion": "DF",
-            "club": "Aston Villa",
-            "valor_m": 15,
-            "edad": 27
-        },
-        {
-            "nombre": "Kamil Glik",
-            "posicion": "DF",
-            "club": "Benevento",
-            "valor_m": 2,
-            "edad": 36
-        },
-        {
-            "nombre": "Bartosz Bereszynski",
-            "posicion": "DF",
-            "club": "Sampdoria",
-            "valor_m": 5,
-            "edad": 30
-        },
-        {
-            "nombre": "Matty Cash",
-            "posicion": "DF",
-            "club": "Aston Villa",
-            "valor_m": 20,
-            "edad": 26
-        },
-        {
-            "nombre": "Jakub Kiwior",
-            "posicion": "DF",
-            "club": "Arsenal",
-            "valor_m": 20,
-            "edad": 23
-        },
-        {
-            "nombre": "Piotr Zielinski",
-            "posicion": "MF",
-            "club": "Inter Milan",
-            "valor_m": 25,
-            "edad": 29
-        },
-        {
-            "nombre": "Krzysztof Piatek",
-            "posicion": "FW",
-            "club": "Istanbul Basaksehir",
-            "valor_m": 8,
-            "edad": 28
-        },
-        {
-            "nombre": "Robert Lewandowski",
-            "posicion": "FW",
-            "club": "Barcelona",
-            "valor_m": 25,
-            "edad": 35
-        },
-        {
-            "nombre": "Arkadiusz Milik",
-            "posicion": "FW",
-            "club": "Juventus",
-            "valor_m": 10,
-            "edad": 29
-        },
-        {
-            "nombre": "Kamil Grosicki",
-            "posicion": "FW",
-            "club": "Pogon Szczecin",
-            "valor_m": 3,
-            "edad": 35
-        },
-        {
-            "nombre": "Sebastian Szymanski",
-            "posicion": "MF",
-            "club": "Fenerbahce",
-            "valor_m": 20,
-            "edad": 24
-        },
-        {
-            "nombre": "Nicola Zalewski",
-            "posicion": "MF",
-            "club": "Inter Milan",
-            "valor_m": 15,
-            "edad": 22
-        },
-        {
-            "nombre": "Przemyslaw Frankowski",
-            "posicion": "MF",
-            "club": "RC Lens",
-            "valor_m": 10,
-            "edad": 27
-        }
+        {"nombre": "Wojciech Szczesny", "posicion": "GK", "club": "Barcelona", "valor_m": 5, "edad": 33},
+        {"nombre": "Lukasz Skorupski", "posicion": "GK", "club": "Bologna", "valor_m": 5, "edad": 32},
+        {"nombre": "Jan Bednarek", "posicion": "DF", "club": "Aston Villa", "valor_m": 15, "edad": 27},
+        {"nombre": "Kamil Glik", "posicion": "DF", "club": "Benevento", "valor_m": 2, "edad": 36},
+        {"nombre": "Bartosz Bereszynski", "posicion": "DF", "club": "Sampdoria", "valor_m": 5, "edad": 30},
+        {"nombre": "Matty Cash", "posicion": "DF", "club": "Aston Villa", "valor_m": 20, "edad": 26},
+        {"nombre": "Jakub Kiwior", "posicion": "DF", "club": "Arsenal", "valor_m": 20, "edad": 23},
+        {"nombre": "Piotr Zielinski", "posicion": "MF", "club": "Inter Milan", "valor_m": 25, "edad": 29},
+        {"nombre": "Krzysztof Piatek", "posicion": "FW", "club": "Istanbul Basaksehir", "valor_m": 8, "edad": 28},
+        {"nombre": "Robert Lewandowski", "posicion": "FW", "club": "Barcelona", "valor_m": 25, "edad": 35},
+        {"nombre": "Arkadiusz Milik", "posicion": "FW", "club": "Juventus", "valor_m": 10, "edad": 29},
+        {"nombre": "Kamil Grosicki", "posicion": "FW", "club": "Pogon Szczecin", "valor_m": 3, "edad": 35},
+        {"nombre": "Sebastian Szymanski", "posicion": "MF", "club": "Fenerbahce", "valor_m": 20, "edad": 24},
+        {"nombre": "Nicola Zalewski", "posicion": "MF", "club": "Inter Milan", "valor_m": 15, "edad": 22},
+        {"nombre": "Przemyslaw Frankowski", "posicion": "MF", "club": "RC Lens", "valor_m": 10, "edad": 27},
     ],
     "Ukraine": [
-        {
-            "nombre": "Andriy Lunin",
-            "posicion": "GK",
-            "club": "Real Madrid",
-            "valor_m": 20,
-            "edad": 25
-        },
-        {
-            "nombre": "Georgiy Bushchan",
-            "posicion": "GK",
-            "club": "Dynamo Kyiv",
-            "valor_m": 4,
-            "edad": 29
-        },
-        {
-            "nombre": "Oleksandr Zinchenko",
-            "posicion": "DF",
-            "club": "Arsenal",
-            "valor_m": 28,
-            "edad": 27
-        },
-        {
-            "nombre": "Mykola Matviyenko",
-            "posicion": "DF",
-            "club": "Shakhtar Donetsk",
-            "valor_m": 8,
-            "edad": 28
-        },
-        {
-            "nombre": "Ilya Zabarnyi",
-            "posicion": "DF",
-            "club": "Bournemouth",
-            "valor_m": 25,
-            "edad": 22
-        },
-        {
-            "nombre": "Serhiy Kryvtsov",
-            "posicion": "DF",
-            "club": "Shakhtar Donetsk",
-            "valor_m": 4,
-            "edad": 32
-        },
-        {
-            "nombre": "Taras Stepanenko",
-            "posicion": "MF",
-            "club": "Shakhtar Donetsk",
-            "valor_m": 4,
-            "edad": 34
-        },
-        {
-            "nombre": "Mykhailo Mudryk",
-            "posicion": "FW",
-            "club": "Chelsea",
-            "valor_m": 38,
-            "edad": 24
-        },
-        {
-            "nombre": "Oleksandr Zubkov",
-            "posicion": "FW",
-            "club": "Shakhtar Donetsk",
-            "valor_m": 6,
-            "edad": 28
-        },
-        {
-            "nombre": "Artem Dovbyk",
-            "posicion": "FW",
-            "club": "AS Roma",
-            "valor_m": 45,
-            "edad": 27
-        },
-        {
-            "nombre": "Roman Yaremchuk",
-            "posicion": "FW",
-            "club": "Valencia",
-            "valor_m": 12,
-            "edad": 29
-        },
-        {
-            "nombre": "Viktor Tsygankov",
-            "posicion": "MF",
-            "club": "Girona",
-            "valor_m": 12,
-            "edad": 27
-        },
-        {
-            "nombre": "Georgiy Sudakov",
-            "posicion": "MF",
-            "club": "Shakhtar Donetsk",
-            "valor_m": 28,
-            "edad": 22
-        }
+        {"nombre": "Andriy Lunin", "posicion": "GK", "club": "Real Madrid", "valor_m": 20, "edad": 25},
+        {"nombre": "Georgiy Bushchan", "posicion": "GK", "club": "Dynamo Kyiv", "valor_m": 4, "edad": 29},
+        {"nombre": "Oleksandr Zinchenko", "posicion": "DF", "club": "Arsenal", "valor_m": 28, "edad": 27},
+        {"nombre": "Mykola Matviyenko", "posicion": "DF", "club": "Shakhtar Donetsk", "valor_m": 8, "edad": 28},
+        {"nombre": "Ilya Zabarnyi", "posicion": "DF", "club": "Bournemouth", "valor_m": 25, "edad": 22},
+        {"nombre": "Serhiy Kryvtsov", "posicion": "DF", "club": "Shakhtar Donetsk", "valor_m": 4, "edad": 32},
+        {"nombre": "Taras Stepanenko", "posicion": "MF", "club": "Shakhtar Donetsk", "valor_m": 4, "edad": 34},
+        {"nombre": "Mykhailo Mudryk", "posicion": "FW", "club": "Chelsea", "valor_m": 38, "edad": 24},
+        {"nombre": "Oleksandr Zubkov", "posicion": "FW", "club": "Shakhtar Donetsk", "valor_m": 6, "edad": 28},
+        {"nombre": "Artem Dovbyk", "posicion": "FW", "club": "AS Roma", "valor_m": 45, "edad": 27},
+        {"nombre": "Roman Yaremchuk", "posicion": "FW", "club": "Valencia", "valor_m": 12, "edad": 29},
+        {"nombre": "Viktor Tsygankov", "posicion": "MF", "club": "Girona", "valor_m": 12, "edad": 27},
+        {"nombre": "Georgiy Sudakov", "posicion": "MF", "club": "Shakhtar Donetsk", "valor_m": 28, "edad": 22},
     ],
     "Austria": [
-        {
-            "nombre": "Patrick Pentz",
-            "posicion": "GK",
-            "club": "Bayer Leverkusen",
-            "valor_m": 5,
-            "edad": 26
-        },
-        {
-            "nombre": "Heinz Lindner",
-            "posicion": "GK",
-            "club": "Eintracht Frankfurt",
-            "valor_m": 3,
-            "edad": 33
-        },
-        {
-            "nombre": "David Alaba",
-            "posicion": "DF",
-            "club": "Real Madrid",
-            "valor_m": 20,
-            "edad": 31
-        },
-        {
-            "nombre": "Philipp Lienhart",
-            "posicion": "DF",
-            "club": "Freiburg",
-            "valor_m": 12,
-            "edad": 27
-        },
-        {
-            "nombre": "Stefan Posch",
-            "posicion": "DF",
-            "club": "Bologna",
-            "valor_m": 15,
-            "edad": 26
-        },
-        {
-            "nombre": "Maximilian Wober",
-            "posicion": "DF",
-            "club": "Borussia Monchengladbach",
-            "valor_m": 15,
-            "edad": 25
-        },
-        {
-            "nombre": "Florian Grillitsch",
-            "posicion": "MF",
-            "club": "Ajax",
-            "valor_m": 8,
-            "edad": 28
-        },
-        {
-            "nombre": "Konrad Laimer",
-            "posicion": "MF",
-            "club": "Bayern Munich",
-            "valor_m": 30,
-            "edad": 26
-        },
-        {
-            "nombre": "Nicolas Seiwald",
-            "posicion": "MF",
-            "club": "RB Leipzig",
-            "valor_m": 30,
-            "edad": 22
-        },
-        {
-            "nombre": "Marcel Sabitzer",
-            "posicion": "MF",
-            "club": "Borussia Dortmund",
-            "valor_m": 20,
-            "edad": 29
-        },
-        {
-            "nombre": "Christoph Baumgartner",
-            "posicion": "MF",
-            "club": "RB Leipzig",
-            "valor_m": 30,
-            "edad": 24
-        },
-        {
-            "nombre": "Marko Arnautovic",
-            "posicion": "FW",
-            "club": "Inter Milan",
-            "valor_m": 8,
-            "edad": 34
-        },
-        {
-            "nombre": "Michael Gregoritsch",
-            "posicion": "FW",
-            "club": "Freiburg",
-            "valor_m": 10,
-            "edad": 29
-        },
-        {
-            "nombre": "Patrick Wimmer",
-            "posicion": "FW",
-            "club": "Wolfsburg",
-            "valor_m": 15,
-            "edad": 22
-        },
-        {
-            "nombre": "Romano Schmid",
-            "posicion": "MF",
-            "club": "Werder Bremen",
-            "valor_m": 12,
-            "edad": 23
-        }
+        {"nombre": "Patrick Pentz", "posicion": "GK", "club": "Bayer Leverkusen", "valor_m": 5, "edad": 26},
+        {"nombre": "Heinz Lindner", "posicion": "GK", "club": "Eintracht Frankfurt", "valor_m": 3, "edad": 33},
+        {"nombre": "David Alaba", "posicion": "DF", "club": "Real Madrid", "valor_m": 20, "edad": 31},
+        {"nombre": "Philipp Lienhart", "posicion": "DF", "club": "Freiburg", "valor_m": 12, "edad": 27},
+        {"nombre": "Stefan Posch", "posicion": "DF", "club": "Bologna", "valor_m": 15, "edad": 26},
+        {"nombre": "Maximilian Wober", "posicion": "DF", "club": "Borussia Monchengladbach", "valor_m": 15, "edad": 25},
+        {"nombre": "Florian Grillitsch", "posicion": "MF", "club": "Ajax", "valor_m": 8, "edad": 28},
+        {"nombre": "Konrad Laimer", "posicion": "MF", "club": "Bayern Munich", "valor_m": 30, "edad": 26},
+        {"nombre": "Nicolas Seiwald", "posicion": "MF", "club": "RB Leipzig", "valor_m": 30, "edad": 22},
+        {"nombre": "Marcel Sabitzer", "posicion": "MF", "club": "Borussia Dortmund", "valor_m": 20, "edad": 29},
+        {"nombre": "Christoph Baumgartner", "posicion": "MF", "club": "RB Leipzig", "valor_m": 30, "edad": 24},
+        {"nombre": "Marko Arnautovic", "posicion": "FW", "club": "Inter Milan", "valor_m": 8, "edad": 34},
+        {"nombre": "Michael Gregoritsch", "posicion": "FW", "club": "Freiburg", "valor_m": 10, "edad": 29},
+        {"nombre": "Patrick Wimmer", "posicion": "FW", "club": "Wolfsburg", "valor_m": 15, "edad": 22},
+        {"nombre": "Romano Schmid", "posicion": "MF", "club": "Werder Bremen", "valor_m": 12, "edad": 23},
+        {"nombre": "Leopold Querfeld", "posicion": "DF", "club": "Rapid Vienna", "valor_m": 5, "edad": 21},
+        {"nombre": "Gernot Trauner", "posicion": "DF", "club": "Feyenoord", "valor_m": 12, "edad": 31},
+        {"nombre": "Stefan Lainer", "posicion": "DF", "club": "Borussia M.", "valor_m": 10, "edad": 31},
+        {"nombre": "Andreas Weimann", "posicion": "FW", "club": "Bristol City", "valor_m": 5, "edad": 32},
+        {"nombre": "Florian Flecker", "posicion": "FW", "club": "Sturm Graz", "valor_m": 5, "edad": 26},
+        {"nombre": "Aleksandar Dragovic", "posicion": "DF", "club": "Sturm Graz", "valor_m": 3, "edad": 33},
     ],
     "Turkey": [
-        {
-            "nombre": "Altay Bayindir",
-            "posicion": "GK",
-            "club": "Manchester United",
-            "valor_m": 10,
-            "edad": 25
-        },
-        {
-            "nombre": "Ugurcan Cakir",
-            "posicion": "GK",
-            "club": "Trabzonspor",
-            "valor_m": 8,
-            "edad": 27
-        },
-        {
-            "nombre": "Merih Demiral",
-            "posicion": "DF",
-            "club": "Al Ahli",
-            "valor_m": 15,
-            "edad": 25
-        },
-        {
-            "nombre": "Zeki Celik",
-            "posicion": "DF",
-            "club": "AS Roma",
-            "valor_m": 12,
-            "edad": 26
-        },
-        {
-            "nombre": "Samet Akaydin",
-            "posicion": "DF",
-            "club": "Sevilla",
-            "valor_m": 10,
-            "edad": 27
-        },
-        {
-            "nombre": "Abdulkerim Bardakci",
-            "posicion": "DF",
-            "club": "Galatasaray",
-            "valor_m": 12,
-            "edad": 26
-        },
-        {
-            "nombre": "Ferdi Kadioglu",
-            "posicion": "DF",
-            "club": "Brighton",
-            "valor_m": 25,
-            "edad": 24
-        },
-        {
-            "nombre": "Hakan Calhanoglu",
-            "posicion": "MF",
-            "club": "Inter Milan",
-            "valor_m": 35,
-            "edad": 29
-        },
-        {
-            "nombre": "Salih Ozcan",
-            "posicion": "MF",
-            "club": "Borussia Dortmund",
-            "valor_m": 15,
-            "edad": 25
-        },
-        {
-            "nombre": "Arda Guler",
-            "posicion": "MF",
-            "club": "Real Madrid",
-            "valor_m": 50,
-            "edad": 19
-        },
-        {
-            "nombre": "Kenan Yildiz",
-            "posicion": "FW",
-            "club": "Juventus",
-            "valor_m": 40,
-            "edad": 19
-        },
-        {
-            "nombre": "Baris Alper Yilmaz",
-            "posicion": "FW",
-            "club": "Galatasaray",
-            "valor_m": 20,
-            "edad": 24
-        },
-        {
-            "nombre": "Cenk Tosun",
-            "posicion": "FW",
-            "club": "Besiktas",
-            "valor_m": 5,
-            "edad": 32
-        },
-        {
-            "nombre": "Yusuf Yazici",
-            "posicion": "FW",
-            "club": "LOSC Lille",
-            "valor_m": 12,
-            "edad": 27
-        },
-        {
-            "nombre": "Irfan Can Kahveci",
-            "posicion": "MF",
-            "club": "Fenerbahce",
-            "valor_m": 10,
-            "edad": 28
-        }
+        {"nombre": "Altay Bayindir", "posicion": "GK", "club": "Manchester United", "valor_m": 10, "edad": 25},
+        {"nombre": "Ugurcan Cakir", "posicion": "GK", "club": "Trabzonspor", "valor_m": 8, "edad": 27},
+        {"nombre": "Merih Demiral", "posicion": "DF", "club": "Al Ahli", "valor_m": 15, "edad": 25},
+        {"nombre": "Zeki Celik", "posicion": "DF", "club": "AS Roma", "valor_m": 12, "edad": 26},
+        {"nombre": "Samet Akaydin", "posicion": "DF", "club": "Sevilla", "valor_m": 10, "edad": 27},
+        {"nombre": "Abdulkerim Bardakci", "posicion": "DF", "club": "Galatasaray", "valor_m": 12, "edad": 26},
+        {"nombre": "Ferdi Kadioglu", "posicion": "DF", "club": "Brighton", "valor_m": 25, "edad": 24},
+        {"nombre": "Hakan Calhanoglu", "posicion": "MF", "club": "Inter Milan", "valor_m": 35, "edad": 29},
+        {"nombre": "Salih Ozcan", "posicion": "MF", "club": "Borussia Dortmund", "valor_m": 15, "edad": 25},
+        {"nombre": "Arda Guler", "posicion": "MF", "club": "Real Madrid", "valor_m": 50, "edad": 19},
+        {"nombre": "Kenan Yildiz", "posicion": "FW", "club": "Juventus", "valor_m": 40, "edad": 19},
+        {"nombre": "Baris Alper Yilmaz", "posicion": "FW", "club": "Galatasaray", "valor_m": 20, "edad": 24},
+        {"nombre": "Cenk Tosun", "posicion": "FW", "club": "Besiktas", "valor_m": 5, "edad": 32},
+        {"nombre": "Yusuf Yazici", "posicion": "FW", "club": "LOSC Lille", "valor_m": 12, "edad": 27},
+        {"nombre": "Irfan Can Kahveci", "posicion": "MF", "club": "Fenerbahce", "valor_m": 10, "edad": 28},
+        {"nombre": "Mert Gunok", "posicion": "GK", "club": "Besiktas", "valor_m": 3, "edad": 34},
+        {"nombre": "Orkun Kokcu", "posicion": "MF", "club": "Benfica", "valor_m": 30, "edad": 24},
+        {"nombre": "Kerem Akturkoglu", "posicion": "FW", "club": "Galatasaray", "valor_m": 30, "edad": 25},
+        {"nombre": "Cengiz Under", "posicion": "FW", "club": "Fenerbahce", "valor_m": 15, "edad": 27},
+        {"nombre": "Ismail Yuksek", "posicion": "MF", "club": "Fenerbahce", "valor_m": 12, "edad": 25},
+        {"nombre": "Ozan Kabak", "posicion": "DF", "club": "Hoffenheim", "valor_m": 15, "edad": 24},
+        {"nombre": "Tugay Kaan Numangolu", "posicion": "GK", "club": "Galatasaray", "valor_m": 5, "edad": 22},
+        {"nombre": "Muhammed Sengezer", "posicion": "DF", "club": "Fenerbahce", "valor_m": 5, "edad": 24},
     ],
     "Iran": [
-        {
-            "nombre": "Alireza Beiranvand",
-            "posicion": "GK",
-            "club": "Tractor Sazi Tabriz",
-            "valor_m": 2,
-            "edad": 33
-        },
-        {
-            "nombre": "Payam Niazmand",
-            "posicion": "GK",
-            "club": "Persepolis FC",
-            "valor_m": 1,
-            "edad": 30
-        },
-        {
-            "nombre": "Hossein Hosseini",
-            "posicion": "GK",
-            "club": "Sepahan SC",
-            "valor_m": 1,
-            "edad": 33
-        },
-        {
-            "nombre": "Ehsan Hajsafi",
-            "posicion": "DF",
-            "club": "Sepahan SC",
-            "valor_m": 2,
-            "edad": 35
-        },
-        {
-            "nombre": "Saleh Hardani",
-            "posicion": "DF",
-            "club": "Esteghlal Tehran",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Shoja Khalilzadeh",
-            "posicion": "DF",
-            "club": "Tractor Sazi Tabriz",
-            "valor_m": 2,
-            "edad": 36
-        },
-        {
-            "nombre": "Milad Mohammadi",
-            "posicion": "DF",
-            "club": "Persepolis FC",
-            "valor_m": 3,
-            "edad": 32
-        },
-        {
-            "nombre": "Hossein Kanani",
-            "posicion": "DF",
-            "club": "Persepolis FC",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Roozbeh Cheshmi",
-            "posicion": "DF",
-            "club": "Esteghlal Tehran",
-            "valor_m": 2,
-            "edad": 32
-        },
-        {
-            "nombre": "Ramin Rezaeian",
-            "posicion": "DF",
-            "club": "Foolad Khuzestan",
-            "valor_m": 1,
-            "edad": 35
-        },
-        {
-            "nombre": "Arya Yousefi",
-            "posicion": "DF",
-            "club": "Sepahan SC",
-            "valor_m": 2,
-            "edad": 23
-        },
-        {
-            "nombre": "Ali Nemati",
-            "posicion": "DF",
-            "club": "Foolad Khuzestan",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Danial Iri",
-            "posicion": "DF",
-            "club": "Malavan Anzali FC",
-            "valor_m": 2,
-            "edad": 22
-        },
-        {
-            "nombre": "Saeid Ezatolahi",
-            "posicion": "MF",
-            "club": "Shabab Al Ahli",
-            "valor_m": 4,
-            "edad": 29
-        },
-        {
-            "nombre": "Alireza Jahanbakhsh",
-            "posicion": "MF",
-            "club": "FCV Dender EH",
-            "valor_m": 5,
-            "edad": 32
-        },
-        {
-            "nombre": "Mohammad Mohebbi",
-            "posicion": "MF",
-            "club": "FC Rostov",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Saman Ghoddos",
-            "posicion": "MF",
-            "club": "Al Ittihad Kalba",
-            "valor_m": 4,
-            "edad": 32
-        },
-        {
-            "nombre": "Mehdi Torabi",
-            "posicion": "MF",
-            "club": "Tractor Sazi Tabriz",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Mohammad Ghorbani",
-            "posicion": "MF",
-            "club": "Al Wahda SC",
-            "valor_m": 2,
-            "edad": 24
-        },
-        {
-            "nombre": "Amirmohammad Razaghinia",
-            "posicion": "MF",
-            "club": "Esteghlal Tehran",
-            "valor_m": 2,
-            "edad": 19
-        },
-        {
-            "nombre": "Mehdi Taremi",
-            "posicion": "FW",
-            "club": "Olympiacos FC",
-            "valor_m": 15,
-            "edad": 33
-        },
-        {
-            "nombre": "Mehdi Ghayedi",
-            "posicion": "FW",
-            "club": "Al Nasr SC",
-            "valor_m": 4,
-            "edad": 27
-        },
-        {
-            "nombre": "Ali Alipour",
-            "posicion": "FW",
-            "club": "Persepolis FC",
-            "valor_m": 3,
-            "edad": 30
-        },
-        {
-            "nombre": "Amirhossein Hosseinzadeh",
-            "posicion": "FW",
-            "club": "Tractor Sazi Tabriz",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Shahriyar Moghanloo",
-            "posicion": "FW",
-            "club": "Al Ittihad Kalba",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Dennis Dargahi",
-            "posicion": "FW",
-            "club": "Standard Liege",
-            "valor_m": 3,
-            "edad": 28
-        }
+        {"nombre": "Alireza Beiranvand", "posicion": "GK", "club": "Tractor Sazi Tabriz", "valor_m": 2, "edad": 33},
+        {"nombre": "Payam Niazmand", "posicion": "GK", "club": "Persepolis FC", "valor_m": 1, "edad": 30},
+        {"nombre": "Hossein Hosseini", "posicion": "GK", "club": "Sepahan SC", "valor_m": 1, "edad": 33},
+        {"nombre": "Ehsan Hajsafi", "posicion": "DF", "club": "Sepahan SC", "valor_m": 2, "edad": 35},
+        {"nombre": "Saleh Hardani", "posicion": "DF", "club": "Esteghlal Tehran", "valor_m": 2, "edad": 27},
+        {"nombre": "Shoja Khalilzadeh", "posicion": "DF", "club": "Tractor Sazi Tabriz", "valor_m": 2, "edad": 36},
+        {"nombre": "Milad Mohammadi", "posicion": "DF", "club": "Persepolis FC", "valor_m": 3, "edad": 32},
+        {"nombre": "Hossein Kanani", "posicion": "DF", "club": "Persepolis FC", "valor_m": 2, "edad": 31},
+        {"nombre": "Roozbeh Cheshmi", "posicion": "DF", "club": "Esteghlal Tehran", "valor_m": 2, "edad": 32},
+        {"nombre": "Ramin Rezaeian", "posicion": "DF", "club": "Foolad Khuzestan", "valor_m": 1, "edad": 35},
+        {"nombre": "Arya Yousefi", "posicion": "DF", "club": "Sepahan SC", "valor_m": 2, "edad": 23},
+        {"nombre": "Ali Nemati", "posicion": "DF", "club": "Foolad Khuzestan", "valor_m": 1, "edad": 29},
+        {"nombre": "Danial Iri", "posicion": "DF", "club": "Malavan Anzali FC", "valor_m": 2, "edad": 22},
+        {"nombre": "Saeid Ezatolahi", "posicion": "MF", "club": "Shabab Al Ahli", "valor_m": 4, "edad": 29},
+        {"nombre": "Alireza Jahanbakhsh", "posicion": "MF", "club": "FCV Dender EH", "valor_m": 5, "edad": 32},
+        {"nombre": "Mohammad Mohebbi", "posicion": "MF", "club": "FC Rostov", "valor_m": 2, "edad": 27},
+        {"nombre": "Saman Ghoddos", "posicion": "MF", "club": "Al Ittihad Kalba", "valor_m": 4, "edad": 32},
+        {"nombre": "Mehdi Torabi", "posicion": "MF", "club": "Tractor Sazi Tabriz", "valor_m": 2, "edad": 31},
+        {"nombre": "Mohammad Ghorbani", "posicion": "MF", "club": "Al Wahda SC", "valor_m": 2, "edad": 24},
+        {"nombre": "Amirmohammad Razaghinia", "posicion": "MF", "club": "Esteghlal Tehran", "valor_m": 2, "edad": 19},
+        {"nombre": "Mehdi Taremi", "posicion": "FW", "club": "Olympiacos FC", "valor_m": 15, "edad": 33},
+        {"nombre": "Mehdi Ghayedi", "posicion": "FW", "club": "Al Nasr SC", "valor_m": 4, "edad": 27},
+        {"nombre": "Ali Alipour", "posicion": "FW", "club": "Persepolis FC", "valor_m": 3, "edad": 30},
+        {"nombre": "Amirhossein Hosseinzadeh", "posicion": "FW", "club": "Tractor Sazi Tabriz", "valor_m": 2, "edad": 25},
+        {"nombre": "Shahriyar Moghanloo", "posicion": "FW", "club": "Al Ittihad Kalba", "valor_m": 2, "edad": 31},
+        {"nombre": "Dennis Dargahi", "posicion": "FW", "club": "Standard Liege", "valor_m": 3, "edad": 28},
     ],
     "Nigeria": [
-        {
-            "nombre": "Francis Uzoho",
-            "posicion": "GK",
-            "club": "Omonia FC",
-            "valor_m": 3,
-            "edad": 26
-        },
-        {
-            "nombre": "Stanley Nwabali",
-            "posicion": "GK",
-            "club": "Chippa United",
-            "valor_m": 2,
-            "edad": 28
-        },
-        {
-            "nombre": "Maduka Okoye",
-            "posicion": "GK",
-            "club": "Udinese",
-            "valor_m": 5,
-            "edad": 24
-        },
-        {
-            "nombre": "William Troost-Ekong",
-            "posicion": "DF",
-            "club": "PAOK",
-            "valor_m": 5,
-            "edad": 31
-        },
-        {
-            "nombre": "Calvin Bassey",
-            "posicion": "DF",
-            "club": "Fulham",
-            "valor_m": 20,
-            "edad": 25
-        },
-        {
-            "nombre": "Ola Aina",
-            "posicion": "DF",
-            "club": "Nottingham Forest",
-            "valor_m": 12,
-            "edad": 28
-        },
-        {
-            "nombre": "Bright Osayi-Samuel",
-            "posicion": "DF",
-            "club": "Fenerbahce",
-            "valor_m": 8,
-            "edad": 27
-        },
-        {
-            "nombre": "Bruno Onyemaechi",
-            "posicion": "DF",
-            "club": "Atletico Madrid",
-            "valor_m": 8,
-            "edad": 22
-        },
-        {
-            "nombre": "Zaidu Sanusi",
-            "posicion": "DF",
-            "club": "FC Porto",
-            "valor_m": 8,
-            "edad": 26
-        },
-        {
-            "nombre": "Alex Iwobi",
-            "posicion": "MF",
-            "club": "Fulham",
-            "valor_m": 20,
-            "edad": 28
-        },
-        {
-            "nombre": "Frank Onyeka",
-            "posicion": "MF",
-            "club": "Brentford",
-            "valor_m": 15,
-            "edad": 26
-        },
-        {
-            "nombre": "Wilfred Ndidi",
-            "posicion": "MF",
-            "club": "Leicester City",
-            "valor_m": 15,
-            "edad": 27
-        },
-        {
-            "nombre": "Fisayo Dele-Bashiru",
-            "posicion": "MF",
-            "club": "Lazio",
-            "valor_m": 18,
-            "edad": 23
-        },
-        {
-            "nombre": "Victor Osimhen",
-            "posicion": "FW",
-            "club": "Galatasaray",
-            "valor_m": 75,
-            "edad": 26
-        },
-        {
-            "nombre": "Samuel Chukwueze",
-            "posicion": "FW",
-            "club": "AC Milan",
-            "valor_m": 25,
-            "edad": 25
-        },
-        {
-            "nombre": "Ademola Lookman",
-            "posicion": "FW",
-            "club": "Atalanta",
-            "valor_m": 45,
-            "edad": 27
-        },
-        {
-            "nombre": "Taiwo Awoniyi",
-            "posicion": "FW",
-            "club": "Nottingham Forest",
-            "valor_m": 20,
-            "edad": 27
-        },
-        {
-            "nombre": "Kelechi Iheanacho",
-            "posicion": "FW",
-            "club": "Sevilla",
-            "valor_m": 8,
-            "edad": 28
-        }
+        {"nombre": "Francis Uzoho", "posicion": "GK", "club": "Omonia FC", "valor_m": 3, "edad": 26},
+        {"nombre": "Stanley Nwabali", "posicion": "GK", "club": "Chippa United", "valor_m": 2, "edad": 28},
+        {"nombre": "Maduka Okoye", "posicion": "GK", "club": "Udinese", "valor_m": 5, "edad": 24},
+        {"nombre": "William Troost-Ekong", "posicion": "DF", "club": "PAOK", "valor_m": 5, "edad": 31},
+        {"nombre": "Calvin Bassey", "posicion": "DF", "club": "Fulham", "valor_m": 20, "edad": 25},
+        {"nombre": "Ola Aina", "posicion": "DF", "club": "Nottingham Forest", "valor_m": 12, "edad": 28},
+        {"nombre": "Bright Osayi-Samuel", "posicion": "DF", "club": "Fenerbahce", "valor_m": 8, "edad": 27},
+        {"nombre": "Bruno Onyemaechi", "posicion": "DF", "club": "Atletico Madrid", "valor_m": 8, "edad": 22},
+        {"nombre": "Zaidu Sanusi", "posicion": "DF", "club": "FC Porto", "valor_m": 8, "edad": 26},
+        {"nombre": "Alex Iwobi", "posicion": "MF", "club": "Fulham", "valor_m": 20, "edad": 28},
+        {"nombre": "Frank Onyeka", "posicion": "MF", "club": "Brentford", "valor_m": 15, "edad": 26},
+        {"nombre": "Wilfred Ndidi", "posicion": "MF", "club": "Leicester City", "valor_m": 15, "edad": 27},
+        {"nombre": "Fisayo Dele-Bashiru", "posicion": "MF", "club": "Lazio", "valor_m": 18, "edad": 23},
+        {"nombre": "Victor Osimhen", "posicion": "FW", "club": "Galatasaray", "valor_m": 75, "edad": 26},
+        {"nombre": "Samuel Chukwueze", "posicion": "FW", "club": "AC Milan", "valor_m": 25, "edad": 25},
+        {"nombre": "Ademola Lookman", "posicion": "FW", "club": "Atalanta", "valor_m": 45, "edad": 27},
+        {"nombre": "Taiwo Awoniyi", "posicion": "FW", "club": "Nottingham Forest", "valor_m": 20, "edad": 27},
+        {"nombre": "Kelechi Iheanacho", "posicion": "FW", "club": "Sevilla", "valor_m": 8, "edad": 28},
     ],
     "Egypt": [
-        {
-            "nombre": "Mohamed Elshenawy",
-            "posicion": "GK",
-            "club": "Al Ahly FC",
-            "valor_m": 2,
-            "edad": 37
-        },
-        {
-            "nombre": "Mahdy Soliman",
-            "posicion": "GK",
-            "club": "Zamalek SC",
-            "valor_m": 1,
-            "edad": 38
-        },
-        {
-            "nombre": "Mostafa Shoubir",
-            "posicion": "GK",
-            "club": "Al Ahly FC",
-            "valor_m": 1,
-            "edad": 25
-        },
-        {
-            "nombre": "Mohamed Alaa",
-            "posicion": "GK",
-            "club": "El Gouna FC",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Yasser Ibrahim",
-            "posicion": "DF",
-            "club": "Al Ahly FC",
-            "valor_m": 3,
-            "edad": 32
-        },
-        {
-            "nombre": "Mohamed Hany",
-            "posicion": "DF",
-            "club": "Al Ahly FC",
-            "valor_m": 3,
-            "edad": 29
-        },
-        {
-            "nombre": "Hossam Abdelmaguid",
-            "posicion": "DF",
-            "club": "Zamalek SC",
-            "valor_m": 2,
-            "edad": 24
-        },
-        {
-            "nombre": "Ramy Rabia",
-            "posicion": "DF",
-            "club": "Al Ain FC",
-            "valor_m": 2,
-            "edad": 32
-        },
-        {
-            "nombre": "Mohamed Abdelmoneim",
-            "posicion": "DF",
-            "club": "OGC Nice",
-            "valor_m": 5,
-            "edad": 26
-        },
-        {
-            "nombre": "Ahmed Fatouh",
-            "posicion": "DF",
-            "club": "Zamalek SC",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Karim Hafez",
-            "posicion": "DF",
-            "club": "Pyramids FC",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Tarek Alaa",
-            "posicion": "DF",
-            "club": "ZED FC",
-            "valor_m": 1,
-            "edad": 23
-        },
-        {
-            "nombre": "Emam Ashour",
-            "posicion": "MF",
-            "club": "Al Ahly FC",
-            "valor_m": 5,
-            "edad": 27
-        },
-        {
-            "nombre": "Hamdy Fathy",
-            "posicion": "MF",
-            "club": "Al Wakrah SC",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Mohanad Lashin",
-            "posicion": "MF",
-            "club": "Pyramids FC",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Nabil Donga",
-            "posicion": "MF",
-            "club": "Al Najmah SC",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Marawan Attia",
-            "posicion": "MF",
-            "club": "Al Ahly FC",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Mahmoud Saber",
-            "posicion": "MF",
-            "club": "ZED FC",
-            "valor_m": 1,
-            "edad": 24
-        },
-        {
-            "nombre": "Mostafa Zico",
-            "posicion": "MF",
-            "club": "Pyramids FC",
-            "valor_m": 2,
-            "edad": 28
-        },
-        {
-            "nombre": "Trezeguet",
-            "posicion": "FW",
-            "club": "Al Ahly FC",
-            "valor_m": 4,
-            "edad": 31
-        },
-        {
-            "nombre": "Hamza Abdelkarim",
-            "posicion": "FW",
-            "club": "FC Barcelona",
-            "valor_m": 5,
-            "edad": 17
-        },
-        {
-            "nombre": "Haissem Hassan",
-            "posicion": "FW",
-            "club": "Real Oviedo",
-            "valor_m": 3,
-            "edad": 23
-        },
-        {
-            "nombre": "Ibrahim Adel",
-            "posicion": "FW",
-            "club": "FC Nordsjaelland",
-            "valor_m": 5,
-            "edad": 24
-        },
-        {
-            "nombre": "Omar Marmoush",
-            "posicion": "FW",
-            "club": "Manchester City",
-            "valor_m": 60,
-            "edad": 26
-        },
-        {
-            "nombre": "Zizo",
-            "posicion": "FW",
-            "club": "Al Ahly FC",
-            "valor_m": 2,
-            "edad": 29
-        }
+        {"nombre": "Mohamed Elshenawy", "posicion": "GK", "club": "Al Ahly FC", "valor_m": 2, "edad": 37},
+        {"nombre": "Mahdy Soliman", "posicion": "GK", "club": "Zamalek SC", "valor_m": 1, "edad": 38},
+        {"nombre": "Mostafa Shoubir", "posicion": "GK", "club": "Al Ahly FC", "valor_m": 1, "edad": 25},
+        {"nombre": "Mohamed Alaa", "posicion": "GK", "club": "El Gouna FC", "valor_m": 1, "edad": 26},
+        {"nombre": "Yasser Ibrahim", "posicion": "DF", "club": "Al Ahly FC", "valor_m": 3, "edad": 32},
+        {"nombre": "Mohamed Hany", "posicion": "DF", "club": "Al Ahly FC", "valor_m": 3, "edad": 29},
+        {"nombre": "Hossam Abdelmaguid", "posicion": "DF", "club": "Zamalek SC", "valor_m": 2, "edad": 24},
+        {"nombre": "Ramy Rabia", "posicion": "DF", "club": "Al Ain FC", "valor_m": 2, "edad": 32},
+        {"nombre": "Mohamed Abdelmoneim", "posicion": "DF", "club": "OGC Nice", "valor_m": 5, "edad": 26},
+        {"nombre": "Ahmed Fatouh", "posicion": "DF", "club": "Zamalek SC", "valor_m": 2, "edad": 27},
+        {"nombre": "Karim Hafez", "posicion": "DF", "club": "Pyramids FC", "valor_m": 2, "edad": 29},
+        {"nombre": "Tarek Alaa", "posicion": "DF", "club": "ZED FC", "valor_m": 1, "edad": 23},
+        {"nombre": "Emam Ashour", "posicion": "MF", "club": "Al Ahly FC", "valor_m": 5, "edad": 27},
+        {"nombre": "Hamdy Fathy", "posicion": "MF", "club": "Al Wakrah SC", "valor_m": 2, "edad": 31},
+        {"nombre": "Mohanad Lashin", "posicion": "MF", "club": "Pyramids FC", "valor_m": 2, "edad": 29},
+        {"nombre": "Nabil Donga", "posicion": "MF", "club": "Al Najmah SC", "valor_m": 1, "edad": 29},
+        {"nombre": "Marawan Attia", "posicion": "MF", "club": "Al Ahly FC", "valor_m": 2, "edad": 27},
+        {"nombre": "Mahmoud Saber", "posicion": "MF", "club": "ZED FC", "valor_m": 1, "edad": 24},
+        {"nombre": "Mostafa Zico", "posicion": "MF", "club": "Pyramids FC", "valor_m": 2, "edad": 28},
+        {"nombre": "Trezeguet", "posicion": "FW", "club": "Al Ahly FC", "valor_m": 4, "edad": 31},
+        {"nombre": "Hamza Abdelkarim", "posicion": "FW", "club": "FC Barcelona", "valor_m": 5, "edad": 17},
+        {"nombre": "Haissem Hassan", "posicion": "FW", "club": "Real Oviedo", "valor_m": 3, "edad": 23},
+        {"nombre": "Ibrahim Adel", "posicion": "FW", "club": "FC Nordsjaelland", "valor_m": 5, "edad": 24},
+        {"nombre": "Omar Marmoush", "posicion": "FW", "club": "Manchester City", "valor_m": 60, "edad": 26},
+        {"nombre": "Zizo", "posicion": "FW", "club": "Al Ahly FC", "valor_m": 2, "edad": 29},
+        {"nombre": "Hamada", "posicion": "GK", "club": "Zamalek", "valor_m": 2, "edad": 30},
     ],
     "Cameroon": [
-        {
-            "nombre": "Andre Onana",
-            "posicion": "GK",
-            "club": "Manchester United",
-            "valor_m": 35,
-            "edad": 28
-        },
-        {
-            "nombre": "Devis Epassy",
-            "posicion": "GK",
-            "club": "Angers SCO",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Fabrice Ondoa",
-            "posicion": "GK",
-            "club": "ES Tunis",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Michael Ngadeu-Ngadjui",
-            "posicion": "DF",
-            "club": "Gent",
-            "valor_m": 2,
-            "edad": 33
-        },
-        {
-            "nombre": "Harold Moukoudi",
-            "posicion": "DF",
-            "club": "Saint-Etienne",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Collins Fai",
-            "posicion": "DF",
-            "club": "Al Qadsiah",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Jean-Charles Castelletto",
-            "posicion": "DF",
-            "club": "Nantes",
-            "valor_m": 4,
-            "edad": 29
-        },
-        {
-            "nombre": "Nicolas Nkoulou",
-            "posicion": "DF",
-            "club": "Aris Thessaloniki",
-            "valor_m": 1,
-            "edad": 34
-        },
-        {
-            "nombre": "Nouhou Tolo",
-            "posicion": "DF",
-            "club": "Seattle Sounders",
-            "valor_m": 3,
-            "edad": 27
-        },
-        {
-            "nombre": "Pierre Kunde",
-            "posicion": "MF",
-            "club": "Mainz",
-            "valor_m": 4,
-            "edad": 28
-        },
-        {
-            "nombre": "Martin Hongla",
-            "posicion": "MF",
-            "club": "Hellas Verona",
-            "valor_m": 4,
-            "edad": 25
-        },
-        {
-            "nombre": "Samuel Gouet",
-            "posicion": "MF",
-            "club": "Mallorca",
-            "valor_m": 6,
-            "edad": 26
-        },
-        {
-            "nombre": "James Lea Siliki",
-            "posicion": "MF",
-            "club": "Nantes",
-            "valor_m": 3,
-            "edad": 27
-        },
-        {
-            "nombre": "Vincent Aboubakar",
-            "posicion": "FW",
-            "club": "Al Qadsiah",
-            "valor_m": 4,
-            "edad": 32
-        },
-        {
-            "nombre": "Karl Toko Ekambi",
-            "posicion": "FW",
-            "club": "Rennes",
-            "valor_m": 8,
-            "edad": 31
-        },
-        {
-            "nombre": "Bryan Mbeumo",
-            "posicion": "FW",
-            "club": "Manchester United",
-            "valor_m": 50,
-            "edad": 25
-        },
-        {
-            "nombre": "Eric Choupo-Moting",
-            "posicion": "FW",
-            "club": "Stade Rennais",
-            "valor_m": 3,
-            "edad": 35
-        },
-        {
-            "nombre": "Nicolas Moumi Ngamaleu",
-            "posicion": "FW",
-            "club": "Young Boys",
-            "valor_m": 3,
-            "edad": 30
-        }
+        {"nombre": "Andre Onana", "posicion": "GK", "club": "Manchester United", "valor_m": 35, "edad": 28},
+        {"nombre": "Devis Epassy", "posicion": "GK", "club": "Angers SCO", "valor_m": 2, "edad": 30},
+        {"nombre": "Fabrice Ondoa", "posicion": "GK", "club": "ES Tunis", "valor_m": 1, "edad": 29},
+        {"nombre": "Michael Ngadeu-Ngadjui", "posicion": "DF", "club": "Gent", "valor_m": 2, "edad": 33},
+        {"nombre": "Harold Moukoudi", "posicion": "DF", "club": "Saint-Etienne", "valor_m": 2, "edad": 27},
+        {"nombre": "Collins Fai", "posicion": "DF", "club": "Al Qadsiah", "valor_m": 2, "edad": 31},
+        {"nombre": "Jean-Charles Castelletto", "posicion": "DF", "club": "Nantes", "valor_m": 4, "edad": 29},
+        {"nombre": "Nicolas Nkoulou", "posicion": "DF", "club": "Aris Thessaloniki", "valor_m": 1, "edad": 34},
+        {"nombre": "Nouhou Tolo", "posicion": "DF", "club": "Seattle Sounders", "valor_m": 3, "edad": 27},
+        {"nombre": "Pierre Kunde", "posicion": "MF", "club": "Mainz", "valor_m": 4, "edad": 28},
+        {"nombre": "Martin Hongla", "posicion": "MF", "club": "Hellas Verona", "valor_m": 4, "edad": 25},
+        {"nombre": "Samuel Gouet", "posicion": "MF", "club": "Mallorca", "valor_m": 6, "edad": 26},
+        {"nombre": "James Lea Siliki", "posicion": "MF", "club": "Nantes", "valor_m": 3, "edad": 27},
+        {"nombre": "Vincent Aboubakar", "posicion": "FW", "club": "Al Qadsiah", "valor_m": 4, "edad": 32},
+        {"nombre": "Karl Toko Ekambi", "posicion": "FW", "club": "Rennes", "valor_m": 8, "edad": 31},
+        {"nombre": "Bryan Mbeumo", "posicion": "FW", "club": "Manchester United", "valor_m": 50, "edad": 25},
+        {"nombre": "Eric Choupo-Moting", "posicion": "FW", "club": "Stade Rennais", "valor_m": 3, "edad": 35},
+        {"nombre": "Nicolas Moumi Ngamaleu", "posicion": "FW", "club": "Young Boys", "valor_m": 3, "edad": 30},
     ],
     "Ivory Coast": [
-        {
-            "nombre": "Yahia Fofana",
-            "posicion": "GK",
-            "club": "Caykur Rizespor",
-            "valor_m": 8,
-            "edad": 25
-        },
-        {
-            "nombre": "Mohamed Kone",
-            "posicion": "GK",
-            "club": "Sporting Charleroi",
-            "valor_m": 3,
-            "edad": 23
-        },
-        {
-            "nombre": "Alban Lafont",
-            "posicion": "GK",
-            "club": "Panathinaikos FC",
-            "valor_m": 8,
-            "edad": 26
-        },
-        {
-            "nombre": "Ousmane Diomande",
-            "posicion": "DF",
-            "club": "Sporting CP",
-            "valor_m": 40,
-            "edad": 22
-        },
-        {
-            "nombre": "Ghislain Konan",
-            "posicion": "DF",
-            "club": "Gil Vicente FC",
-            "valor_m": 3,
-            "edad": 30
-        },
-        {
-            "nombre": "Wilfried Singo",
-            "posicion": "DF",
-            "club": "Galatasaray",
-            "valor_m": 20,
-            "edad": 25
-        },
-        {
-            "nombre": "Odilon Kossounou",
-            "posicion": "DF",
-            "club": "Atalanta",
-            "valor_m": 25,
-            "edad": 24
-        },
-        {
-            "nombre": "Christopher Operi",
-            "posicion": "DF",
-            "club": "Basaksehir FK",
-            "valor_m": 3,
-            "edad": 28
-        },
-        {
-            "nombre": "Guela Doue",
-            "posicion": "DF",
-            "club": "RC Strasbourg",
-            "valor_m": 8,
-            "edad": 23
-        },
-        {
-            "nombre": "Emmanuel Agbadou",
-            "posicion": "DF",
-            "club": "Besiktas JK",
-            "valor_m": 8,
-            "edad": 28
-        },
-        {
-            "nombre": "Evan Ndicka",
-            "posicion": "DF",
-            "club": "AS Roma",
-            "valor_m": 20,
-            "edad": 26
-        },
-        {
-            "nombre": "Jean Michael Seri",
-            "posicion": "MF",
-            "club": "NK Maribor",
-            "valor_m": 2,
-            "edad": 34
-        },
-        {
-            "nombre": "Seko Fofana",
-            "posicion": "MF",
-            "club": "FC Porto",
-            "valor_m": 18,
-            "edad": 30
-        },
-        {
-            "nombre": "Franck Kessie",
-            "posicion": "MF",
-            "club": "Al Ahli FC",
-            "valor_m": 12,
-            "edad": 28
-        },
-        {
-            "nombre": "Ibrahim Sangare",
-            "posicion": "MF",
-            "club": "Nottingham Forest",
-            "valor_m": 25,
-            "edad": 28
-        },
-        {
-            "nombre": "Hamed Junior Traore",
-            "posicion": "MF",
-            "club": "Bournemouth",
-            "valor_m": 18,
-            "edad": 24
-        },
-        {
-            "nombre": "Parfait Guiagon",
-            "posicion": "MF",
-            "club": "Sporting Charleroi",
-            "valor_m": 3,
-            "edad": 24
-        },
-        {
-            "nombre": "Christ Oulai",
-            "posicion": "MF",
-            "club": "Trabzonspor",
-            "valor_m": 3,
-            "edad": 19
-        },
-        {
-            "nombre": "Ange-Yoan Bonny",
-            "posicion": "FW",
-            "club": "Inter Milan",
-            "valor_m": 20,
-            "edad": 22
-        },
-        {
-            "nombre": "Simon Adingra",
-            "posicion": "FW",
-            "club": "AS Monaco",
-            "valor_m": 25,
-            "edad": 23
-        },
-        {
-            "nombre": "Yan Diomande",
-            "posicion": "FW",
-            "club": "RB Leipzig",
-            "valor_m": 8,
-            "edad": 18
-        },
-        {
-            "nombre": "Elye Wahi",
-            "posicion": "FW",
-            "club": "OGC Nice",
-            "valor_m": 20,
-            "edad": 22
-        },
-        {
-            "nombre": "Nicolas Pepe",
-            "posicion": "FW",
-            "club": "Villarreal CF",
-            "valor_m": 5,
-            "edad": 30
-        },
-        {
-            "nombre": "Oumar Diakite",
-            "posicion": "FW",
-            "club": "Cercle Brugge",
-            "valor_m": 5,
-            "edad": 22
-        },
-        {
-            "nombre": "Amad Diallo",
-            "posicion": "FW",
-            "club": "Manchester United",
-            "valor_m": 35,
-            "edad": 22
-        },
-        {
-            "nombre": "Evann Guessand",
-            "posicion": "FW",
-            "club": "Crystal Palace",
-            "valor_m": 8,
-            "edad": 24
-        }
+        {"nombre": "Yahia Fofana", "posicion": "GK", "club": "Caykur Rizespor", "valor_m": 8, "edad": 25},
+        {"nombre": "Mohamed Kone", "posicion": "GK", "club": "Sporting Charleroi", "valor_m": 3, "edad": 23},
+        {"nombre": "Alban Lafont", "posicion": "GK", "club": "Panathinaikos FC", "valor_m": 8, "edad": 26},
+        {"nombre": "Ousmane Diomande", "posicion": "DF", "club": "Sporting CP", "valor_m": 40, "edad": 22},
+        {"nombre": "Ghislain Konan", "posicion": "DF", "club": "Gil Vicente FC", "valor_m": 3, "edad": 30},
+        {"nombre": "Wilfried Singo", "posicion": "DF", "club": "Galatasaray", "valor_m": 20, "edad": 25},
+        {"nombre": "Odilon Kossounou", "posicion": "DF", "club": "Atalanta", "valor_m": 25, "edad": 24},
+        {"nombre": "Christopher Operi", "posicion": "DF", "club": "Basaksehir FK", "valor_m": 3, "edad": 28},
+        {"nombre": "Guela Doue", "posicion": "DF", "club": "RC Strasbourg", "valor_m": 8, "edad": 23},
+        {"nombre": "Emmanuel Agbadou", "posicion": "DF", "club": "Besiktas JK", "valor_m": 8, "edad": 28},
+        {"nombre": "Evan Ndicka", "posicion": "DF", "club": "AS Roma", "valor_m": 20, "edad": 26},
+        {"nombre": "Jean Michael Seri", "posicion": "MF", "club": "NK Maribor", "valor_m": 2, "edad": 34},
+        {"nombre": "Seko Fofana", "posicion": "MF", "club": "FC Porto", "valor_m": 18, "edad": 30},
+        {"nombre": "Franck Kessie", "posicion": "MF", "club": "Al Ahli FC", "valor_m": 12, "edad": 28},
+        {"nombre": "Ibrahim Sangare", "posicion": "MF", "club": "Nottingham Forest", "valor_m": 25, "edad": 28},
+        {"nombre": "Hamed Junior Traore", "posicion": "MF", "club": "Bournemouth", "valor_m": 18, "edad": 24},
+        {"nombre": "Parfait Guiagon", "posicion": "MF", "club": "Sporting Charleroi", "valor_m": 3, "edad": 24},
+        {"nombre": "Christ Oulai", "posicion": "MF", "club": "Trabzonspor", "valor_m": 3, "edad": 19},
+        {"nombre": "Ange-Yoan Bonny", "posicion": "FW", "club": "Inter Milan", "valor_m": 20, "edad": 22},
+        {"nombre": "Simon Adingra", "posicion": "FW", "club": "AS Monaco", "valor_m": 25, "edad": 23},
+        {"nombre": "Yan Diomande", "posicion": "FW", "club": "RB Leipzig", "valor_m": 8, "edad": 18},
+        {"nombre": "Elye Wahi", "posicion": "FW", "club": "OGC Nice", "valor_m": 20, "edad": 22},
+        {"nombre": "Nicolas Pepe", "posicion": "FW", "club": "Villarreal CF", "valor_m": 5, "edad": 30},
+        {"nombre": "Oumar Diakite", "posicion": "FW", "club": "Cercle Brugge", "valor_m": 5, "edad": 22},
+        {"nombre": "Amad Diallo", "posicion": "FW", "club": "Manchester United", "valor_m": 35, "edad": 22},
+        {"nombre": "Evann Guessand", "posicion": "FW", "club": "Crystal Palace", "valor_m": 8, "edad": 24},
     ],
     "Ghana": [
-        {
-            "nombre": "Lawrence Ati-Zigi",
-            "posicion": "GK",
-            "club": "FC St. Gallen",
-            "valor_m": 3,
-            "edad": 28
-        },
-        {
-            "nombre": "Joseph Anang",
-            "posicion": "GK",
-            "club": "St Patricks Athletic",
-            "valor_m": 1,
-            "edad": 25
-        },
-        {
-            "nombre": "Benjamin Asare",
-            "posicion": "GK",
-            "club": "Hearts of Oak",
-            "valor_m": 1,
-            "edad": 33
-        },
-        {
-            "nombre": "Alidu Seidu",
-            "posicion": "DF",
-            "club": "Stade Rennais",
-            "valor_m": 12,
-            "edad": 25
-        },
-        {
-            "nombre": "Jonas Adjetey",
-            "posicion": "DF",
-            "club": "VfL Wolfsburg",
-            "valor_m": 5,
-            "edad": 22
-        },
-        {
-            "nombre": "Abdul Mumin",
-            "posicion": "DF",
-            "club": "Rayo Vallecano",
-            "valor_m": 5,
-            "edad": 27
-        },
-        {
-            "nombre": "Gideon Mensah",
-            "posicion": "DF",
-            "club": "AJ Auxerre",
-            "valor_m": 5,
-            "edad": 27
-        },
-        {
-            "nombre": "Abdul Rahman Baba",
-            "posicion": "DF",
-            "club": "PAOK Saloniki",
-            "valor_m": 3,
-            "edad": 30
-        },
-        {
-            "nombre": "Jerome Opoku",
-            "posicion": "DF",
-            "club": "Basaksehir FK",
-            "valor_m": 3,
-            "edad": 26
-        },
-        {
-            "nombre": "Derrick Luckassen",
-            "posicion": "DF",
-            "club": "Pafos FC",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Kojo Oppong",
-            "posicion": "DF",
-            "club": "OGC Nice",
-            "valor_m": 4,
-            "edad": 21
-        },
-        {
-            "nombre": "Marvin Senaya",
-            "posicion": "DF",
-            "club": "AJ Auxerre",
-            "valor_m": 3,
-            "edad": 24
-        },
-        {
-            "nombre": "Thomas Partey",
-            "posicion": "MF",
-            "club": "Villarreal CF",
-            "valor_m": 20,
-            "edad": 31
-        },
-        {
-            "nombre": "Mohammed Kudus",
-            "posicion": "MF",
-            "club": "West Ham United",
-            "valor_m": 45,
-            "edad": 24
-        },
-        {
-            "nombre": "Caleb Yirenkyi",
-            "posicion": "MF",
-            "club": "FC Nordsjaelland",
-            "valor_m": 3,
-            "edad": 19
-        },
-        {
-            "nombre": "Kwasi Sibo",
-            "posicion": "MF",
-            "club": "Real Oviedo",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Elisha Owusu",
-            "posicion": "MF",
-            "club": "AJ Auxerre",
-            "valor_m": 4,
-            "edad": 27
-        },
-        {
-            "nombre": "Augustine Boakye",
-            "posicion": "MF",
-            "club": "AS Saint-Etienne",
-            "valor_m": 3,
-            "edad": 24
-        },
-        {
-            "nombre": "Jordan Ayew",
-            "posicion": "FW",
-            "club": "Leicester City",
-            "valor_m": 4,
-            "edad": 33
-        },
-        {
-            "nombre": "Abdul Fatawu Issahaku",
-            "posicion": "FW",
-            "club": "Leicester City",
-            "valor_m": 15,
-            "edad": 21
-        },
-        {
-            "nombre": "Brandon Thomas-Asante",
-            "posicion": "FW",
-            "club": "Coventry City",
-            "valor_m": 8,
-            "edad": 26
-        },
-        {
-            "nombre": "Antoine Semenyo",
-            "posicion": "FW",
-            "club": "Manchester City",
-            "valor_m": 25,
-            "edad": 25
-        },
-        {
-            "nombre": "Inaki Williams",
-            "posicion": "FW",
-            "club": "Athletic Club",
-            "valor_m": 28,
-            "edad": 30
-        },
-        {
-            "nombre": "Kamaldeen Sulemana",
-            "posicion": "FW",
-            "club": "Atalanta",
-            "valor_m": 18,
-            "edad": 23
-        },
-        {
-            "nombre": "Ernest Nuamah",
-            "posicion": "FW",
-            "club": "Olympique Lyon",
-            "valor_m": 15,
-            "edad": 22
-        },
-        {
-            "nombre": "Prince Adu",
-            "posicion": "FW",
-            "club": "FC Viktoria Plzen",
-            "valor_m": 3,
-            "edad": 21
-        }
+        {"nombre": "Lawrence Ati-Zigi", "posicion": "GK", "club": "FC St. Gallen", "valor_m": 3, "edad": 28},
+        {"nombre": "Joseph Anang", "posicion": "GK", "club": "St Patricks Athletic", "valor_m": 1, "edad": 25},
+        {"nombre": "Benjamin Asare", "posicion": "GK", "club": "Hearts of Oak", "valor_m": 1, "edad": 33},
+        {"nombre": "Alidu Seidu", "posicion": "DF", "club": "Stade Rennais", "valor_m": 12, "edad": 25},
+        {"nombre": "Jonas Adjetey", "posicion": "DF", "club": "VfL Wolfsburg", "valor_m": 5, "edad": 22},
+        {"nombre": "Abdul Mumin", "posicion": "DF", "club": "Rayo Vallecano", "valor_m": 5, "edad": 27},
+        {"nombre": "Gideon Mensah", "posicion": "DF", "club": "AJ Auxerre", "valor_m": 5, "edad": 27},
+        {"nombre": "Abdul Rahman Baba", "posicion": "DF", "club": "PAOK Saloniki", "valor_m": 3, "edad": 30},
+        {"nombre": "Jerome Opoku", "posicion": "DF", "club": "Basaksehir FK", "valor_m": 3, "edad": 26},
+        {"nombre": "Derrick Luckassen", "posicion": "DF", "club": "Pafos FC", "valor_m": 2, "edad": 30},
+        {"nombre": "Kojo Oppong", "posicion": "DF", "club": "OGC Nice", "valor_m": 4, "edad": 21},
+        {"nombre": "Marvin Senaya", "posicion": "DF", "club": "AJ Auxerre", "valor_m": 3, "edad": 24},
+        {"nombre": "Thomas Partey", "posicion": "MF", "club": "Villarreal CF", "valor_m": 20, "edad": 31},
+        {"nombre": "Mohammed Kudus", "posicion": "MF", "club": "West Ham United", "valor_m": 45, "edad": 24},
+        {"nombre": "Caleb Yirenkyi", "posicion": "MF", "club": "FC Nordsjaelland", "valor_m": 3, "edad": 19},
+        {"nombre": "Kwasi Sibo", "posicion": "MF", "club": "Real Oviedo", "valor_m": 2, "edad": 27},
+        {"nombre": "Elisha Owusu", "posicion": "MF", "club": "AJ Auxerre", "valor_m": 4, "edad": 27},
+        {"nombre": "Augustine Boakye", "posicion": "MF", "club": "AS Saint-Etienne", "valor_m": 3, "edad": 24},
+        {"nombre": "Jordan Ayew", "posicion": "FW", "club": "Leicester City", "valor_m": 4, "edad": 33},
+        {"nombre": "Abdul Fatawu Issahaku", "posicion": "FW", "club": "Leicester City", "valor_m": 15, "edad": 21},
+        {"nombre": "Brandon Thomas-Asante", "posicion": "FW", "club": "Coventry City", "valor_m": 8, "edad": 26},
+        {"nombre": "Antoine Semenyo", "posicion": "FW", "club": "Manchester City", "valor_m": 25, "edad": 25},
+        {"nombre": "Inaki Williams", "posicion": "FW", "club": "Athletic Club", "valor_m": 28, "edad": 30},
+        {"nombre": "Kamaldeen Sulemana", "posicion": "FW", "club": "Atalanta", "valor_m": 18, "edad": 23},
+        {"nombre": "Ernest Nuamah", "posicion": "FW", "club": "Olympique Lyon", "valor_m": 15, "edad": 22},
+        {"nombre": "Prince Adu", "posicion": "FW", "club": "FC Viktoria Plzen", "valor_m": 3, "edad": 21},
     ],
     "Algeria": [
-        {
-            "nombre": "Mastil Melvin",
-            "posicion": "GK",
-            "club": "FC Stade Nyonnais",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Benbot Oussama",
-            "posicion": "GK",
-            "club": "USM Alger",
-            "valor_m": 1,
-            "edad": 31
-        },
-        {
-            "nombre": "Zidane Luca",
-            "posicion": "GK",
-            "club": "Granada CF",
-            "valor_m": 1,
-            "edad": 27
-        },
-        {
-            "nombre": "Mandi Aissa",
-            "posicion": "DF",
-            "club": "Lille OSC",
-            "valor_m": 5,
-            "edad": 33
-        },
-        {
-            "nombre": "Abada Achraf",
-            "posicion": "DF",
-            "club": "USM Alger",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Tougai Mohamed Amine",
-            "posicion": "DF",
-            "club": "Esperance De Tunisie",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Belaid Zineddine",
-            "posicion": "DF",
-            "club": "JS Kabylie",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Hadjam Jaouen",
-            "posicion": "DF",
-            "club": "BSC Young Boys",
-            "valor_m": 3,
-            "edad": 23
-        },
-        {
-            "nombre": "Ait-Nouri Rayan",
-            "posicion": "DF",
-            "club": "Manchester City",
-            "valor_m": 20,
-            "edad": 24
-        },
-        {
-            "nombre": "Belghali Rak",
-            "posicion": "DF",
-            "club": "Hellas Verona",
-            "valor_m": 2,
-            "edad": 23
-        },
-        {
-            "nombre": "Bensebaini Ramy",
-            "posicion": "DF",
-            "club": "Borussia Dortmund",
-            "valor_m": 20,
-            "edad": 30
-        },
-        {
-            "nombre": "Chergui Samir",
-            "posicion": "DF",
-            "club": "Paris FC",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Zerrouki Ramiz",
-            "posicion": "MF",
-            "club": "FC Twente",
-            "valor_m": 10,
-            "edad": 28
-        },
-        {
-            "nombre": "Aouar Houssem",
-            "posicion": "MF",
-            "club": "Al Ittihad",
-            "valor_m": 8,
-            "edad": 27
-        },
-        {
-            "nombre": "Chaibi Fares",
-            "posicion": "MF",
-            "club": "Eintracht Frankfurt",
-            "valor_m": 15,
-            "edad": 23
-        },
-        {
-            "nombre": "Boudaoui Hicham",
-            "posicion": "MF",
-            "club": "OGC Nice",
-            "valor_m": 8,
-            "edad": 26
-        },
-        {
-            "nombre": "Bentaleb Nabil",
-            "posicion": "MF",
-            "club": "Lille OSC",
-            "valor_m": 5,
-            "edad": 31
-        },
-        {
-            "nombre": "Maza Ibrahim",
-            "posicion": "MF",
-            "club": "Bayer Leverkusen",
-            "valor_m": 15,
-            "edad": 20
-        },
-        {
-            "nombre": "Titraoui Yassine",
-            "posicion": "MF",
-            "club": "Sporting Charleroi",
-            "valor_m": 3,
-            "edad": 22
-        },
-        {
-            "nombre": "Mahrez Riyad",
-            "posicion": "FW",
-            "club": "Al Ahli",
-            "valor_m": 10,
-            "edad": 34
-        },
-        {
-            "nombre": "Gouiri Amine",
-            "posicion": "FW",
-            "club": "Olympique Marseille",
-            "valor_m": 20,
-            "edad": 25
-        },
-        {
-            "nombre": "Hadj Moussa Anis",
-            "posicion": "FW",
-            "club": "Feyenoord Rotterdam",
-            "valor_m": 12,
-            "edad": 23
-        },
-        {
-            "nombre": "Benbouali Nadhir",
-            "posicion": "FW",
-            "club": "Gyori ETO FC",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Amoura Mohamed",
-            "posicion": "FW",
-            "club": "VfL Wolfsburg",
-            "valor_m": 15,
-            "edad": 25
-        },
-        {
-            "nombre": "Boulbina Adil",
-            "posicion": "FW",
-            "club": "Al Duhail",
-            "valor_m": 3,
-            "edad": 22
-        },
-        {
-            "nombre": "Ghedjemis Fares",
-            "posicion": "FW",
-            "club": "Frosinone",
-            "valor_m": 5,
-            "edad": 23
-        }
+        {"nombre": "Mastil Melvin", "posicion": "GK", "club": "FC Stade Nyonnais", "valor_m": 1, "edad": 26},
+        {"nombre": "Benbot Oussama", "posicion": "GK", "club": "USM Alger", "valor_m": 1, "edad": 31},
+        {"nombre": "Zidane Luca", "posicion": "GK", "club": "Granada CF", "valor_m": 1, "edad": 27},
+        {"nombre": "Mandi Aissa", "posicion": "DF", "club": "Lille OSC", "valor_m": 5, "edad": 33},
+        {"nombre": "Abada Achraf", "posicion": "DF", "club": "USM Alger", "valor_m": 2, "edad": 26},
+        {"nombre": "Tougai Mohamed Amine", "posicion": "DF", "club": "Esperance De Tunisie", "valor_m": 2, "edad": 26},
+        {"nombre": "Belaid Zineddine", "posicion": "DF", "club": "JS Kabylie", "valor_m": 2, "edad": 26},
+        {"nombre": "Hadjam Jaouen", "posicion": "DF", "club": "BSC Young Boys", "valor_m": 3, "edad": 23},
+        {"nombre": "Ait-Nouri Rayan", "posicion": "DF", "club": "Manchester City", "valor_m": 20, "edad": 24},
+        {"nombre": "Belghali Rak", "posicion": "DF", "club": "Hellas Verona", "valor_m": 2, "edad": 23},
+        {"nombre": "Bensebaini Ramy", "posicion": "DF", "club": "Borussia Dortmund", "valor_m": 20, "edad": 30},
+        {"nombre": "Chergui Samir", "posicion": "DF", "club": "Paris FC", "valor_m": 2, "edad": 26},
+        {"nombre": "Zerrouki Ramiz", "posicion": "MF", "club": "FC Twente", "valor_m": 10, "edad": 28},
+        {"nombre": "Aouar Houssem", "posicion": "MF", "club": "Al Ittihad", "valor_m": 8, "edad": 27},
+        {"nombre": "Chaibi Fares", "posicion": "MF", "club": "Eintracht Frankfurt", "valor_m": 15, "edad": 23},
+        {"nombre": "Boudaoui Hicham", "posicion": "MF", "club": "OGC Nice", "valor_m": 8, "edad": 26},
+        {"nombre": "Bentaleb Nabil", "posicion": "MF", "club": "Lille OSC", "valor_m": 5, "edad": 31},
+        {"nombre": "Maza Ibrahim", "posicion": "MF", "club": "Bayer Leverkusen", "valor_m": 15, "edad": 20},
+        {"nombre": "Titraoui Yassine", "posicion": "MF", "club": "Sporting Charleroi", "valor_m": 3, "edad": 22},
+        {"nombre": "Mahrez Riyad", "posicion": "FW", "club": "Al Ahli", "valor_m": 10, "edad": 34},
+        {"nombre": "Gouiri Amine", "posicion": "FW", "club": "Olympique Marseille", "valor_m": 20, "edad": 25},
+        {"nombre": "Hadj Moussa Anis", "posicion": "FW", "club": "Feyenoord Rotterdam", "valor_m": 12, "edad": 23},
+        {"nombre": "Benbouali Nadhir", "posicion": "FW", "club": "Gyori ETO FC", "valor_m": 2, "edad": 25},
+        {"nombre": "Amoura Mohamed", "posicion": "FW", "club": "VfL Wolfsburg", "valor_m": 15, "edad": 25},
+        {"nombre": "Boulbina Adil", "posicion": "FW", "club": "Al Duhail", "valor_m": 3, "edad": 22},
+        {"nombre": "Ghedjemis Fares", "posicion": "FW", "club": "Frosinone", "valor_m": 5, "edad": 23},
     ],
     "Tunisia": [
-        {
-            "nombre": "Aymen Dahmen",
-            "posicion": "GK",
-            "club": "Montpellier",
-            "valor_m": 3,
-            "edad": 28
-        },
-        {
-            "nombre": "Bechir Ben Said",
-            "posicion": "GK",
-            "club": "Club Africain",
-            "valor_m": 1,
-            "edad": 30
-        },
-        {
-            "nombre": "Montassar Talbi",
-            "posicion": "DF",
-            "club": "FC Lorient",
-            "valor_m": 5,
-            "edad": 25
-        },
-        {
-            "nombre": "Dylan Bronn",
-            "posicion": "DF",
-            "club": "Salernitana",
-            "valor_m": 4,
-            "edad": 28
-        },
-        {
-            "nombre": "Ali Maaloul",
-            "posicion": "DF",
-            "club": "Al Ahly",
-            "valor_m": 2,
-            "edad": 34
-        },
-        {
-            "nombre": "Nader Ghandri",
-            "posicion": "DF",
-            "club": "Bordeaux",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Youcef Atal",
-            "posicion": "DF",
-            "club": "OGC Nice",
-            "valor_m": 10,
-            "edad": 28
-        },
-        {
-            "nombre": "Ellyes Skhiri",
-            "posicion": "MF",
-            "club": "Eintracht Frankfurt",
-            "valor_m": 15,
-            "edad": 28
-        },
-        {
-            "nombre": "Anis Ben Slimane",
-            "posicion": "MF",
-            "club": "Brondby IF",
-            "valor_m": 8,
-            "edad": 23
-        },
-        {
-            "nombre": "Naim Sliti",
-            "posicion": "MF",
-            "club": "Dijon",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Mohamed Ali Ben Romdhane",
-            "posicion": "MF",
-            "club": "Al Ahly",
-            "valor_m": 5,
-            "edad": 23
-        },
-        {
-            "nombre": "Wahbi Khazri",
-            "posicion": "FW",
-            "club": "Montpellier",
-            "valor_m": 4,
-            "edad": 33
-        },
-        {
-            "nombre": "Youssef Msakni",
-            "posicion": "FW",
-            "club": "Al Arabi",
-            "valor_m": 2,
-            "edad": 33
-        },
-        {
-            "nombre": "Issam Jebali",
-            "posicion": "FW",
-            "club": "Odense BK",
-            "valor_m": 4,
-            "edad": 29
-        },
-        {
-            "nombre": "Seifeddine Jaziri",
-            "posicion": "FW",
-            "club": "Ankaragucu",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Hannibal Mejbri",
-            "posicion": "MF",
-            "club": "Burnley FC",
-            "valor_m": 12,
-            "edad": 21
-        }
+        {"nombre": "Aymen Dahmen", "posicion": "GK", "club": "Montpellier", "valor_m": 3, "edad": 28},
+        {"nombre": "Bechir Ben Said", "posicion": "GK", "club": "Club Africain", "valor_m": 1, "edad": 30},
+        {"nombre": "Montassar Talbi", "posicion": "DF", "club": "FC Lorient", "valor_m": 5, "edad": 25},
+        {"nombre": "Dylan Bronn", "posicion": "DF", "club": "Salernitana", "valor_m": 4, "edad": 28},
+        {"nombre": "Ali Maaloul", "posicion": "DF", "club": "Al Ahly", "valor_m": 2, "edad": 34},
+        {"nombre": "Nader Ghandri", "posicion": "DF", "club": "Bordeaux", "valor_m": 2, "edad": 30},
+        {"nombre": "Youcef Atal", "posicion": "DF", "club": "OGC Nice", "valor_m": 10, "edad": 28},
+        {"nombre": "Ellyes Skhiri", "posicion": "MF", "club": "Eintracht Frankfurt", "valor_m": 15, "edad": 28},
+        {"nombre": "Anis Ben Slimane", "posicion": "MF", "club": "Brondby IF", "valor_m": 8, "edad": 23},
+        {"nombre": "Naim Sliti", "posicion": "MF", "club": "Dijon", "valor_m": 2, "edad": 31},
+        {"nombre": "Mohamed Ali Ben Romdhane", "posicion": "MF", "club": "Al Ahly", "valor_m": 5, "edad": 23},
+        {"nombre": "Wahbi Khazri", "posicion": "FW", "club": "Montpellier", "valor_m": 4, "edad": 33},
+        {"nombre": "Youssef Msakni", "posicion": "FW", "club": "Al Arabi", "valor_m": 2, "edad": 33},
+        {"nombre": "Issam Jebali", "posicion": "FW", "club": "Odense BK", "valor_m": 4, "edad": 29},
+        {"nombre": "Seifeddine Jaziri", "posicion": "FW", "club": "Ankaragucu", "valor_m": 2, "edad": 31},
+        {"nombre": "Hannibal Mejbri", "posicion": "MF", "club": "Burnley FC", "valor_m": 12, "edad": 21},
+        {"nombre": "Mouez Hassen", "posicion": "GK", "club": "Nice", "valor_m": 2, "edad": 29},
+        {"nombre": "Yassine Meriah", "posicion": "DF", "club": "Espérance", "valor_m": 3, "edad": 30},
+        {"nombre": "Elias Achouri", "posicion": "MF", "club": "Young Boys", "valor_m": 3, "edad": 23},
+        {"nombre": "Mohamed Drager", "posicion": "DF", "club": "FC Porto", "valor_m": 5, "edad": 27},
+        {"nombre": "Ghailene Chaalali", "posicion": "MF", "club": "Esperance", "valor_m": 3, "edad": 30},
+        {"nombre": "Firas Bengarda", "posicion": "DF", "club": "Esperance", "valor_m": 2, "edad": 28},
     ],
     "South Africa": [
-        {
-            "nombre": "Ronwen Williams",
-            "posicion": "GK",
-            "club": "Mamelodi Sundowns",
-            "valor_m": 2,
-            "edad": 33
-        },
-        {
-            "nombre": "Thabang Matuludi",
-            "posicion": "DF",
-            "club": "Polokwane City FC",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Khulumani Ndamane",
-            "posicion": "DF",
-            "club": "Mamelodi Sundowns",
-            "valor_m": 1,
-            "edad": 21
-        },
-        {
-            "nombre": "Aubrey Modiba",
-            "posicion": "DF",
-            "club": "Mamelodi Sundowns",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Teboho Mokoena",
-            "posicion": "MF",
-            "club": "Mamelodi Sundowns",
-            "valor_m": 4,
-            "edad": 28
-        },
-        {
-            "nombre": "Thalente Mbatha",
-            "posicion": "MF",
-            "club": "Orlando Pirates FC",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Themba Zwane",
-            "posicion": "MF",
-            "club": "Mamelodi Sundowns",
-            "valor_m": 2,
-            "edad": 36
-        },
-        {
-            "nombre": "Sphephelo Sithole",
-            "posicion": "MF",
-            "club": "CD Tondela",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Oswin Appollis",
-            "posicion": "FW",
-            "club": "Orlando Pirates FC",
-            "valor_m": 5,
-            "edad": 24
-        },
-        {
-            "nombre": "Tshepang Moremi",
-            "posicion": "FW",
-            "club": "Orlando Pirates FC",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Lyle Foster",
-            "posicion": "FW",
-            "club": "Burnley FC",
-            "valor_m": 8,
-            "edad": 25
-        },
-        {
-            "nombre": "Relebohile Mofokeng",
-            "posicion": "FW",
-            "club": "Orlando Pirates FC",
-            "valor_m": 8,
-            "edad": 20
-        },
-        {
-            "nombre": "Thapelo Maseko",
-            "posicion": "FW",
-            "club": "AEL Limassol",
-            "valor_m": 2,
-            "edad": 22
-        },
-        {
-            "nombre": "Percy Tau",
-            "posicion": "FW",
-            "club": "Al Ahly FC",
-            "valor_m": 5,
-            "edad": 30
-        }
+        {"nombre": "Ronwen Williams", "posicion": "GK", "club": "Mamelodi Sundowns", "valor_m": 2, "edad": 33},
+        {"nombre": "Thabang Matuludi", "posicion": "DF", "club": "Polokwane City FC", "valor_m": 1, "edad": 26},
+        {"nombre": "Khulumani Ndamane", "posicion": "DF", "club": "Mamelodi Sundowns", "valor_m": 1, "edad": 21},
+        {"nombre": "Aubrey Modiba", "posicion": "DF", "club": "Mamelodi Sundowns", "valor_m": 2, "edad": 30},
+        {"nombre": "Teboho Mokoena", "posicion": "MF", "club": "Mamelodi Sundowns", "valor_m": 4, "edad": 28},
+        {"nombre": "Thalente Mbatha", "posicion": "MF", "club": "Orlando Pirates FC", "valor_m": 2, "edad": 25},
+        {"nombre": "Themba Zwane", "posicion": "MF", "club": "Mamelodi Sundowns", "valor_m": 2, "edad": 36},
+        {"nombre": "Sphephelo Sithole", "posicion": "MF", "club": "CD Tondela", "valor_m": 2, "edad": 26},
+        {"nombre": "Oswin Appollis", "posicion": "FW", "club": "Orlando Pirates FC", "valor_m": 5, "edad": 24},
+        {"nombre": "Tshepang Moremi", "posicion": "FW", "club": "Orlando Pirates FC", "valor_m": 2, "edad": 25},
+        {"nombre": "Lyle Foster", "posicion": "FW", "club": "Burnley FC", "valor_m": 8, "edad": 25},
+        {"nombre": "Relebohile Mofokeng", "posicion": "FW", "club": "Orlando Pirates FC", "valor_m": 8, "edad": 20},
+        {"nombre": "Thapelo Maseko", "posicion": "FW", "club": "AEL Limassol", "valor_m": 2, "edad": 22},
+        {"nombre": "Percy Tau", "posicion": "FW", "club": "Al Ahly FC", "valor_m": 5, "edad": 30},
+        {"nombre": "Bruce Bvuma", "posicion": "GK", "club": "Kaizer Chiefs", "valor_m": 1, "edad": 29},
+        {"nombre": "Veli Mothwa", "posicion": "GK", "club": "AmaZulu", "valor_m": 1, "edad": 31},
+        {"nombre": "Siyanda Xulu", "posicion": "DF", "club": "Al-Ettifaq", "valor_m": 2, "edad": 32},
+        {"nombre": "Terrence Mashego", "posicion": "DF", "club": "Cape Town City", "valor_m": 2, "edad": 27},
+        {"nombre": "Njabulo Ngcobo", "posicion": "DF", "club": "Kaizer Chiefs", "valor_m": 2, "edad": 26},
+        {"nombre": "Rushine De Reuck", "posicion": "DF", "club": "Mamelodi Sundowns", "valor_m": 3, "edad": 29},
+        {"nombre": "Mothobi Mvala", "posicion": "MF", "club": "Mamelodi Sundowns", "valor_m": 3, "edad": 28},
+        {"nombre": "Ethan Brooks", "posicion": "MF", "club": "TS Galaxy", "valor_m": 1, "edad": 24},
+        {"nombre": "Bongani Zungu", "posicion": "MF", "club": "Mamelodi Sundowns", "valor_m": 3, "edad": 31},
+        {"nombre": "Keagan Dolly", "posicion": "FW", "club": "Kaizer Chiefs", "valor_m": 3, "edad": 30},
     ],
     "Panama": [
-        {
-            "nombre": "Luis Mejia",
-            "posicion": "GK",
-            "club": "Club Nacional",
-            "valor_m": 2,
-            "edad": 34
-        },
-        {
-            "nombre": "Cesar Samudio",
-            "posicion": "GK",
-            "club": "CD Marathon",
-            "valor_m": 1,
-            "edad": 31
-        },
-        {
-            "nombre": "Orlando Mosquera",
-            "posicion": "GK",
-            "club": "Al Fayha FC",
-            "valor_m": 1,
-            "edad": 30
-        },
-        {
-            "nombre": "Cesar Blackman",
-            "posicion": "DF",
-            "club": "SK Slovan Bratislava",
-            "valor_m": 3,
-            "edad": 27
-        },
-        {
-            "nombre": "Jose Cordoba",
-            "posicion": "DF",
-            "club": "Norwich City FC",
-            "valor_m": 3,
-            "edad": 24
-        },
-        {
-            "nombre": "Fidel Escobar",
-            "posicion": "DF",
-            "club": "Deportivo Saprissa",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Edgardo Farina",
-            "posicion": "DF",
-            "club": "FC Pari Nizhny Novgorod",
-            "valor_m": 2,
-            "edad": 23
-        },
-        {
-            "nombre": "Eric Davis",
-            "posicion": "DF",
-            "club": "CD Plaza Amador",
-            "valor_m": 1,
-            "edad": 34
-        },
-        {
-            "nombre": "Carlos Harvey",
-            "posicion": "DF",
-            "club": "Minnesota United",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Andres Andrade",
-            "posicion": "DF",
-            "club": "LASK Linz",
-            "valor_m": 3,
-            "edad": 27
-        },
-        {
-            "nombre": "Amir Murillo",
-            "posicion": "DF",
-            "club": "Besiktas JK",
-            "valor_m": 4,
-            "edad": 29
-        },
-        {
-            "nombre": "Roderick Miller",
-            "posicion": "DF",
-            "club": "Turan Tovuz",
-            "valor_m": 1,
-            "edad": 33
-        },
-        {
-            "nombre": "Jorge Gutierrez",
-            "posicion": "DF",
-            "club": "Deportivo La Guaira",
-            "valor_m": 1,
-            "edad": 27
-        },
-        {
-            "nombre": "Cristian Martinez",
-            "posicion": "MF",
-            "club": "Hapoel Kiryat Shmona",
-            "valor_m": 1,
-            "edad": 28
-        },
-        {
-            "nombre": "Jose Luis Rodriguez",
-            "posicion": "MF",
-            "club": "FC Juarez",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Adalberto Carrasquilla",
-            "posicion": "MF",
-            "club": "Pumas UNAM",
-            "valor_m": 3,
-            "edad": 26
-        },
-        {
-            "nombre": "Alberto Quintero",
-            "posicion": "MF",
-            "club": "CD Plaza Amador",
-            "valor_m": 1,
-            "edad": 37
-        },
-        {
-            "nombre": "Anibal Godoy",
-            "posicion": "MF",
-            "club": "San Diego FC",
-            "valor_m": 2,
-            "edad": 35
-        },
-        {
-            "nombre": "Cesar Yanis",
-            "posicion": "MF",
-            "club": "CD Cobresal",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Tomas Rodriguez",
-            "posicion": "FW",
-            "club": "Deportivo Saprissa",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Ismael Diaz",
-            "posicion": "FW",
-            "club": "Club Leon",
-            "valor_m": 5,
-            "edad": 28
-        },
-        {
-            "nombre": "Edgar Barcenas",
-            "posicion": "FW",
-            "club": "Mazatlan FC",
-            "valor_m": 2,
-            "edad": 32
-        },
-        {
-            "nombre": "Jose Fajardo",
-            "posicion": "FW",
-            "club": "CD Universidad Catolica",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Cecilio Waterman",
-            "posicion": "FW",
-            "club": "CD Universidad De Concepcion",
-            "valor_m": 1,
-            "edad": 34
-        },
-        {
-            "nombre": "Azarias Londono",
-            "posicion": "FW",
-            "club": "CD Universidad Catolica",
-            "valor_m": 2,
-            "edad": 24
-        },
-        {
-            "nombre": "Jiovany Ramos",
-            "posicion": "DF",
-            "club": "Puerto Cabello CF",
-            "valor_m": 1,
-            "edad": 28
-        }
+        {"nombre": "Luis Mejia", "posicion": "GK", "club": "Club Nacional", "valor_m": 2, "edad": 34},
+        {"nombre": "Cesar Samudio", "posicion": "GK", "club": "CD Marathon", "valor_m": 1, "edad": 31},
+        {"nombre": "Orlando Mosquera", "posicion": "GK", "club": "Al Fayha FC", "valor_m": 1, "edad": 30},
+        {"nombre": "Cesar Blackman", "posicion": "DF", "club": "SK Slovan Bratislava", "valor_m": 3, "edad": 27},
+        {"nombre": "Jose Cordoba", "posicion": "DF", "club": "Norwich City FC", "valor_m": 3, "edad": 24},
+        {"nombre": "Fidel Escobar", "posicion": "DF", "club": "Deportivo Saprissa", "valor_m": 2, "edad": 30},
+        {"nombre": "Edgardo Farina", "posicion": "DF", "club": "FC Pari Nizhny Novgorod", "valor_m": 2, "edad": 23},
+        {"nombre": "Eric Davis", "posicion": "DF", "club": "CD Plaza Amador", "valor_m": 1, "edad": 34},
+        {"nombre": "Carlos Harvey", "posicion": "DF", "club": "Minnesota United", "valor_m": 2, "edad": 25},
+        {"nombre": "Andres Andrade", "posicion": "DF", "club": "LASK Linz", "valor_m": 3, "edad": 27},
+        {"nombre": "Amir Murillo", "posicion": "DF", "club": "Besiktas JK", "valor_m": 4, "edad": 29},
+        {"nombre": "Roderick Miller", "posicion": "DF", "club": "Turan Tovuz", "valor_m": 1, "edad": 33},
+        {"nombre": "Jorge Gutierrez", "posicion": "DF", "club": "Deportivo La Guaira", "valor_m": 1, "edad": 27},
+        {"nombre": "Cristian Martinez", "posicion": "MF", "club": "Hapoel Kiryat Shmona", "valor_m": 1, "edad": 28},
+        {"nombre": "Jose Luis Rodriguez", "posicion": "MF", "club": "FC Juarez", "valor_m": 2, "edad": 27},
+        {"nombre": "Adalberto Carrasquilla", "posicion": "MF", "club": "Pumas UNAM", "valor_m": 3, "edad": 26},
+        {"nombre": "Alberto Quintero", "posicion": "MF", "club": "CD Plaza Amador", "valor_m": 1, "edad": 37},
+        {"nombre": "Anibal Godoy", "posicion": "MF", "club": "San Diego FC", "valor_m": 2, "edad": 35},
+        {"nombre": "Cesar Yanis", "posicion": "MF", "club": "CD Cobresal", "valor_m": 1, "edad": 29},
+        {"nombre": "Tomas Rodriguez", "posicion": "FW", "club": "Deportivo Saprissa", "valor_m": 2, "edad": 26},
+        {"nombre": "Ismael Diaz", "posicion": "FW", "club": "Club Leon", "valor_m": 5, "edad": 28},
+        {"nombre": "Edgar Barcenas", "posicion": "FW", "club": "Mazatlan FC", "valor_m": 2, "edad": 32},
+        {"nombre": "Jose Fajardo", "posicion": "FW", "club": "CD Universidad Catolica", "valor_m": 2, "edad": 31},
+        {"nombre": "Cecilio Waterman", "posicion": "FW", "club": "CD Universidad De Concepcion", "valor_m": 1, "edad": 34},
+        {"nombre": "Azarias Londono", "posicion": "FW", "club": "CD Universidad Catolica", "valor_m": 2, "edad": 24},
+        {"nombre": "Jiovany Ramos", "posicion": "DF", "club": "Puerto Cabello CF", "valor_m": 1, "edad": 28},
     ],
     "Honduras": [
-        {
-            "nombre": "Luis Lopez",
-            "posicion": "GK",
-            "club": "Santos Laguna",
-            "valor_m": 2,
-            "edad": 32
-        },
-        {
-            "nombre": "Harold Fonseca",
-            "posicion": "GK",
-            "club": "Real CD Espana",
-            "valor_m": 1,
-            "edad": 27
-        },
-        {
-            "nombre": "Maynor Figueroa",
-            "posicion": "DF",
-            "club": "FAS",
-            "valor_m": 1,
-            "edad": 41
-        },
-        {
-            "nombre": "Jonathan Rubio",
-            "posicion": "DF",
-            "club": "Marathon",
-            "valor_m": 1,
-            "edad": 30
-        },
-        {
-            "nombre": "Denil Maldonado",
-            "posicion": "DF",
-            "club": "Chicago Fire",
-            "valor_m": 3,
-            "edad": 24
-        },
-        {
-            "nombre": "Joseph Rosales",
-            "posicion": "MF",
-            "club": "Watford FC",
-            "valor_m": 5,
-            "edad": 25
-        },
-        {
-            "nombre": "Kervin Arriaga",
-            "posicion": "MF",
-            "club": "Olimpia",
-            "valor_m": 2,
-            "edad": 24
-        },
-        {
-            "nombre": "Jose Mario Pinto",
-            "posicion": "MF",
-            "club": "Olimpia",
-            "valor_m": 1,
-            "edad": 33
-        },
-        {
-            "nombre": "Luis Palma",
-            "posicion": "FW",
-            "club": "Celtic",
-            "valor_m": 10,
-            "edad": 24
-        },
-        {
-            "nombre": "Romell Quioto",
-            "posicion": "FW",
-            "club": "CF Montreal",
-            "valor_m": 2,
-            "edad": 32
-        },
-        {
-            "nombre": "Rigoberto Rivas",
-            "posicion": "FW",
-            "club": "Odd BK",
-            "valor_m": 2,
-            "edad": 25
-        }
+        {"nombre": "Luis Lopez", "posicion": "GK", "club": "Santos Laguna", "valor_m": 2, "edad": 32},
+        {"nombre": "Harold Fonseca", "posicion": "GK", "club": "Real CD Espana", "valor_m": 1, "edad": 27},
+        {"nombre": "Maynor Figueroa", "posicion": "DF", "club": "FAS", "valor_m": 1, "edad": 41},
+        {"nombre": "Jonathan Rubio", "posicion": "DF", "club": "Marathon", "valor_m": 1, "edad": 30},
+        {"nombre": "Denil Maldonado", "posicion": "DF", "club": "Chicago Fire", "valor_m": 3, "edad": 24},
+        {"nombre": "Joseph Rosales", "posicion": "MF", "club": "Watford FC", "valor_m": 5, "edad": 25},
+        {"nombre": "Kervin Arriaga", "posicion": "MF", "club": "Olimpia", "valor_m": 2, "edad": 24},
+        {"nombre": "Jose Mario Pinto", "posicion": "MF", "club": "Olimpia", "valor_m": 1, "edad": 33},
+        {"nombre": "Luis Palma", "posicion": "FW", "club": "Celtic", "valor_m": 10, "edad": 24},
+        {"nombre": "Romell Quioto", "posicion": "FW", "club": "CF Montreal", "valor_m": 2, "edad": 32},
+        {"nombre": "Rigoberto Rivas", "posicion": "FW", "club": "Odd BK", "valor_m": 2, "edad": 25},
     ],
     "Costa Rica": [
-        {
-            "nombre": "Keylor Navas",
-            "posicion": "GK",
-            "club": "Newells Old Boys",
-            "valor_m": 2,
-            "edad": 37
-        },
-        {
-            "nombre": "Patrick Sequeira",
-            "posicion": "GK",
-            "club": "Lommel United",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Kendall Waston",
-            "posicion": "DF",
-            "club": "Saprissa",
-            "valor_m": 1,
-            "edad": 36
-        },
-        {
-            "nombre": "Francisco Calvo",
-            "posicion": "DF",
-            "club": "Columbus Crew",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Celso Borges",
-            "posicion": "MF",
-            "club": "Saprissa",
-            "valor_m": 1,
-            "edad": 35
-        },
-        {
-            "nombre": "Yeltsin Tejeda",
-            "posicion": "MF",
-            "club": "FC Juarez",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Joel Campbell",
-            "posicion": "FW",
-            "club": "Leon",
-            "valor_m": 2,
-            "edad": 32
-        },
-        {
-            "nombre": "Johan Venegas",
-            "posicion": "FW",
-            "club": "Saprissa",
-            "valor_m": 2,
-            "edad": 33
-        },
-        {
-            "nombre": "Alonso Martinez",
-            "posicion": "FW",
-            "club": "Saprissa",
-            "valor_m": 2,
-            "edad": 23
-        },
-        {
-            "nombre": "Anthony Contreras",
-            "posicion": "FW",
-            "club": "Saprissa",
-            "valor_m": 2,
-            "edad": 24
-        }
+        {"nombre": "Keylor Navas", "posicion": "GK", "club": "Newells Old Boys", "valor_m": 2, "edad": 37},
+        {"nombre": "Patrick Sequeira", "posicion": "GK", "club": "Lommel United", "valor_m": 2, "edad": 27},
+        {"nombre": "Kendall Waston", "posicion": "DF", "club": "Saprissa", "valor_m": 1, "edad": 36},
+        {"nombre": "Francisco Calvo", "posicion": "DF", "club": "Columbus Crew", "valor_m": 2, "edad": 31},
+        {"nombre": "Celso Borges", "posicion": "MF", "club": "Saprissa", "valor_m": 1, "edad": 35},
+        {"nombre": "Yeltsin Tejeda", "posicion": "MF", "club": "FC Juarez", "valor_m": 2, "edad": 31},
+        {"nombre": "Joel Campbell", "posicion": "FW", "club": "Leon", "valor_m": 2, "edad": 32},
+        {"nombre": "Johan Venegas", "posicion": "FW", "club": "Saprissa", "valor_m": 2, "edad": 33},
+        {"nombre": "Alonso Martinez", "posicion": "FW", "club": "Saprissa", "valor_m": 2, "edad": 23},
+        {"nombre": "Anthony Contreras", "posicion": "FW", "club": "Saprissa", "valor_m": 2, "edad": 24},
     ],
     "Jamaica": [
-        {
-            "nombre": "Andre Blake",
-            "posicion": "GK",
-            "club": "Philadelphia Union",
-            "valor_m": 4,
-            "edad": 32
-        },
-        {
-            "nombre": "Robert Pitter",
-            "posicion": "GK",
-            "club": "Portmore United",
-            "valor_m": 1,
-            "edad": 28
-        },
-        {
-            "nombre": "Damion Lowe",
-            "posicion": "DF",
-            "club": "Inter Miami",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Joel Latibeaudiere",
-            "posicion": "DF",
-            "club": "Coventry City",
-            "valor_m": 4,
-            "edad": 24
-        },
-        {
-            "nombre": "Ethan Pinnock",
-            "posicion": "DF",
-            "club": "Brentford",
-            "valor_m": 8,
-            "edad": 28
-        },
-        {
-            "nombre": "Adrian Mariappa",
-            "posicion": "DF",
-            "club": "Watford",
-            "valor_m": 1,
-            "edad": 37
-        },
-        {
-            "nombre": "Kasey Palmer",
-            "posicion": "MF",
-            "club": "Coventry City",
-            "valor_m": 4,
-            "edad": 27
-        },
-        {
-            "nombre": "Bobby Reid",
-            "posicion": "MF",
-            "club": "Fulham",
-            "valor_m": 4,
-            "edad": 30
-        },
-        {
-            "nombre": "Demarai Gray",
-            "posicion": "MF",
-            "club": "Everton",
-            "valor_m": 6,
-            "edad": 28
-        },
-        {
-            "nombre": "Shamar Nicholson",
-            "posicion": "FW",
-            "club": "Charleroi",
-            "valor_m": 4,
-            "edad": 26
-        },
-        {
-            "nombre": "Leon Bailey",
-            "posicion": "FW",
-            "club": "Aston Villa",
-            "valor_m": 22,
-            "edad": 27
-        },
-        {
-            "nombre": "Michail Antonio",
-            "posicion": "FW",
-            "club": "West Ham",
-            "valor_m": 4,
-            "edad": 34
-        }
+        {"nombre": "Andre Blake", "posicion": "GK", "club": "Philadelphia Union", "valor_m": 4, "edad": 32},
+        {"nombre": "Robert Pitter", "posicion": "GK", "club": "Portmore United", "valor_m": 1, "edad": 28},
+        {"nombre": "Damion Lowe", "posicion": "DF", "club": "Inter Miami", "valor_m": 2, "edad": 31},
+        {"nombre": "Joel Latibeaudiere", "posicion": "DF", "club": "Coventry City", "valor_m": 4, "edad": 24},
+        {"nombre": "Ethan Pinnock", "posicion": "DF", "club": "Brentford", "valor_m": 8, "edad": 28},
+        {"nombre": "Adrian Mariappa", "posicion": "DF", "club": "Watford", "valor_m": 1, "edad": 37},
+        {"nombre": "Kasey Palmer", "posicion": "MF", "club": "Coventry City", "valor_m": 4, "edad": 27},
+        {"nombre": "Bobby Reid", "posicion": "MF", "club": "Fulham", "valor_m": 4, "edad": 30},
+        {"nombre": "Demarai Gray", "posicion": "MF", "club": "Everton", "valor_m": 6, "edad": 28},
+        {"nombre": "Shamar Nicholson", "posicion": "FW", "club": "Charleroi", "valor_m": 4, "edad": 26},
+        {"nombre": "Leon Bailey", "posicion": "FW", "club": "Aston Villa", "valor_m": 22, "edad": 27},
+        {"nombre": "Michail Antonio", "posicion": "FW", "club": "West Ham", "valor_m": 4, "edad": 34},
     ],
     "New Zealand": [
-        {
-            "nombre": "Max Crocombe",
-            "posicion": "GK",
-            "club": "Millwall FC",
-            "valor_m": 2,
-            "edad": 32
-        },
-        {
-            "nombre": "Alex Paulsen",
-            "posicion": "GK",
-            "club": "Lechia Gdansk",
-            "valor_m": 1,
-            "edad": 23
-        },
-        {
-            "nombre": "Michael Woud",
-            "posicion": "GK",
-            "club": "Auckland FC",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Tim Payne",
-            "posicion": "DF",
-            "club": "Wellington Phoenix FC",
-            "valor_m": 1,
-            "edad": 31
-        },
-        {
-            "nombre": "Tyler Bindon",
-            "posicion": "DF",
-            "club": "Sheffield United",
-            "valor_m": 3,
-            "edad": 20
-        },
-        {
-            "nombre": "Michael Boxall",
-            "posicion": "DF",
-            "club": "Minnesota United",
-            "valor_m": 2,
-            "edad": 37
-        },
-        {
-            "nombre": "Liberato Cacace",
-            "posicion": "DF",
-            "club": "Wrexham AFC",
-            "valor_m": 5,
-            "edad": 25
-        },
-        {
-            "nombre": "Joe Bell",
-            "posicion": "MF",
-            "club": "Viking Stavanger",
-            "valor_m": 3,
-            "edad": 26
-        },
-        {
-            "nombre": "Marko Stamenic",
-            "posicion": "MF",
-            "club": "Swansea City",
-            "valor_m": 3,
-            "edad": 23
-        },
-        {
-            "nombre": "Callum McCowatt",
-            "posicion": "MF",
-            "club": "Silkeborg IF",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Chris Wood",
-            "posicion": "FW",
-            "club": "Nottingham Forest",
-            "valor_m": 12,
-            "edad": 34
-        },
-        {
-            "nombre": "Ben Waine",
-            "posicion": "FW",
-            "club": "Port Vale FC",
-            "valor_m": 2,
-            "edad": 24
-        }
+        {"nombre": "Max Crocombe", "posicion": "GK", "club": "Millwall FC", "valor_m": 2, "edad": 32},
+        {"nombre": "Alex Paulsen", "posicion": "GK", "club": "Lechia Gdansk", "valor_m": 1, "edad": 23},
+        {"nombre": "Michael Woud", "posicion": "GK", "club": "Auckland FC", "valor_m": 1, "edad": 26},
+        {"nombre": "Tim Payne", "posicion": "DF", "club": "Wellington Phoenix FC", "valor_m": 1, "edad": 31},
+        {"nombre": "Tyler Bindon", "posicion": "DF", "club": "Sheffield United", "valor_m": 3, "edad": 20},
+        {"nombre": "Michael Boxall", "posicion": "DF", "club": "Minnesota United", "valor_m": 2, "edad": 37},
+        {"nombre": "Liberato Cacace", "posicion": "DF", "club": "Wrexham AFC", "valor_m": 5, "edad": 25},
+        {"nombre": "Joe Bell", "posicion": "MF", "club": "Viking Stavanger", "valor_m": 3, "edad": 26},
+        {"nombre": "Marko Stamenic", "posicion": "MF", "club": "Swansea City", "valor_m": 3, "edad": 23},
+        {"nombre": "Callum McCowatt", "posicion": "MF", "club": "Silkeborg IF", "valor_m": 2, "edad": 26},
+        {"nombre": "Chris Wood", "posicion": "FW", "club": "Nottingham Forest", "valor_m": 12, "edad": 34},
+        {"nombre": "Ben Waine", "posicion": "FW", "club": "Port Vale FC", "valor_m": 2, "edad": 24},
+        {"nombre": "Stefan Marinovic", "posicion": "GK", "club": "Vancouver Whitecaps", "valor_m": 1, "edad": 33},
+        {"nombre": "Dane Ingham", "posicion": "DF", "club": "Perth Glory", "valor_m": 1, "edad": 31},
+        {"nombre": "Tommy Smith", "posicion": "DF", "club": "Stoke City", "valor_m": 2, "edad": 32},
+        {"nombre": "Winston Reid", "posicion": "DF", "club": "Brentford", "valor_m": 2, "edad": 35},
+        {"nombre": "Bill Tuilagi", "posicion": "DF", "club": "Wellington Phoenix", "valor_m": 1, "edad": 24},
+        {"nombre": "Alex Rufer", "posicion": "MF", "club": "Wellington Phoenix", "valor_m": 1, "edad": 29},
+        {"nombre": "Elijah Just", "posicion": "MF", "club": "Rosenborg", "valor_m": 2, "edad": 24},
+        {"nombre": "Matthew Garbett", "posicion": "MF", "club": "Brondby", "valor_m": 3, "edad": 23},
+        {"nombre": "Emilio Rangel", "posicion": "DF", "club": "Almeria", "valor_m": 2, "edad": 24},
+        {"nombre": "Ryan Thomas", "posicion": "MF", "club": "PEC Zwolle", "valor_m": 2, "edad": 30},
+        {"nombre": "Marco Rojas", "posicion": "FW", "club": "Wellington Phoenix", "valor_m": 1, "edad": 32},
     ],
     "Iraq": [
-        {
-            "nombre": "Fahad Talib",
-            "posicion": "GK",
-            "club": "Al Talaba SC",
-            "valor_m": 1,
-            "edad": 31
-        },
-        {
-            "nombre": "Jalal Hassan",
-            "posicion": "GK",
-            "club": "Al Zawraa SC",
-            "valor_m": 1,
-            "edad": 34
-        },
-        {
-            "nombre": "Ahmed Basil",
-            "posicion": "GK",
-            "club": "Al Shorta SC",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Rebin Ghareeb",
-            "posicion": "DF",
-            "club": "Port FC",
-            "valor_m": 1,
-            "edad": 33
-        },
-        {
-            "nombre": "Hussein Ali",
-            "posicion": "DF",
-            "club": "Pogon Szczecin",
-            "valor_m": 3,
-            "edad": 23
-        },
-        {
-            "nombre": "Akam Hashim",
-            "posicion": "DF",
-            "club": "Al Zawraa SC",
-            "valor_m": 1,
-            "edad": 27
-        },
-        {
-            "nombre": "Munaf Younus",
-            "posicion": "DF",
-            "club": "Al Shorta SC",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Zidane Iqbal",
-            "posicion": "MF",
-            "club": "FC Utrecht",
-            "valor_m": 5,
-            "edad": 22
-        },
-        {
-            "nombre": "Kevin Yakob",
-            "posicion": "MF",
-            "club": "Aarhus GF",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Ali Alhamadi",
-            "posicion": "FW",
-            "club": "Luton Town FC",
-            "valor_m": 5,
-            "edad": 23
-        },
-        {
-            "nombre": "Mohanad Ali",
-            "posicion": "FW",
-            "club": "Dibba FC",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Aymen Hussein",
-            "posicion": "FW",
-            "club": "Al Karma SC",
-            "valor_m": 1,
-            "edad": 29
-        }
+        {"nombre": "Fahad Talib", "posicion": "GK", "club": "Al Talaba SC", "valor_m": 1, "edad": 31},
+        {"nombre": "Jalal Hassan", "posicion": "GK", "club": "Al Zawraa SC", "valor_m": 1, "edad": 34},
+        {"nombre": "Ahmed Basil", "posicion": "GK", "club": "Al Shorta SC", "valor_m": 1, "edad": 29},
+        {"nombre": "Rebin Ghareeb", "posicion": "DF", "club": "Port FC", "valor_m": 1, "edad": 33},
+        {"nombre": "Hussein Ali", "posicion": "DF", "club": "Pogon Szczecin", "valor_m": 3, "edad": 23},
+        {"nombre": "Akam Hashim", "posicion": "DF", "club": "Al Zawraa SC", "valor_m": 1, "edad": 27},
+        {"nombre": "Munaf Younus", "posicion": "DF", "club": "Al Shorta SC", "valor_m": 1, "edad": 29},
+        {"nombre": "Zidane Iqbal", "posicion": "MF", "club": "FC Utrecht", "valor_m": 5, "edad": 22},
+        {"nombre": "Kevin Yakob", "posicion": "MF", "club": "Aarhus GF", "valor_m": 2, "edad": 25},
+        {"nombre": "Ali Alhamadi", "posicion": "FW", "club": "Luton Town FC", "valor_m": 5, "edad": 23},
+        {"nombre": "Mohanad Ali", "posicion": "FW", "club": "Dibba FC", "valor_m": 2, "edad": 25},
+        {"nombre": "Aymen Hussein", "posicion": "FW", "club": "Al Karma SC", "valor_m": 1, "edad": 29},
+        {"nombre": "Dundar Thanoon", "posicion": "GK", "club": "Al-Karkh", "valor_m": 1, "edad": 27},
+        {"nombre": "Ahmed Ibrahim", "posicion": "GK", "club": "Al-Shorta", "valor_m": 1, "edad": 28},
+        {"nombre": "Ali Adnan", "posicion": "DF", "club": "Al-Quwa Al-Jawiya", "valor_m": 3, "edad": 30},
+        {"nombre": "Saad Abdul-Amir", "posicion": "DF", "club": "Al-Zawraa", "valor_m": 2, "edad": 28},
+        {"nombre": "Rebin Sulaka", "posicion": "DF", "club": "Al-Talaba", "valor_m": 1, "edad": 26},
+        {"nombre": "Amjed Attwan", "posicion": "MF", "club": "Al-Zawraa", "valor_m": 2, "edad": 27},
+        {"nombre": "Safaa Hadi", "posicion": "MF", "club": "Al-Shorta", "valor_m": 1, "edad": 25},
+        {"nombre": "Amir Al-Ammari", "posicion": "MF", "club": "Al-Quwa Al-Jawiya", "valor_m": 2, "edad": 26},
+        {"nombre": "Bashar Resan", "posicion": "FW", "club": "Al-Zawraa", "valor_m": 2, "edad": 28},
+        {"nombre": "Ahmed Yasin", "posicion": "FW", "club": "Al-Karkh", "valor_m": 1, "edad": 27},
+        {"nombre": "Alaa Abbas", "posicion": "MF", "club": "Al-Talaba", "valor_m": 1, "edad": 26},
+        {"nombre": "Nabil Thawer", "posicion": "MF", "club": "Al-Quwa Al-Jawiya", "valor_m": 2, "edad": 27},
+        {"nombre": "Ayman Hussein", "posicion": "FW", "club": "Al-Zawraa", "valor_m": 3, "edad": 27},
+        {"nombre": "Hammadi Ahmed", "posicion": "MF", "club": "Al-Zawraa", "valor_m": 2, "edad": 29},
     ],
     "Paraguay": [
-        {
-            "nombre": "Gatito Fernandez",
-            "posicion": "GK",
-            "club": "Cerro Porteno",
-            "valor_m": 2,
-            "edad": 37
-        },
-        {
-            "nombre": "Orlando Gill",
-            "posicion": "GK",
-            "club": "CA San Lorenzo",
-            "valor_m": 1,
-            "edad": 25
-        },
-        {
-            "nombre": "Gaston Olveira",
-            "posicion": "GK",
-            "club": "Club Olimpia",
-            "valor_m": 1,
-            "edad": 32
-        },
-        {
-            "nombre": "Gustavo Velazquez",
-            "posicion": "DF",
-            "club": "Cerro Porteno",
-            "valor_m": 2,
-            "edad": 34
-        },
-        {
-            "nombre": "Omar Alderete",
-            "posicion": "DF",
-            "club": "Sunderland AFC",
-            "valor_m": 8,
-            "edad": 28
-        },
-        {
-            "nombre": "Juan Jose Caceres",
-            "posicion": "DF",
-            "club": "Dynamo Moscow",
-            "valor_m": 3,
-            "edad": 25
-        },
-        {
-            "nombre": "Fabian Balbuena",
-            "posicion": "DF",
-            "club": "Gremio FBPA",
-            "valor_m": 4,
-            "edad": 34
-        },
-        {
-            "nombre": "Junior Alonso",
-            "posicion": "DF",
-            "club": "Atletico Mineiro",
-            "valor_m": 8,
-            "edad": 32
-        },
-        {
-            "nombre": "Jose Canale",
-            "posicion": "DF",
-            "club": "CA Lanus",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Gustavo Gomez",
-            "posicion": "DF",
-            "club": "Palmeiras",
-            "valor_m": 6,
-            "edad": 32
-        },
-        {
-            "nombre": "Alexandro Maidana",
-            "posicion": "DF",
-            "club": "CA Talleres",
-            "valor_m": 3,
-            "edad": 20
-        },
-        {
-            "nombre": "Ramon Sosa",
-            "posicion": "MF",
-            "club": "SE Palmeiras",
-            "valor_m": 15,
-            "edad": 25
-        },
-        {
-            "nombre": "Diego Gomez",
-            "posicion": "MF",
-            "club": "Brighton",
-            "valor_m": 15,
-            "edad": 22
-        },
-        {
-            "nombre": "Miguel Almiron",
-            "posicion": "MF",
-            "club": "Atlanta United FC",
-            "valor_m": 15,
-            "edad": 31
-        },
-        {
-            "nombre": "Mauricio Prado",
-            "posicion": "MF",
-            "club": "SE Palmeiras",
-            "valor_m": 5,
-            "edad": 24
-        },
-        {
-            "nombre": "Andres Cubas",
-            "posicion": "MF",
-            "club": "Vancouver Whitecaps",
-            "valor_m": 8,
-            "edad": 29
-        },
-        {
-            "nombre": "Damian Bobadilla",
-            "posicion": "MF",
-            "club": "Sao Paulo FC",
-            "valor_m": 5,
-            "edad": 24
-        },
-        {
-            "nombre": "Braian Ojeda",
-            "posicion": "MF",
-            "club": "Orlando City SC",
-            "valor_m": 4,
-            "edad": 25
-        },
-        {
-            "nombre": "Matias Galarza",
-            "posicion": "MF",
-            "club": "Atlanta United FC",
-            "valor_m": 4,
-            "edad": 23
-        },
-        {
-            "nombre": "Gustavo Caballero",
-            "posicion": "MF",
-            "club": "Portsmouth FC",
-            "valor_m": 3,
-            "edad": 24
-        },
-        {
-            "nombre": "Antonio Sanabria",
-            "posicion": "FW",
-            "club": "US Cremonese",
-            "valor_m": 8,
-            "edad": 29
-        },
-        {
-            "nombre": "Alejandro Romero Gamarra",
-            "posicion": "FW",
-            "club": "Al Ain FC",
-            "valor_m": 4,
-            "edad": 30
-        },
-        {
-            "nombre": "Alex Arce",
-            "posicion": "FW",
-            "club": "CS Independiente Rivadavia",
-            "valor_m": 3,
-            "edad": 30
-        },
-        {
-            "nombre": "Julio Enciso",
-            "posicion": "FW",
-            "club": "RC Strasbourg",
-            "valor_m": 20,
-            "edad": 21
-        },
-        {
-            "nombre": "Gabriel Avalos",
-            "posicion": "FW",
-            "club": "CA Independiente",
-            "valor_m": 2,
-            "edad": 34
-        },
-        {
-            "nombre": "Isidro Pitta",
-            "posicion": "FW",
-            "club": "Red Bull Bragantino",
-            "valor_m": 4,
-            "edad": 26
-        }
+        {"nombre": "Gatito Fernandez", "posicion": "GK", "club": "Cerro Porteno", "valor_m": 2, "edad": 37},
+        {"nombre": "Orlando Gill", "posicion": "GK", "club": "CA San Lorenzo", "valor_m": 1, "edad": 25},
+        {"nombre": "Gaston Olveira", "posicion": "GK", "club": "Club Olimpia", "valor_m": 1, "edad": 32},
+        {"nombre": "Gustavo Velazquez", "posicion": "DF", "club": "Cerro Porteno", "valor_m": 2, "edad": 34},
+        {"nombre": "Omar Alderete", "posicion": "DF", "club": "Sunderland AFC", "valor_m": 8, "edad": 28},
+        {"nombre": "Juan Jose Caceres", "posicion": "DF", "club": "Dynamo Moscow", "valor_m": 3, "edad": 25},
+        {"nombre": "Fabian Balbuena", "posicion": "DF", "club": "Gremio FBPA", "valor_m": 4, "edad": 34},
+        {"nombre": "Junior Alonso", "posicion": "DF", "club": "Atletico Mineiro", "valor_m": 8, "edad": 32},
+        {"nombre": "Jose Canale", "posicion": "DF", "club": "CA Lanus", "valor_m": 2, "edad": 29},
+        {"nombre": "Gustavo Gomez", "posicion": "DF", "club": "Palmeiras", "valor_m": 6, "edad": 32},
+        {"nombre": "Alexandro Maidana", "posicion": "DF", "club": "CA Talleres", "valor_m": 3, "edad": 20},
+        {"nombre": "Ramon Sosa", "posicion": "MF", "club": "SE Palmeiras", "valor_m": 15, "edad": 25},
+        {"nombre": "Diego Gomez", "posicion": "MF", "club": "Brighton", "valor_m": 15, "edad": 22},
+        {"nombre": "Miguel Almiron", "posicion": "MF", "club": "Atlanta United FC", "valor_m": 15, "edad": 31},
+        {"nombre": "Mauricio Prado", "posicion": "MF", "club": "SE Palmeiras", "valor_m": 5, "edad": 24},
+        {"nombre": "Andres Cubas", "posicion": "MF", "club": "Vancouver Whitecaps", "valor_m": 8, "edad": 29},
+        {"nombre": "Damian Bobadilla", "posicion": "MF", "club": "Sao Paulo FC", "valor_m": 5, "edad": 24},
+        {"nombre": "Braian Ojeda", "posicion": "MF", "club": "Orlando City SC", "valor_m": 4, "edad": 25},
+        {"nombre": "Matias Galarza", "posicion": "MF", "club": "Atlanta United FC", "valor_m": 4, "edad": 23},
+        {"nombre": "Gustavo Caballero", "posicion": "MF", "club": "Portsmouth FC", "valor_m": 3, "edad": 24},
+        {"nombre": "Antonio Sanabria", "posicion": "FW", "club": "US Cremonese", "valor_m": 8, "edad": 29},
+        {"nombre": "Alejandro Romero Gamarra", "posicion": "FW", "club": "Al Ain FC", "valor_m": 4, "edad": 30},
+        {"nombre": "Alex Arce", "posicion": "FW", "club": "CS Independiente Rivadavia", "valor_m": 3, "edad": 30},
+        {"nombre": "Julio Enciso", "posicion": "FW", "club": "RC Strasbourg", "valor_m": 20, "edad": 21},
+        {"nombre": "Gabriel Avalos", "posicion": "FW", "club": "CA Independiente", "valor_m": 2, "edad": 34},
+        {"nombre": "Isidro Pitta", "posicion": "FW", "club": "Red Bull Bragantino", "valor_m": 4, "edad": 26},
     ],
     "Bolivia": [
-        {
-            "nombre": "Carlos Lampe",
-            "posicion": "GK",
-            "club": "Bolivar",
-            "valor_m": 1,
-            "edad": 36
-        },
-        {
-            "nombre": "Guillermo Viscarra",
-            "posicion": "GK",
-            "club": "Always Ready",
-            "valor_m": 1,
-            "edad": 32
-        },
-        {
-            "nombre": "Luis Haquin",
-            "posicion": "DF",
-            "club": "Santos Laguna",
-            "valor_m": 3,
-            "edad": 27
-        },
-        {
-            "nombre": "Adrian Jusino",
-            "posicion": "DF",
-            "club": "Bolivar",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Moises Paniagua",
-            "posicion": "MF",
-            "club": "Bolivar",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Erwin Saavedra",
-            "posicion": "MF",
-            "club": "Always Ready",
-            "valor_m": 1,
-            "edad": 30
-        },
-        {
-            "nombre": "Henry Vaca",
-            "posicion": "MF",
-            "club": "Bolivar",
-            "valor_m": 2,
-            "edad": 27
-        },
-        {
-            "nombre": "Rodrigo Ramallo",
-            "posicion": "FW",
-            "club": "Bolivar",
-            "valor_m": 2,
-            "edad": 30
-        },
-        {
-            "nombre": "Marcelo Moreno Martins",
-            "posicion": "FW",
-            "club": "Cruzeiro",
-            "valor_m": 1,
-            "edad": 36
-        },
-        {
-            "nombre": "Miguel Terceros",
-            "posicion": "FW",
-            "club": "Santa Cruz",
-            "valor_m": 2,
-            "edad": 21
-        }
+        {"nombre": "Carlos Lampe", "posicion": "GK", "club": "Bolivar", "valor_m": 1, "edad": 36},
+        {"nombre": "Guillermo Viscarra", "posicion": "GK", "club": "Always Ready", "valor_m": 1, "edad": 32},
+        {"nombre": "Luis Haquin", "posicion": "DF", "club": "Santos Laguna", "valor_m": 3, "edad": 27},
+        {"nombre": "Adrian Jusino", "posicion": "DF", "club": "Bolivar", "valor_m": 2, "edad": 25},
+        {"nombre": "Moises Paniagua", "posicion": "MF", "club": "Bolivar", "valor_m": 1, "edad": 29},
+        {"nombre": "Erwin Saavedra", "posicion": "MF", "club": "Always Ready", "valor_m": 1, "edad": 30},
+        {"nombre": "Henry Vaca", "posicion": "MF", "club": "Bolivar", "valor_m": 2, "edad": 27},
+        {"nombre": "Rodrigo Ramallo", "posicion": "FW", "club": "Bolivar", "valor_m": 2, "edad": 30},
+        {"nombre": "Marcelo Moreno Martins", "posicion": "FW", "club": "Cruzeiro", "valor_m": 1, "edad": 36},
+        {"nombre": "Miguel Terceros", "posicion": "FW", "club": "Santa Cruz", "valor_m": 2, "edad": 21},
     ],
     "Venezuela": [
-        {
-            "nombre": "Wuilker Farinez",
-            "posicion": "GK",
-            "club": "Millonarios",
-            "valor_m": 3,
-            "edad": 26
-        },
-        {
-            "nombre": "Cesar Losada",
-            "posicion": "GK",
-            "club": "Caracas FC",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Nahuel Ferraresi",
-            "posicion": "DF",
-            "club": "Estudiantes",
-            "valor_m": 5,
-            "edad": 23
-        },
-        {
-            "nombre": "Mikel Villanueva",
-            "posicion": "DF",
-            "club": "Zulia FC",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Jhon Chancellor",
-            "posicion": "DF",
-            "club": "Caracas FC",
-            "valor_m": 2,
-            "edad": 35
-        },
-        {
-            "nombre": "Tomas Rincon",
-            "posicion": "MF",
-            "club": "Sampdoria",
-            "valor_m": 2,
-            "edad": 36
-        },
-        {
-            "nombre": "Jose Martinez",
-            "posicion": "MF",
-            "club": "Philadelphia Union",
-            "valor_m": 5,
-            "edad": 29
-        },
-        {
-            "nombre": "Yangel Herrera",
-            "posicion": "MF",
-            "club": "Girona",
-            "valor_m": 20,
-            "edad": 26
-        },
-        {
-            "nombre": "Yeferson Soteldo",
-            "posicion": "FW",
-            "club": "Toronto FC",
-            "valor_m": 4,
-            "edad": 26
-        },
-        {
-            "nombre": "Salomon Rondon",
-            "posicion": "FW",
-            "club": "Everton",
-            "valor_m": 3,
-            "edad": 34
-        },
-        {
-            "nombre": "Darwin Machis",
-            "posicion": "FW",
-            "club": "Udinese",
-            "valor_m": 4,
-            "edad": 30
-        },
-        {
-            "nombre": "Josef Martinez",
-            "posicion": "FW",
-            "club": "Inter Miami",
-            "valor_m": 4,
-            "edad": 31
-        }
+        {"nombre": "Wuilker Farinez", "posicion": "GK", "club": "Millonarios", "valor_m": 3, "edad": 26},
+        {"nombre": "Cesar Losada", "posicion": "GK", "club": "Caracas FC", "valor_m": 1, "edad": 29},
+        {"nombre": "Nahuel Ferraresi", "posicion": "DF", "club": "Estudiantes", "valor_m": 5, "edad": 23},
+        {"nombre": "Mikel Villanueva", "posicion": "DF", "club": "Zulia FC", "valor_m": 2, "edad": 29},
+        {"nombre": "Jhon Chancellor", "posicion": "DF", "club": "Caracas FC", "valor_m": 2, "edad": 35},
+        {"nombre": "Tomas Rincon", "posicion": "MF", "club": "Sampdoria", "valor_m": 2, "edad": 36},
+        {"nombre": "Jose Martinez", "posicion": "MF", "club": "Philadelphia Union", "valor_m": 5, "edad": 29},
+        {"nombre": "Yangel Herrera", "posicion": "MF", "club": "Girona", "valor_m": 20, "edad": 26},
+        {"nombre": "Yeferson Soteldo", "posicion": "FW", "club": "Toronto FC", "valor_m": 4, "edad": 26},
+        {"nombre": "Salomon Rondon", "posicion": "FW", "club": "Everton", "valor_m": 3, "edad": 34},
+        {"nombre": "Darwin Machis", "posicion": "FW", "club": "Udinese", "valor_m": 4, "edad": 30},
+        {"nombre": "Josef Martinez", "posicion": "FW", "club": "Inter Miami", "valor_m": 4, "edad": 31},
     ],
     "Uzbekistan": [
-        {
-            "nombre": "Eldorbek Suyunov",
-            "posicion": "GK",
-            "club": "Pakhtakor",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Otabek Shukurov",
-            "posicion": "GK",
-            "club": "Nasaf",
-            "valor_m": 1,
-            "edad": 29
-        },
-        {
-            "nombre": "Sherzod Nasrullaev",
-            "posicion": "DF",
-            "club": "Pakhtakor",
-            "valor_m": 2,
-            "edad": 28
-        },
-        {
-            "nombre": "Khojiakbar Alijonov",
-            "posicion": "DF",
-            "club": "Sogdiana",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Eldor Shomurodov",
-            "posicion": "FW",
-            "club": "AS Roma",
-            "valor_m": 10,
-            "edad": 28
-        },
-        {
-            "nombre": "Jaloliddin Masharipov",
-            "posicion": "MF",
-            "club": "Pakhtakor",
-            "valor_m": 3,
-            "edad": 30
-        },
-        {
-            "nombre": "Abbosbek Fayzullaev",
-            "posicion": "MF",
-            "club": "CSKA Moscow",
-            "valor_m": 5,
-            "edad": 23
-        },
-        {
-            "nombre": "Dostonbek Khamdamov",
-            "posicion": "MF",
-            "club": "Pakhtakor",
-            "valor_m": 2,
-            "edad": 25
-        },
-        {
-            "nombre": "Khurshid Mukhamadiev",
-            "posicion": "FW",
-            "club": "Pakhtakor",
-            "valor_m": 2,
-            "edad": 26
-        },
-        {
-            "nombre": "Otabek Shatskikh",
-            "posicion": "MF",
-            "club": "Zenit",
-            "valor_m": 2,
-            "edad": 24
-        }
+        {"nombre": "Eldorbek Suyunov", "posicion": "GK", "club": "Pakhtakor", "valor_m": 1, "edad": 26},
+        {"nombre": "Otabek Shukurov", "posicion": "GK", "club": "Nasaf", "valor_m": 1, "edad": 29},
+        {"nombre": "Sherzod Nasrullaev", "posicion": "DF", "club": "Pakhtakor", "valor_m": 2, "edad": 28},
+        {"nombre": "Khojiakbar Alijonov", "posicion": "DF", "club": "Sogdiana", "valor_m": 1, "edad": 26},
+        {"nombre": "Eldor Shomurodov", "posicion": "FW", "club": "AS Roma", "valor_m": 10, "edad": 28},
+        {"nombre": "Jaloliddin Masharipov", "posicion": "MF", "club": "Pakhtakor", "valor_m": 3, "edad": 30},
+        {"nombre": "Abbosbek Fayzullaev", "posicion": "MF", "club": "CSKA Moscow", "valor_m": 5, "edad": 23},
+        {"nombre": "Dostonbek Khamdamov", "posicion": "MF", "club": "Pakhtakor", "valor_m": 2, "edad": 25},
+        {"nombre": "Khurshid Mukhamadiev", "posicion": "FW", "club": "Pakhtakor", "valor_m": 2, "edad": 26},
+        {"nombre": "Otabek Shatskikh", "posicion": "MF", "club": "Zenit", "valor_m": 2, "edad": 24},
+        {"nombre": "Ulugbek Nishonov", "posicion": "GK", "club": "Pakhtakor", "valor_m": 1, "edad": 28},
+        {"nombre": "Jasur Yakhshiboev", "posicion": "FW", "club": "Pakhtakor", "valor_m": 2, "edad": 26},
+        {"nombre": "Bobur Abdullayev", "posicion": "MF", "club": "Lokomotiv Tashkent", "valor_m": 2, "edad": 26},
+        {"nombre": "Sanjar Tursunov", "posicion": "DF", "club": "Pakhtakor", "valor_m": 2, "edad": 27},
+        {"nombre": "Jakhongir Sidikov", "posicion": "MF", "club": "Pakhtakor", "valor_m": 2, "edad": 24},
+        {"nombre": "Abbosbek Fayzullayev", "posicion": "MF", "club": "PAOK", "valor_m": 8, "edad": 22},
+        {"nombre": "Islombek Kobilov", "posicion": "DF", "club": "Pakhtakor", "valor_m": 2, "edad": 26},
+        {"nombre": "Sherzod Nasrullayev", "posicion": "MF", "club": "Pakhtakor", "valor_m": 2, "edad": 25},
+        {"nombre": "Akbar Tursunmurodov", "posicion": "DF", "club": "Pakhtakor", "valor_m": 1, "edad": 29},
+        {"nombre": "Dilshod Yusupov", "posicion": "GK", "club": "Lokomotiv Tashkent", "valor_m": 1, "edad": 30},
+        {"nombre": "Muzaffar Makhammadaliev", "posicion": "FW", "club": "Pakhtakor", "valor_m": 2, "edad": 24},
+        {"nombre": "Nodir Tursunov", "posicion": "DF", "club": "Pakhtakor", "valor_m": 2, "edad": 25},
+        {"nombre": "Humoyun Yodgorov", "posicion": "MF", "club": "Pakhtakor", "valor_m": 2, "edad": 24},
+        {"nombre": "Bunyod Abdullayev", "posicion": "FW", "club": "Pakhtakor", "valor_m": 2, "edad": 25},
+        {"nombre": "Timur Kapadze", "posicion": "MF", "club": "Pakhtakor", "valor_m": 2, "edad": 29},
+        {"nombre": "Oybek Hamidov", "posicion": "FW", "club": "Lokomotiv Tashkent", "valor_m": 1, "edad": 26},
     ],
     "Jordan": [
-        {
-            "nombre": "Yazeed Abulaila",
-            "posicion": "GK",
-            "club": "Al Hussein SC",
-            "valor_m": 1,
-            "edad": 32
-        },
-        {
-            "nombre": "Nour Baniateyah",
-            "posicion": "GK",
-            "club": "Al Faisaly SC",
-            "valor_m": 1,
-            "edad": 32
-        },
-        {
-            "nombre": "Abdallah Alfakhori",
-            "posicion": "GK",
-            "club": "Al Wahdat SC",
-            "valor_m": 1,
-            "edad": 25
-        },
-        {
-            "nombre": "Mohammad Abuhasheesh",
-            "posicion": "DF",
-            "club": "Al Karma SC",
-            "valor_m": 1,
-            "edad": 30
-        },
-        {
-            "nombre": "Yazan Alarab",
-            "posicion": "DF",
-            "club": "FC Seoul",
-            "valor_m": 2,
-            "edad": 29
-        },
-        {
-            "nombre": "Husam Abudahab",
-            "posicion": "DF",
-            "club": "Al Faisaly SC",
-            "valor_m": 1,
-            "edad": 25
-        },
-        {
-            "nombre": "Amer Jamous",
-            "posicion": "MF",
-            "club": "Al Zawraa SC",
-            "valor_m": 1,
-            "edad": 23
-        },
-        {
-            "nombre": "Noor Alrawabdeh",
-            "posicion": "MF",
-            "club": "Selangor FC",
-            "valor_m": 1,
-            "edad": 28
-        },
-        {
-            "nombre": "Mousa Altamari",
-            "posicion": "FW",
-            "club": "Stade Rennais",
-            "valor_m": 8,
-            "edad": 28
-        },
-        {
-            "nombre": "Ali Olwan",
-            "posicion": "FW",
-            "club": "Al Sailiya SC",
-            "valor_m": 1,
-            "edad": 25
-        },
-        {
-            "nombre": "Odeh Fakhoury",
-            "posicion": "FW",
-            "club": "Pyramids FC",
-            "valor_m": 2,
-            "edad": 20
-        }
+        {"nombre": "Yazeed Abulaila", "posicion": "GK", "club": "Al Hussein SC", "valor_m": 1, "edad": 32},
+        {"nombre": "Nour Baniateyah", "posicion": "GK", "club": "Al Faisaly SC", "valor_m": 1, "edad": 32},
+        {"nombre": "Abdallah Alfakhori", "posicion": "GK", "club": "Al Wahdat SC", "valor_m": 1, "edad": 25},
+        {"nombre": "Mohammad Abuhasheesh", "posicion": "DF", "club": "Al Karma SC", "valor_m": 1, "edad": 30},
+        {"nombre": "Yazan Alarab", "posicion": "DF", "club": "FC Seoul", "valor_m": 2, "edad": 29},
+        {"nombre": "Husam Abudahab", "posicion": "DF", "club": "Al Faisaly SC", "valor_m": 1, "edad": 25},
+        {"nombre": "Amer Jamous", "posicion": "MF", "club": "Al Zawraa SC", "valor_m": 1, "edad": 23},
+        {"nombre": "Noor Alrawabdeh", "posicion": "MF", "club": "Selangor FC", "valor_m": 1, "edad": 28},
+        {"nombre": "Mousa Altamari", "posicion": "FW", "club": "Stade Rennais", "valor_m": 8, "edad": 28},
+        {"nombre": "Ali Olwan", "posicion": "FW", "club": "Al Sailiya SC", "valor_m": 1, "edad": 25},
+        {"nombre": "Odeh Fakhoury", "posicion": "FW", "club": "Pyramids FC", "valor_m": 2, "edad": 20},
+        {"nombre": "Yazeed Abo Laila", "posicion": "GK", "club": "Al-Faisaly", "valor_m": 1, "edad": 29},
+        {"nombre": "Khaled Shahin", "posicion": "GK", "club": "Al-Wehdat", "valor_m": 1, "edad": 31},
+        {"nombre": "Baha Faisal", "posicion": "DF", "club": "Al-Ramtha", "valor_m": 1, "edad": 28},
+        {"nombre": "Yazan Al-Naimat", "posicion": "DF", "club": "Al-Faisaly", "valor_m": 1, "edad": 26},
+        {"nombre": "Ahmad Al-Rashdan", "posicion": "DF", "club": "Al-Wehdat", "valor_m": 1, "edad": 30},
+        {"nombre": "Musa Al-Taamari", "posicion": "MF", "club": "Montpellier", "valor_m": 5, "edad": 25},
+        {"nombre": "Ahmad Dabbas", "posicion": "MF", "club": "Al-Sareeh", "valor_m": 1, "edad": 27},
+        {"nombre": "Samer Anis", "posicion": "MF", "club": "Al-Faisaly", "valor_m": 1, "edad": 28},
+        {"nombre": "Hamza Khanfar", "posicion": "FW", "club": "Al-Jazeera", "valor_m": 2, "edad": 26},
+        {"nombre": "Mousa Al-Tamari", "posicion": "FW", "club": "Standard Liege", "valor_m": 3, "edad": 26},
+        {"nombre": "Zaid Al-Deek", "posicion": "MF", "club": "Al-Wehdat", "valor_m": 1, "edad": 25},
+        {"nombre": "Oday Dabbagh", "posicion": "FW", "club": "Angers", "valor_m": 3, "edad": 25},
+        {"nombre": "Abdallah Nasib", "posicion": "DF", "club": "Al-Faisaly", "valor_m": 1, "edad": 27},
+        {"nombre": "Salem Al-Ajalin", "posicion": "GK", "club": "Al-Wehdat", "valor_m": 1, "edad": 26},
+        {"nombre": "Ehsan Haddad", "posicion": "DF", "club": "Al-Ramtha", "valor_m": 1, "edad": 29},
     ],
     "Congo DR": [
-        {
-            "nombre": "Lionel Mpasi",
-            "posicion": "GK",
-            "club": "Le Havre AC",
-            "valor_m": 2,
-            "edad": 31
-        },
-        {
-            "nombre": "Timothy Fayulu",
-            "posicion": "GK",
-            "club": "FC Noah",
-            "valor_m": 1,
-            "edad": 26
-        },
-        {
-            "nombre": "Matthieu Epolo",
-            "posicion": "GK",
-            "club": "Standard Liege",
-            "valor_m": 2,
-            "edad": 20
-        },
-        {
-            "nombre": "Aaron Wan-Bissaka",
-            "posicion": "DF",
-            "club": "West Ham United",
-            "valor_m": 15,
-            "edad": 27
-        },
-        {
-            "nombre": "Axel Tuanzebe",
-            "posicion": "DF",
-            "club": "Burnley FC",
-            "valor_m": 5,
-            "edad": 27
-        },
-        {
-            "nombre": "Chancel Mbemba",
-            "posicion": "DF",
-            "club": "Lille OSC",
-            "valor_m": 5,
-            "edad": 31
-        },
-        {
-            "nombre": "Arthur Masuaku",
-            "posicion": "DF",
-            "club": "RC Lens",
-            "valor_m": 5,
-            "edad": 32
-        },
-        {
-            "nombre": "Ngalayel Mukau",
-            "posicion": "MF",
-            "club": "Lille OSC",
-            "valor_m": 8,
-            "edad": 21
-        },
-        {
-            "nombre": "Nathanael Mbuku",
-            "posicion": "MF",
-            "club": "Montpellier HSC",
-            "valor_m": 5,
-            "edad": 23
-        },
-        {
-            "nombre": "Yoane Wissa",
-            "posicion": "FW",
-            "club": "Newcastle United",
-            "valor_m": 25,
-            "edad": 28
-        },
-        {
-            "nombre": "Cedric Bakambu",
-            "posicion": "FW",
-            "club": "Real Betis",
-            "valor_m": 4,
-            "edad": 34
-        },
-        {
-            "nombre": "Theo Bongonda",
-            "posicion": "FW",
-            "club": "FC Spartak Moscow",
-            "valor_m": 4,
-            "edad": 30
-        }
-    ]
-,
+        {"nombre": "Lionel Mpasi", "posicion": "GK", "club": "Le Havre AC", "valor_m": 2, "edad": 31},
+        {"nombre": "Timothy Fayulu", "posicion": "GK", "club": "FC Noah", "valor_m": 1, "edad": 26},
+        {"nombre": "Matthieu Epolo", "posicion": "GK", "club": "Standard Liege", "valor_m": 2, "edad": 20},
+        {"nombre": "Aaron Wan-Bissaka", "posicion": "DF", "club": "West Ham United", "valor_m": 15, "edad": 27},
+        {"nombre": "Axel Tuanzebe", "posicion": "DF", "club": "Burnley FC", "valor_m": 5, "edad": 27},
+        {"nombre": "Chancel Mbemba", "posicion": "DF", "club": "Lille OSC", "valor_m": 5, "edad": 31},
+        {"nombre": "Arthur Masuaku", "posicion": "DF", "club": "RC Lens", "valor_m": 5, "edad": 32},
+        {"nombre": "Ngalayel Mukau", "posicion": "MF", "club": "Lille OSC", "valor_m": 8, "edad": 21},
+        {"nombre": "Nathanael Mbuku", "posicion": "MF", "club": "Montpellier HSC", "valor_m": 5, "edad": 23},
+        {"nombre": "Yoane Wissa", "posicion": "FW", "club": "Newcastle United", "valor_m": 25, "edad": 28},
+        {"nombre": "Cedric Bakambu", "posicion": "FW", "club": "Real Betis", "valor_m": 4, "edad": 34},
+        {"nombre": "Theo Bongonda", "posicion": "FW", "club": "FC Spartak Moscow", "valor_m": 4, "edad": 30},
+        {"nombre": "Joël Kiassumbua", "posicion": "GK", "club": "Beerschot", "valor_m": 2, "edad": 33},
+        {"nombre": "Ben Manga", "posicion": "GK", "club": "AS V.Club", "valor_m": 1, "edad": 29},
+        {"nombre": "Marcel Tisserand", "posicion": "DF", "club": "Fenerbahce", "valor_m": 5, "edad": 30},
+        {"nombre": "Ngonda Muzinga", "posicion": "DF", "club": "Levski Sofia", "valor_m": 2, "edad": 25},
+        {"nombre": "Jordan Botaka", "posicion": "MF", "club": "Charleroi", "valor_m": 3, "edad": 30},
+        {"nombre": "Meschak Elia", "posicion": "FW", "club": "Young Boys", "valor_m": 8, "edad": 22},
+        {"nombre": "Silas Wissa", "posicion": "FW", "club": "Wolfsburg", "valor_m": 15, "edad": 24},
+        {"nombre": "Fiston Mayele", "posicion": "FW", "club": "Panathinaikos", "valor_m": 8, "edad": 27},
+        {"nombre": "Samuel Moutoussamy", "posicion": "MF", "club": "Nantes", "valor_m": 5, "edad": 28},
+        {"nombre": "Gael Kakuta", "posicion": "MF", "club": "Lens", "valor_m": 5, "edad": 33},
+        {"nombre": "Emilio Ohana", "posicion": "MF", "club": "Maccabi Tel Aviv", "valor_m": 3, "edad": 27},
+        {"nombre": "Glody Likonza", "posicion": "MF", "club": "AS V.Club", "valor_m": 2, "edad": 26},
+        {"nombre": "Tresor Mputu", "posicion": "MF", "club": "TP Mazembe", "valor_m": 2, "edad": 36},
+    ],
     "Czechia": [
         {"nombre": "Jiri Stanek", "posicion": "GK", "club": "Slavia Prague", "valor_m": 8, "edad": 31},
         {"nombre": "Tomas Vaclik", "posicion": "GK", "club": "Olympiacos", "valor_m": 3, "edad": 35},
@@ -7465,7 +1297,7 @@ WC_PLANTELES = {
         {"nombre": "Petr Sevcik", "posicion": "MF", "club": "Slavia Prague", "valor_m": 6, "edad": 30},
         {"nombre": "Michal Sadilek", "posicion": "MF", "club": "Twente", "valor_m": 8, "edad": 25},
         {"nombre": "Lukas Haraslin", "posicion": "FW", "club": "Sassuolo", "valor_m": 5, "edad": 28},
-        {"nombre": "Pavel Sulc", "posicion": "MF", "club": "Plzen", "valor_m": 8, "edad": 24}
+        {"nombre": "Pavel Sulc", "posicion": "MF", "club": "Plzen", "valor_m": 8, "edad": 24},
     ],
     "Bosnia And Herzegovina": [
         {"nombre": "Ibrahim Sehic", "posicion": "GK", "club": "Konyaspor", "valor_m": 3, "edad": 36},
@@ -7493,7 +1325,7 @@ WC_PLANTELES = {
         {"nombre": "Rijad Kobiljar", "posicion": "MF", "club": "Borac Banja Luka", "valor_m": 2, "edad": 25},
         {"nombre": "Benjamin Tatar", "posicion": "FW", "club": "Lausanne", "valor_m": 3, "edad": 24},
         {"nombre": "Jusuf Gazibegovic", "posicion": "DF", "club": "RB Salzburg", "valor_m": 8, "edad": 25},
-        {"nombre": "Kenan Kodro", "posicion": "FW", "club": "Osasuna", "valor_m": 3, "edad": 31}
+        {"nombre": "Kenan Kodro", "posicion": "FW", "club": "Osasuna", "valor_m": 3, "edad": 31},
     ],
     "Scotland": [
         {"nombre": "Angus Gunn", "posicion": "GK", "club": "Norwich", "valor_m": 5, "edad": 28},
@@ -7521,7 +1353,7 @@ WC_PLANTELES = {
         {"nombre": "Kevin Nisbet", "posicion": "FW", "club": "Millwall", "valor_m": 5, "edad": 27},
         {"nombre": "Ross Stewart", "posicion": "FW", "club": "Sunderland", "valor_m": 8, "edad": 27},
         {"nombre": "Ben Doak", "posicion": "FW", "club": "Liverpool", "valor_m": 20, "edad": 19},
-        {"nombre": "Liam Scales", "posicion": "DF", "club": "Celtic", "valor_m": 6, "edad": 25}
+        {"nombre": "Liam Scales", "posicion": "DF", "club": "Celtic", "valor_m": 6, "edad": 25},
     ],
     "Sweden": [
         {"nombre": "Robin Olsen", "posicion": "GK", "club": "Aston Villa", "valor_m": 5, "edad": 34},
@@ -7549,7 +1381,7 @@ WC_PLANTELES = {
         {"nombre": "Filip Kostic", "posicion": "MF", "club": "Juventus", "valor_m": 15, "edad": 31},
         {"nombre": "Zeki Amdouni", "posicion": "FW", "club": "Burnley", "valor_m": 12, "edad": 23},
         {"nombre": "Oscar Linnér", "posicion": "GK", "club": "RB Leipzig", "valor_m": 5, "edad": 27},
-        {"nombre": "Joël Andersson", "posicion": "DF", "club": "Djurgarden", "valor_m": 3, "edad": 26}
+        {"nombre": "Joël Andersson", "posicion": "DF", "club": "Djurgarden", "valor_m": 3, "edad": 26},
     ],
     "Norway": [
         {"nombre": "Orjan Nyland", "posicion": "GK", "club": "Internazionale", "valor_m": 4, "edad": 33},
@@ -7577,7 +1409,7 @@ WC_PLANTELES = {
         {"nombre": "Tobias Børkeeiet", "posicion": "MF", "club": "Rosenborg", "valor_m": 4, "edad": 26},
         {"nombre": "Kristian Thorstvedt", "posicion": "MF", "club": "Sassuolo", "valor_m": 8, "edad": 24},
         {"nombre": "Even Hovland", "posicion": "DF", "club": "Nuremberg", "valor_m": 3, "edad": 28},
-        {"nombre": "Oscar Bobb", "posicion": "FW", "club": "Man City", "valor_m": 25, "edad": 21}
+        {"nombre": "Oscar Bobb", "posicion": "FW", "club": "Man City", "valor_m": 25, "edad": 21},
     ],
     "Haiti": [
         {"nombre": "Josue Duverger", "posicion": "GK", "club": "Violette AC", "valor_m": 1, "edad": 28},
@@ -7605,7 +1437,7 @@ WC_PLANTELES = {
         {"nombre": "Kervens Belfort", "posicion": "FW", "club": "Portland Timbers", "valor_m": 2, "edad": 29},
         {"nombre": "Smith Joseph", "posicion": "DF", "club": "Cavaly AS", "valor_m": 1, "edad": 25},
         {"nombre": "Kennedy Bellony", "posicion": "MF", "club": "Violette AC", "valor_m": 1, "edad": 23},
-        {"nombre": "Jems Geffrard", "posicion": "FW", "club": "Guingamp", "valor_m": 2, "edad": 27}
+        {"nombre": "Jems Geffrard", "posicion": "FW", "club": "Guingamp", "valor_m": 2, "edad": 27},
     ],
     "United States": [
         {"nombre": "Matt Turner", "posicion": "GK", "club": "Nottm Forest", "valor_m": 10, "edad": 30},
@@ -7633,7 +1465,7 @@ WC_PLANTELES = {
         {"nombre": "Matt Miazga", "posicion": "DF", "club": "Anderlecht", "valor_m": 3, "edad": 29},
         {"nombre": "Jordan Morris", "posicion": "FW", "club": "Seattle Sounders", "valor_m": 5, "edad": 29},
         {"nombre": "Malik Tillman", "posicion": "MF", "club": "PSV Eindhoven", "valor_m": 20, "edad": 23},
-        {"nombre": "Johnny Cardoso", "posicion": "MF", "club": "Real Betis", "valor_m": 20, "edad": 23}
+        {"nombre": "Johnny Cardoso", "posicion": "MF", "club": "Real Betis", "valor_m": 20, "edad": 23},
     ],
     "Curacao": [
         {"nombre": "Eloy Room", "posicion": "GK", "club": "Columbus Crew", "valor_m": 3, "edad": 33},
@@ -7661,7 +1493,7 @@ WC_PLANTELES = {
         {"nombre": "Ryan Donk", "posicion": "DF", "club": "ADO Den Haag", "valor_m": 1, "edad": 37},
         {"nombre": "Quentin Bero", "posicion": "MF", "club": "Kortrijk", "valor_m": 2, "edad": 26},
         {"nombre": "Rochdi Achenteh", "posicion": "DF", "club": "Barnet", "valor_m": 1, "edad": 28},
-        {"nombre": "Denzell Gravenberch", "posicion": "MF", "club": "unattached", "valor_m": 1, "edad": 26}
+        {"nombre": "Denzell Gravenberch", "posicion": "MF", "club": "unattached", "valor_m": 1, "edad": 26},
     ],
     "Cabo Verde": [
         {"nombre": "Vozinha", "posicion": "GK", "club": "Estoril", "valor_m": 2, "edad": 31},
@@ -7689,7 +1521,6 @@ WC_PLANTELES = {
         {"nombre": "Nicolas Moreira", "posicion": "DF", "club": "Maritimo", "valor_m": 2, "edad": 26},
         {"nombre": "Djaniny", "posicion": "FW", "club": "Al-Ahli Jeddah", "valor_m": 3, "edad": 32},
         {"nombre": "Nando", "posicion": "MF", "club": "Maritimo", "valor_m": 2, "edad": 27},
-        {"nombre": "Joao Filipe", "posicion": "GK", "club": "Academica", "valor_m": 1, "edad": 25}
-    ]
-
+        {"nombre": "Joao Filipe", "posicion": "GK", "club": "Academica", "valor_m": 1, "edad": 25},
+    ],
 }

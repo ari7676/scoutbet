@@ -3423,7 +3423,19 @@ def wc_cargar_planteles():
 @app.route("/wc_planteles")
 def wc_planteles():
     """Devuelve los planteles guardados, filtrable por seleccion."""
+    ALIASES = {
+        "United States": "USA", "United States of America": "USA",
+        "Bosnia-Herzegovina": "Bosnia And Herzegovina",
+        "Bosnia and Herzegovina": "Bosnia And Herzegovina",
+        "Cape Verde Islands": "Cabo Verde", "Cape Verde": "Cabo Verde",
+        "Curacao": "Curacao", "Curaçao": "Curacao",
+        "Korea Republic": "South Korea", "Republic of Korea": "South Korea",
+        "IR Iran": "Iran", "Czech Republic": "Czechia",
+        "DR Congo": "Congo DR", "Cote d'Ivoire": "Ivory Coast",
+    }
     seleccion = request.args.get("seleccion")
+    if seleccion:
+        seleccion = ALIASES.get(seleccion, seleccion)
     conn = get_db()
     c = conn.cursor()
     if seleccion:

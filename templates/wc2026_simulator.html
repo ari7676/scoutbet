@@ -1745,7 +1745,7 @@ function buildGroups() {
       const aus = getAusencias(team);
       const eloClass = elo >= 2000 ? 'elo-elite' : elo >= 1800 ? 'elo-high' : elo >= 1650 ? 'elo-mid' : 'elo-low';
       const injBadge = aus ? `<span style="font-family:var(--mono);font-size:9px;color:var(--red);margin-left:4px">▼${aus.penalty_total}</span>` : '';
-      html += `<div class="group-team" onclick="selectTeamMatch('${team}')">
+      html += `<div class="group-team" onclick="showSquadModal('${team}')" style="cursor:pointer">
         <span class="team-flag">${flag}</span>
         <span class="team-name">${team}</span>
         <span class="team-elo ${eloClass}">${elo}${injBadge}</span>
@@ -2297,5 +2297,109 @@ function switchTab(name, evt) {
 // ── START ─────────────────────────────────────────
 init();
 </script>
+<!-- MODAL PLANTEL -->
+<div id="squad-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;overflow-y:auto;padding:20px" onclick="if(event.target===this)closeSquadModal()">
+  <div style="max-width:600px;margin:40px auto;background:var(--surface1);border:1px solid var(--border);border-radius:8px;padding:24px;position:relative">
+    <button onclick="closeSquadModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">✕</button>
+    <div id="squad-modal-content">Cargando...</div>
+  </div>
+</div>
+
+<script>
+async function showSquadModal(team) {
+  document.getElementById('squad-modal').style.display = 'block';
+  document.getElementById('squad-modal-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Cargando plantel...</div>';
+
+  try {
+    // Traer plantel desde Supabase via endpoint
+    const [r1, r2] = await Promise.all([
+      fetch(`${API}/wc_planteles?seleccion=${encodeURIComponent(team)}`),
+      fetch(`${API}/wc_ausencias_dinamicas`)
+    ]);
+    const plantelData = await r1.json();
+    const ausencias = await r2.json();
+
+    const jugadores = plantelData.jugadores || [];
+    const aus = ausencias[team] || {};
+    const ausNames = new Set((aus.ausentes || []).map(a => a.nombre));
+    const briefing = window._briefingData || {};
+    const incorp = (briefing.incorporaciones || []).filter(i => i.seleccion === team);
+
+    const elo = getElo(team);
+    const flag = getFlag(team);
+    const rank = getRank(team);
+
+    // Agrupar por posición
+    const posiciones = { 'GK': [], 'DF': [], 'MF': [], 'FW': [] };
+    jugadores.forEach(j => {
+      const pos = j.posicion || 'MF';
+      const key = pos.startsWith('G') ? 'GK' : pos.startsWith('D') ? 'DF' : pos.startsWith('F') || pos.startsWith('A') ? 'FW' : 'MF';
+      posiciones[key].push(j);
+    });
+
+    const posLabels = { 'GK': 'PORTEROS', 'DF': 'DEFENSAS', 'MF': 'MEDIOCAMPISTAS', 'FW': 'DELANTEROS' };
+
+    let html = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:16px">
+        <span style="font-size:36px">${flag}</span>
+        <div>
+          <div style="font-family:var(--mono);font-size:18px;color:var(--text1);font-weight:700">${team.toUpperCase()}</div>
+          <div style="font-size:13px;color:var(--muted)">ELO ${elo} · #${rank} mundial</div>
+        </div>
+      </div>`;
+
+    // Bajas
+    if (aus.ausentes && aus.ausentes.length) {
+      html += `<div style="background:rgba(255,61,90,0.08);border:1px solid rgba(255,61,90,0.3);border-radius:6px;padding:12px;margin-bottom:16px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:2px;margin-bottom:8px">⚠ BAJAS CONFIRMADAS · ${aus.penalty_total} ELO</div>
+        ${aus.ausentes.map(a => `<div style="font-size:13px;color:var(--text2);margin-bottom:4px;display:flex;justify-content:space-between">
+          <span>🚫 ${a.nombre}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--red)">${a.penalty_elo} ELO</span>
+        </div>`).join('')}
+      </div>`;
+    }
+
+    // Incorporaciones del briefing
+    if (incorp.length) {
+      html += `<div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.3);border-radius:6px;padding:12px;margin-bottom:16px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:2px;margin-bottom:8px">✅ INCORPORACIONES</div>
+        ${incorp.map(i => `<div style="font-size:13px;color:var(--text2);margin-bottom:4px">➕ ${i.jugador} <span style="color:var(--muted);font-size:11px">(reemplaza a ${i.reemplaza_a || '?'})</span></div>`).join('')}
+      </div>`;
+    }
+
+    // Plantel por posición
+    if (jugadores.length) {
+      html += `<div style="font-family:var(--mono);font-size:10px;color:var(--accent2);letter-spacing:2px;margin-bottom:12px">PLANTEL CONVOCADO (${jugadores.length})</div>`;
+      ['GK','DF','MF','FW'].forEach(pos => {
+        if (!posiciones[pos].length) return;
+        html += `<div style="margin-bottom:12px">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px">${posLabels[pos]}</div>
+          ${posiciones[pos].map(j => {
+            const isBaja = ausNames.has(j.nombre);
+            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);${isBaja ? 'opacity:0.4;text-decoration:line-through' : ''}">
+              <span style="font-size:13px;color:${isBaja ? 'var(--red)' : 'var(--text2)'}">${isBaja ? '🚫 ' : ''}${j.nombre}</span>
+              <span style="font-size:11px;color:var(--muted)">${j.club || ''} ${j.valor_m ? '· €'+j.valor_m+'M' : ''}</span>
+            </div>`;
+          }).join('')}
+        </div>`;
+      });
+    } else {
+      html += `<div style="color:var(--muted);font-size:13px">Plantel no disponible</div>`;
+    }
+
+    document.getElementById('squad-modal-content').innerHTML = html;
+  } catch(e) {
+    document.getElementById('squad-modal-content').innerHTML = `<div style="color:var(--red)">Error cargando plantel: ${e.message}</div>`;
+  }
+}
+
+function closeSquadModal() {
+  document.getElementById('squad-modal').style.display = 'none';
+}
+
+// Guardar briefing en window para usarlo en el modal
+fetch(`${API}/wc_briefing_diario`).then(r => r.json()).then(d => { window._briefingData = d; }).catch(() => {});
+</script>
+
 </body>
 </html>

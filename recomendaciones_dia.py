@@ -3961,7 +3961,7 @@ def wc_briefing_diario():
     )
 
     # ── 1. Lesiones e incorporaciones ──────────────────────────────────────────
-    ctx_lesiones = f"\nNoticias recientes:\n{noticias_lesiones}" if noticias_lesiones else ""
+    ctx_lesiones = f"\nNoticias recientes:\n{noticias_lesiones[:1500]}" if noticias_lesiones else ""
     prompt_lesiones = (
         f"Fecha de hoy: {hoy}.{ctx_lesiones}\n\n"
         "Extrae jugadores lesionados, desconvocados o incorporados al Mundial 2026. "
@@ -3975,7 +3975,7 @@ def wc_briefing_diario():
     )
 
     # ── 2. Tarjetas acumuladas ─────────────────────────────────────────────────
-    ctx_tarjetas = f"\nNoticias recientes:\n{noticias_tarjetas}" if noticias_tarjetas else ""
+    ctx_tarjetas = f"\nNoticias recientes:\n{noticias_tarjetas[:800]}" if noticias_tarjetas else ""
     prompt_tarjetas = (
         f"Fecha de hoy: {hoy}.{ctx_tarjetas}\n\n"
         "Extrae jugadores con tarjetas amarillas acumuladas en el Mundial 2026. "
@@ -3987,7 +3987,7 @@ def wc_briefing_diario():
     )
 
     # ── 3. Arbitros ────────────────────────────────────────────────────────────
-    ctx_arbitros = f"\nNoticias recientes:\n{noticias_arbitros}" if noticias_arbitros else ""
+    ctx_arbitros = f"\nNoticias recientes:\n{noticias_arbitros[:800]}" if noticias_arbitros else ""
     prompt_arbitros = (
         f"Fecha de hoy: {hoy}.{ctx_arbitros}\n\n"
         "Extrae arbitros designados para partidos del Mundial 2026. "
@@ -4015,7 +4015,7 @@ def wc_briefing_diario():
     ]:
         texto = groq_search(prompt, max_tokens=2000)
         if not texto:
-            resultado["errores"].append(f"Gemini no disponible para {nombre}")
+            resultado["errores"].append(f"Groq no disponible para {nombre}")
             continue
         try:
             import re as _re
@@ -4074,8 +4074,8 @@ def wc_briefing_diario():
 @app.route("/wc_ausencias_dinamicas")
 def wc_ausencias_dinamicas():
     """
-    Devuelve ausencias base + cualquier lesion nueva detectada por el briefing diario.
-    El simulador puede usar este endpoint en vez de /wc_ausencias para datos mas frescos.
+    Devuelve ausencias base + lesiones nuevas del briefing.
+    Filtra jugadores del briefing que YA están en el plantel convocado (evita falsos positivos).
     """
     # Ausencias base (hardcodeadas)
     resp_base = wc_ausencias()
@@ -4083,18 +4083,40 @@ def wc_ausencias_dinamicas():
 
     # Merge con actualizaciones del briefing si existen
     briefing_aus = _cache.get("wc_ausencias_briefing", {})
+    if not briefing_aus:
+        return jsonify(base)
+
+    # Cargar plantel convocado para filtrar falsos positivos
+    plantel_nombres = {}
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute("SELECT seleccion, nombre FROM wc_planteles")
+        for row in c.fetchall():
+            sel, nom = row
+            if sel not in plantel_nombres:
+                plantel_nombres[sel] = set()
+            plantel_nombres[sel].add(nom.lower().strip())
+        conn.close()
+    except:
+        pass
+
     for seleccion, datos in briefing_aus.items():
+        convocados = plantel_nombres.get(seleccion, set())
         if seleccion not in base:
-            base[seleccion] = datos
-        else:
-            # Agregar solo los nuevos ausentes que no esten ya
-            nombres_base = {a["nombre"] for a in base[seleccion].get("ausentes", [])}
-            for ausente in datos.get("ausentes", []):
-                if ausente["nombre"] not in nombres_base:
-                    base[seleccion]["ausentes"].append(ausente)
-                    base[seleccion]["penalty_total"] = sum(
-                        a.get("penalty_elo", 0) for a in base[seleccion]["ausentes"]
-                    )
+            base[seleccion] = {"ausentes": [], "penalty_total": 0}
+        nombres_base = {a["nombre"] for a in base[seleccion].get("ausentes", [])}
+        for ausente in datos.get("ausentes", []):
+            nombre = ausente["nombre"]
+            # Saltar si ya está en la lista base o si está en el plantel convocado
+            if nombre in nombres_base:
+                continue
+            if nombre.lower().strip() in convocados:
+                continue  # Está convocado, no es baja real
+            base[seleccion]["ausentes"].append(ausente)
+            base[seleccion]["penalty_total"] = sum(
+                a.get("penalty_elo", 0) for a in base[seleccion]["ausentes"]
+            )
     return jsonify(base)
 
 

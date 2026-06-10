@@ -803,8 +803,8 @@ header {
         <div class="metodo-card-body">
           Los goles de cada equipo se sortean de una distribución Poisson independiente. El parámetro λ depende del gap de ELO entre equipos.
         </div>
-        <div class="metodo-formula">λ = clamp(1.30 + 0.18 × (ELO_a − ELO_b + bonus) / 100, 0.15, 6.0)</div>
-        <div class="metodo-formula-label">BASE = 1.30 · ALPHA = 0.18 · clamp a [0.15, 6.0]</div>
+        <div class="metodo-formula">λ = clamp(1.55 + 0.20 × (ELO_a − ELO_b + bonus) / 100, 0.30, 6.0)</div>
+        <div class="metodo-formula-label">BASE = 1.55 · ALPHA = 0.20 · clamp a [0.30, 6.0]</div>
       </div>
 
       <div class="metodo-card">
@@ -1813,7 +1813,7 @@ function eloWinProb(eloA, eloB, homeBonus = 0) {
 
 function poissonLambda(eloTeam, eloOpp, homeBonus = 0) {
   const gap = (eloTeam - eloOpp + homeBonus) / 100;
-  return Math.min(6.0, Math.max(0.15, 1.30 + 0.18 * gap));
+  return Math.min(6.0, Math.max(0.3, 1.55 + 0.20 * gap));
 }
 
 function poissonProb(lambda, k) {

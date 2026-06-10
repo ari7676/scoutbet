@@ -2168,13 +2168,7 @@ function buildBracketKO() {
   const groupedByFase = {};
   fases.forEach(f => { groupedByFase[f] = cruces.filter(c => c.stage === f); });
 
-  // Ver si hay algo para mostrar
-  const totalCruces = cruces.length;
-  if (totalCruces === 0) {
-    document.getElementById('bracket-section').style.display = 'none';
-    return;
-  }
-
+  // Siempre mostrar el bracket (con TBDs si no hay cruces cargados)
   const maxSlots = [16, 8, 4, 2, 1]; // slots por ronda
   let bracketHtml = '';
 

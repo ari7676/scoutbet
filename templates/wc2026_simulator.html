@@ -644,7 +644,14 @@ header {
 
     <!-- BRACKET KO -->
     <div class="ko-bracket-wrap" id="bracket-section" style="display:none">
-      <div class="section-title">CUADRO ELIMINATORIO</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="section-title" style="margin-bottom:0">CUADRO ELIMINATORIO</div>
+        <button onclick="generarSexterosAutomatico()" id="btn-generar-ko"
+          style="background:var(--accent);color:#000;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:11px;letter-spacing:1px;font-family:var(--mono)">
+          ⚡ GENERAR 16AVOS
+        </button>
+      </div>
+      <div id="ko-gen-status" style="font-size:11px;color:var(--muted);margin-bottom:12px"></div>
       <div class="ko-bracket" id="ko-bracket"></div>
     </div>
   </div>
@@ -2217,6 +2224,145 @@ function buildBracketKO() {
 
   document.getElementById('ko-bracket').innerHTML = bracketHtml;
   document.getElementById('bracket-section').style.display = 'block';
+}
+
+// ── GENERAR 16AVOS AUTOMÁTICO ──────────────────────
+// Fixture oficial FIFA 2026 (16 partidos, Partidos 73–88)
+// Emparejamientos fijos por posición en grupo:
+// P73: 2A vs 2B | P74: 1E vs 3(A/B/C/D/F) | P75: 1F vs 2C | P76: 1C vs 2F
+// P77: 1I vs 3(C/D/F/G/H) | P78: 2E vs 2I | P79: 1A vs 3(C/E/F/H/I)
+// P80: 1L vs 3(E/H/I/J/K) | P81: 1D vs 3(B/E/F/I/J) | P82: 1G vs 3(A/E/H/I/J)
+// P83: 2K vs 2L | P84: 1H vs 2J | P85: 1B vs 3(E/F/G/I/J)
+// P86: 1J vs 2H | P87: 1K vs 3(D/E/I/J/L) | P88: 2D vs 2G
+
+function generarSexterosAutomatico() {
+  const statusEl = document.getElementById('ko-gen-status');
+
+  // 1. Calcular tabla de posiciones desde resultados reales
+  const partidos = (window._partidos_lista || []).filter(p => p.fase === 'Grupos');
+
+  // Construir grupos desde fixtures
+  const groupMap = {}; // GROUP_A -> Set<team>
+  fixtures.forEach(f => {
+    if (f.group && f.home && f.away) {
+      if (!groupMap[f.group]) groupMap[f.group] = new Set();
+      groupMap[f.group].add(f.home);
+      groupMap[f.group].add(f.away);
+    }
+  });
+
+  // Stats por equipo
+  const stats = {};
+  const ensureStat = t => { if (!stats[t]) stats[t] = {pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,grupo:''}; };
+  partidos.forEach(p => {
+    const {home, away, goles_home: gh, goles_away: ga} = p;
+    ensureStat(home); ensureStat(away);
+    stats[home].pj++; stats[away].pj++;
+    stats[home].gf += gh; stats[home].gc += ga;
+    stats[away].gf += ga; stats[away].gc += gh;
+    if (gh > ga) { stats[home].pg++; stats[away].pp++; }
+    else if (gh < ga) { stats[away].pg++; stats[home].pp++; }
+    else { stats[home].pe++; stats[away].pe++; }
+  });
+
+  const pts = t => (stats[t]?.pg||0)*3 + (stats[t]?.pe||0);
+  const dg  = t => (stats[t]?.gf||0) - (stats[t]?.gc||0);
+
+  // Si no hay resultados, usar ELO para ordenar (modo simulación)
+  const usandoElo = partidos.length === 0;
+
+  // Clasificados por grupo: [1°, 2°, 3°] usando ELO si no hay resultados
+  const clasificados = {}; // { A: {p1, p2, p3}, B: {...}, ... }
+  const letras = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+
+  letras.forEach(letra => {
+    const grpKey = `GROUP_${letra}`;
+    const teams = Array.from(groupMap[grpKey] || []);
+    if (!teams.length) return;
+
+    let sorted;
+    if (usandoElo) {
+      sorted = teams.sort((a,b) => getElo(b) - getElo(a));
+    } else {
+      sorted = teams.sort((a,b) => {
+        const dp = pts(b) - pts(a); if (dp !== 0) return dp;
+        const dd = dg(b) - dg(a);  if (dd !== 0) return dd;
+        return (stats[b]?.gf||0) - (stats[a]?.gf||0);
+      });
+    }
+    clasificados[letra] = { p1: sorted[0], p2: sorted[1], p3: sorted[2] || null };
+  });
+
+  // Terceros: seleccionar los 8 mejores de los 12 grupos
+  const terceros = letras
+    .filter(l => clasificados[l]?.p3)
+    .map(l => ({ team: clasificados[l].p3, grupo: l,
+      pts: pts(clasificados[l].p3), dg: dg(clasificados[l].p3),
+      gf: stats[clasificados[l].p3]?.gf || 0,
+      elo: getElo(clasificados[l].p3) }))
+    .sort((a,b) => usandoElo
+      ? b.elo - a.elo
+      : b.pts - a.pts || b.dg - a.dg || b.gf - a.gf)
+    .slice(0, 8);
+
+  const gruposTerceros = terceros.map(t => t.grupo); // ej: ['A','B','C','D','E','F','G','H']
+
+  // Tabla oficial FIFA para determinar qué tercero va a cada partido
+  // cuando hay 8 terceros clasificados de 12 grupos posibles
+  // Simplificación: asignamos por orden de ranking de terceros a los slots
+  // Los slots de terceros en orden del fixture: P74, P77, P79, P80, P81, P82, P85, P87
+  const tercerosRanked = terceros.map(t => t.team);
+
+  const t3 = (i) => tercerosRanked[i] || 'TBD';
+
+  const g = (l, pos) => clasificados[l]?.[pos] || 'TBD';
+
+  // 16 cruces en orden oficial
+  const cruces16 = [
+    { home: g('A','p2'), away: g('B','p2'), label: 'P73 · 2°A vs 2°B' },
+    { home: g('E','p1'), away: t3(0),       label: 'P74 · 1°E vs 3°*' },
+    { home: g('F','p1'), away: g('C','p2'), label: 'P75 · 1°F vs 2°C' },
+    { home: g('C','p1'), away: g('F','p2'), label: 'P76 · 1°C vs 2°F' },
+    { home: g('I','p1'), away: t3(1),       label: 'P77 · 1°I vs 3°*' },
+    { home: g('E','p2'), away: g('I','p2'), label: 'P78 · 2°E vs 2°I' },
+    { home: g('A','p1'), away: t3(2),       label: 'P79 · 1°A vs 3°*' },
+    { home: g('L','p1'), away: t3(3),       label: 'P80 · 1°L vs 3°*' },
+    { home: g('D','p1'), away: t3(4),       label: 'P81 · 1°D vs 3°*' },
+    { home: g('G','p1'), away: t3(5),       label: 'P82 · 1°G vs 3°*' },
+    { home: g('K','p2'), away: g('L','p2'), label: 'P83 · 2°K vs 2°L' },
+    { home: g('H','p1'), away: g('J','p2'), label: 'P84 · 1°H vs 2°J' },
+    { home: g('B','p1'), away: t3(6),       label: 'P85 · 1°B vs 3°*' },
+    { home: g('J','p1'), away: g('H','p2'), label: 'P86 · 1°J vs 2°H' },
+    { home: g('K','p1'), away: t3(7),       label: 'P87 · 1°K vs 3°*' },
+    { home: g('D','p2'), away: g('G','p2'), label: 'P88 · 2°D vs 2°G' },
+  ];
+
+  // Cargar en localStorage (reemplazando los 16avos existentes)
+  const key = 'wc_fixture_ko';
+  let cruces = JSON.parse(localStorage.getItem(key) || '[]');
+  // Quitar 16avos anteriores autogenerados
+  cruces = cruces.filter(c => c.stage !== '16avos');
+
+  cruces16.forEach((c, i) => {
+    const id = `AUTO_R16_${i+1}`;
+    cruces.push({
+      id, fase: 'R16', stage: '16avos',
+      home: c.home, away: c.away,
+      fecha: c.label
+    });
+    // También al array fixtures en memoria
+    fixtures.push({ home: c.home, away: c.away, fecha: c.label, stage: '16avos', group: null });
+  });
+
+  localStorage.setItem(key, JSON.stringify(cruces));
+
+  const modo = usandoElo ? '(proyección por ELO — sin resultados reales aún)' : `(basado en ${partidos.length} resultados reales)`;
+  statusEl.textContent = `✅ 16 cruces generados ${modo}`;
+  statusEl.style.color = 'var(--green)';
+
+  buildMatchSelect();
+  buildBracketKO();
+  cargarFixtureKO();
 }
 
 function selectTeamMatch(team) {

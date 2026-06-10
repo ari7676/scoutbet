@@ -150,6 +150,39 @@ header {
 .elo-mid { color: #60a5fa !important; }
 .elo-low { color: #9ca3af !important; }
 
+/* STANDINGS TABLE */
+.standings-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+.standings-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; overflow: hidden; }
+.standings-header { padding: 10px 14px; background: linear-gradient(135deg, var(--surface2), var(--surface3)); font-family: var(--display); font-size: 16px; color: var(--accent2); letter-spacing: 3px; border-bottom: 1px solid var(--border); }
+.standings-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.standings-table th { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 2px; padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: center; background: var(--surface2); }
+.standings-table th:first-child { text-align: left; padding-left: 10px; }
+.standings-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); text-align: center; color: var(--text2); }
+.standings-table tr:last-child td { border-bottom: none; }
+.standings-table td:first-child { text-align: left; padding-left: 10px; }
+.standings-table td.pts { font-weight: 700; color: var(--accent); font-family: var(--mono); }
+.standings-table tr.clasifica td { background: rgba(34,211,197,0.04); }
+.standings-table tr.clasifica td:first-child { border-left: 2px solid var(--accent2); }
+.standings-table .pos-num { font-family: var(--mono); color: var(--muted); font-size: 10px; margin-right: 4px; }
+.standings-team-name { font-weight: 600; font-size: 12px; color: var(--text); }
+
+/* KO BRACKET */
+.ko-bracket-wrap { margin-bottom: 32px; }
+.ko-bracket-title { font-family: var(--display); font-size: 22px; color: var(--accent); letter-spacing: 4px; margin-bottom: 16px; }
+.ko-bracket { display: flex; gap: 0; overflow-x: auto; padding-bottom: 12px; }
+.ko-round { display: flex; flex-direction: column; min-width: 140px; }
+.ko-round-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 3px; text-align: center; padding: 8px 4px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.ko-matches { display: flex; flex-direction: column; flex: 1; }
+.ko-match-slot { display: flex; flex-direction: column; flex: 1; justify-content: center; padding: 4px 8px; position: relative; }
+.ko-match-slot::after { content: ''; position: absolute; right: 0; top: 50%; width: 8px; height: 1px; background: var(--border2); }
+.ko-round:last-child .ko-match-slot::after { display: none; }
+.ko-team { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 11px; font-weight: 600; color: var(--text2); margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 124px; display: flex; align-items: center; gap: 5px; cursor: default; }
+.ko-team.winner { border-color: var(--accent); color: var(--accent); background: rgba(240,180,41,0.07); }
+.ko-team.tbd { color: var(--muted); font-style: italic; border-color: var(--border); }
+.ko-score { font-family: var(--mono); font-size: 10px; color: var(--muted); text-align: center; margin: 1px 0 3px; }
+.ko-connector { position: absolute; right: -8px; width: 8px; }
+.ko-separator { flex: 1; min-height: 12px; }
+
 /* CHAMPION TABLE */
 .champion-table { width: 100%; border-collapse: collapse; }
 .champion-table th {
@@ -601,6 +634,18 @@ header {
     <div class="section-title">GRUPOS Y RATINGS ELO</div>
     <div class="groups-grid" id="groups-grid">
       <div class="empty">Cargando grupos...</div>
+    </div>
+
+    <!-- TABLA DE POSICIONES REALES -->
+    <div id="standings-section" style="display:none">
+      <div class="section-title">TABLA DE POSICIONES · RESULTADOS REALES</div>
+      <div class="standings-grid" id="standings-grid"></div>
+    </div>
+
+    <!-- BRACKET KO -->
+    <div class="ko-bracket-wrap" id="bracket-section" style="display:none">
+      <div class="section-title">CUADRO ELIMINATORIO</div>
+      <div class="ko-bracket" id="ko-bracket"></div>
     </div>
   </div>
 
@@ -1307,6 +1352,9 @@ async function guardarResultado() {
     const r2 = await fetch(`${API}/wc_rendimiento`);
     const d2 = await r2.json();
     rendimientoData = d2.ajustes || {};
+    window._partidos_lista = d2.partidos_lista || [];
+    buildStandingsReales();
+    buildBracketKO();
   } else {
     document.getElementById('res-status').textContent = '❌ Error';
   }
@@ -1426,6 +1474,7 @@ function agregarCruceKO() {
   document.getElementById('ko-fecha').value = '';
   document.getElementById('ko-status').textContent = `✅ ${home} vs ${away} agregado`;
   cargarFixtureKO();
+  buildBracketKO();
 }
 
 function cargarFixtureKO() {
@@ -1468,6 +1517,7 @@ function eliminarCruceKO(id) {
   localStorage.setItem(key, JSON.stringify(cruces));
   document.getElementById('ko-status').textContent = 'Cruce eliminado';
   cargarFixtureKO();
+  buildBracketKO();
 }
 
 // Restaurar fixture KO al init
@@ -1733,6 +1783,10 @@ async function init() {
     buildMatchSelect();
     restaurarFixtureKO();
     buildPenaltyGrid();
+    // Guardar partidos_lista en window para el bracket KO
+    window._partidos_lista = (r5 || {}).partidos_lista || [];
+    buildStandingsReales();
+    buildBracketKO();
 
     setProgress(100);
     setTimeout(() => document.getElementById('loading').classList.add('hidden'), 300);
@@ -2015,6 +2069,160 @@ function buildGroups() {
   });
 
   document.getElementById('groups-grid').innerHTML = html_parts.join('');
+}
+
+// ── TABLA DE POSICIONES REALES ─────────────────────
+async function buildStandingsReales() {
+  const r = await fetch(`${API}/wc_rendimiento`).catch(() => null);
+  if (!r) return;
+  const data = await r.json().catch(() => ({}));
+  const partidos = data.partidos_lista || [];
+  const grupoPartidos = partidos.filter(p => p.fase === 'Grupos');
+  if (grupoPartidos.length === 0) {
+    document.getElementById('standings-section').style.display = 'none';
+    return;
+  }
+
+  // Construir estructura de grupos desde fixtures (ya cargado)
+  const groupMap = {}; // { GROUP_A: Set<team> }
+  fixtures.forEach(f => {
+    if (f.group && f.home && f.away) {
+      if (!groupMap[f.group]) groupMap[f.group] = new Set();
+      groupMap[f.group].add(f.home);
+      groupMap[f.group].add(f.away);
+    }
+  });
+
+  // Acumular stats por equipo desde resultados reales
+  const stats = {}; // { team: {pj,pg,pe,pp,gf,gc} }
+  const ensureStat = t => { if (!stats[t]) stats[t] = {pj:0,pg:0,pe:0,pp:0,gf:0,gc:0}; };
+
+  grupoPartidos.forEach(p => {
+    const {home, away, goles_home: gh, goles_away: ga} = p;
+    ensureStat(home); ensureStat(away);
+    stats[home].pj++; stats[away].pj++;
+    stats[home].gf += gh; stats[home].gc += ga;
+    stats[away].gf += ga; stats[away].gc += gh;
+    if (gh > ga) { stats[home].pg++; stats[away].pp++; }
+    else if (gh < ga) { stats[away].pg++; stats[home].pp++; }
+    else { stats[home].pe++; stats[away].pe++; }
+  });
+
+  const pts = t => (stats[t]?.pg||0)*3 + (stats[t]?.pe||0);
+  const dg = t => (stats[t]?.gf||0) - (stats[t]?.gc||0);
+
+  let html = '';
+  Object.keys(groupMap).sort().forEach(grp => {
+    const teams = Array.from(groupMap[grp]).sort((a,b) => {
+      const dp = pts(b) - pts(a);
+      if (dp !== 0) return dp;
+      const dd = dg(b) - dg(a);
+      if (dd !== 0) return dd;
+      return (stats[b]?.gf||0) - (stats[a]?.gf||0);
+    });
+    html += `<div class="standings-card">
+      <div class="standings-header">${grp.replace('GROUP_', 'GRUPO ')}</div>
+      <table class="standings-table">
+        <thead><tr>
+          <th style="text-align:left">EQUIPO</th>
+          <th>PJ</th><th>PG</th><th>PE</th><th>PP</th>
+          <th>GF</th><th>GC</th><th>DG</th><th>PTS</th>
+        </tr></thead>
+        <tbody>
+          ${teams.map((t,i) => {
+            const s = stats[t] || {pj:0,pg:0,pe:0,pp:0,gf:0,gc:0};
+            const p = pts(t);
+            const clasifica = i < 2;
+            return `<tr class="${clasifica ? 'clasifica' : ''}">
+              <td><span class="pos-num">${i+1}</span><span class="standings-team-name">${getFlag(t)} ${t}</span></td>
+              <td>${s.pj}</td><td>${s.pg}</td><td>${s.pe}</td><td>${s.pp}</td>
+              <td>${s.gf}</td><td>${s.gc}</td><td>${dg(t) >= 0 ? '+' : ''}${dg(t)}</td>
+              <td class="pts">${p}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  });
+
+  document.getElementById('standings-grid').innerHTML = html;
+  document.getElementById('standings-section').style.display = 'block';
+}
+
+// ── BRACKET KO ─────────────────────────────────────
+function buildBracketKO() {
+  const key = 'wc_fixture_ko';
+  const cruces = JSON.parse(localStorage.getItem(key) || '[]');
+
+  // También leer resultados reales de KO desde wc_rendimiento
+  // Los tenemos en memoria en window._partidos_lista
+  const resultados = (window._partidos_lista || []).filter(p => p.fase !== 'Grupos' && p.fase !== 'Amistoso');
+  const resultMap = {}; // "home|away" -> {gh, ga}
+  resultados.forEach(p => {
+    resultMap[`${p.home}|${p.away}`] = {gh: p.goles_home, ga: p.goles_away};
+    resultMap[`${p.away}|${p.home}`] = {gh: p.goles_away, ga: p.goles_home}; // reverse lookup
+  });
+
+  const fases = ['16avos', 'Octavos de Final', 'Cuartos de Final', 'Semifinal', 'Final'];
+  const labels = ['16AVOS', 'OCTAVOS', 'CUARTOS', 'SEMIS', 'FINAL'];
+  const groupedByFase = {};
+  fases.forEach(f => { groupedByFase[f] = cruces.filter(c => c.stage === f); });
+
+  // Ver si hay algo para mostrar
+  const totalCruces = cruces.length;
+  if (totalCruces === 0) {
+    document.getElementById('bracket-section').style.display = 'none';
+    return;
+  }
+
+  const maxSlots = [16, 8, 4, 2, 1]; // slots por ronda
+  let bracketHtml = '';
+
+  fases.forEach((fase, ri) => {
+    const partidos = groupedByFase[fase] || [];
+    const nSlots = maxSlots[ri];
+    const slotHeight = Math.max(52, 420 / nSlots);
+
+    let matchesHtml = '';
+    for (let i = 0; i < nSlots; i++) {
+      const partido = partidos[i];
+      if (!partido) {
+        // Slot vacío
+        matchesHtml += `<div class="ko-match-slot" style="height:${slotHeight}px">
+          <div class="ko-team tbd">TBD</div>
+          <div class="ko-team tbd">TBD</div>
+        </div>`;
+        if (i < nSlots - 1) matchesHtml += `<div class="ko-separator"></div>`;
+        continue;
+      }
+      const rk = resultMap[`${partido.home}|${partido.away}`];
+      let homeClass = '', awayClass = '', scoreHtml = '';
+      if (rk) {
+        scoreHtml = `<div class="ko-score">${rk.gh} — ${rk.ga}</div>`;
+        if (rk.gh > rk.ga) homeClass = 'winner';
+        else if (rk.ga > rk.gh) awayClass = 'winner';
+      }
+      const hf = getFlag(partido.home);
+      const af = getFlag(partido.away);
+      matchesHtml += `<div class="ko-match-slot" style="height:${slotHeight}px">
+        <div class="ko-team ${homeClass}" title="${partido.home}">${hf} ${partido.home}</div>
+        ${scoreHtml}
+        <div class="ko-team ${awayClass}" title="${partido.away}">${af} ${partido.away}</div>
+      </div>`;
+      if (i < nSlots - 1) matchesHtml += `<div class="ko-separator" style="height:${slotHeight * 0.5}px"></div>`;
+    }
+
+    bracketHtml += `<div class="ko-round" style="min-height:420px">
+      <div class="ko-round-label">${labels[ri]}</div>
+      <div class="ko-matches">${matchesHtml}</div>
+    </div>
+    <div style="width:20px;display:flex;align-items:center;justify-content:center;padding-top:32px">
+      ${ri < fases.length - 1 ? '<div style="width:1px;height:80%;background:var(--border2)"></div>' : ''}
+    </div>`;
+  });
+
+  document.getElementById('ko-bracket').innerHTML = bracketHtml;
+  document.getElementById('bracket-section').style.display = 'block';
 }
 
 function selectTeamMatch(team) {

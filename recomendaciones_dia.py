@@ -3226,16 +3226,25 @@ def wc_rendimiento():
         conn.close()
         return jsonify({"ok": True, "ajuste_home": ajuste_h, "ajuste_away": ajuste_a})
     else:
-        # Devolver ajustes acumulados por seleccion
-        c.execute("SELECT home, away, elo_ajuste_home, elo_ajuste_away FROM wc_resultados")
+        # Devolver ajustes acumulados por seleccion + lista completa de partidos
+        c.execute("""SELECT home, away, goles_home, goles_away, fase, fecha,
+                            elo_home_antes, elo_away_antes, elo_ajuste_home, elo_ajuste_away
+                     FROM wc_resultados ORDER BY creado ASC""")
         rows = c.fetchall()
         conn.close()
         ajustes = {}
-        for home, away, adj_h, adj_a in rows:
+        partidos_lista = []
+        for home, away, gh, ga, fase, fecha, elo_h, elo_a, adj_h, adj_a in rows:
             ajustes[home] = ajustes.get(home, 0) + (adj_h or 0)
             ajustes[away] = ajustes.get(away, 0) + (adj_a or 0)
-        return jsonify({"ajustes": ajustes, "partidos": len(rows)})
-
+            partidos_lista.append({
+                "home": home, "away": away,
+                "goles_home": gh, "goles_away": ga,
+                "fase": fase, "fecha": fecha,
+                "elo_home_antes": elo_h, "elo_away_antes": elo_a,
+                "ajuste_home": adj_h or 0, "ajuste_away": adj_a or 0
+            })
+        return jsonify({"ajustes": ajustes, "partidos": len(rows), "partidos_lista": partidos_lista})
 
 
 @app.route("/wc_cargar_planteles_static")

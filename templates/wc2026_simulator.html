@@ -997,10 +997,65 @@ header {
   <!-- ANALISIS INLINE POST-FORMACION -->
   <div id="gestion-analisis" style="display:none;margin-bottom:24px"></div>
 
-  <!-- HISTORIAL RESULTADOS -->
-  <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border)">
+  <!-- AJUSTES ELO ACUMULADOS -->
+  <div style="background:var(--surface);border-radius:12px;padding:20px;margin-bottom:24px;border:1px solid var(--border)">
     <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:16px">📈 AJUSTES ELO ACUMULADOS</div>
     <div id="elo-ajustes-tabla" style="font-size:13px;color:var(--muted)">Cargando...</div>
+  </div>
+
+  <!-- FIXTURE KO -->
+  <div style="background:var(--surface);border-radius:12px;padding:20px;margin-bottom:24px;border:1px solid var(--border)">
+    <div style="font-size:12px;color:var(--accent2);letter-spacing:2px;margin-bottom:4px">🏆 FIXTURE FASE ELIMINATORIA</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Cargá los cruces a medida que se conocen. Se usan en Análisis Partido.</div>
+
+    <!-- Selector de fase KO -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px">
+      <button onclick="setFaseKO('R16')" id="btn-ko-R16"
+              style="padding:8px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);border-radius:5px;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:1px;transition:all 0.15s"
+              onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="if(window._faseKO!=='R16')this.style.borderColor='var(--border2)'">16AVOS</button>
+      <button onclick="setFaseKO('Octavos')" id="btn-ko-Octavos"
+              style="padding:8px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);border-radius:5px;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:1px;transition:all 0.15s">OCTAVOS</button>
+      <button onclick="setFaseKO('Cuartos')" id="btn-ko-Cuartos"
+              style="padding:8px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);border-radius:5px;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:1px;transition:all 0.15s">CUARTOS</button>
+      <button onclick="setFaseKO('Semis')" id="btn-ko-Semis"
+              style="padding:8px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);border-radius:5px;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:1px;transition:all 0.15s">SEMIS</button>
+      <button onclick="setFaseKO('Final')" id="btn-ko-Final"
+              style="padding:8px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);border-radius:5px;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:1px;transition:all 0.15s">FINAL</button>
+    </div>
+
+    <!-- Formulario cruce -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label style="font-size:11px;color:var(--muted)">LOCAL</label>
+        <input id="ko-home" type="text" placeholder="Argentina"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">VISITANTE</label>
+        <input id="ko-away" type="text" placeholder="France"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted)">FECHA / HORA</label>
+        <input id="ko-fecha" type="text" placeholder="2026-06-29 20:00"
+               style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+      </div>
+    </div>
+    <button onclick="agregarCruceKO()"
+            style="background:var(--accent2);color:#000;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;letter-spacing:1px">
+      + AGREGAR CRUCE
+    </button>
+    <span id="ko-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
+
+    <!-- Lista de cruces cargados -->
+    <div id="ko-fixture-lista" style="margin-top:16px"></div>
+  </div>
+
+  <!-- HISTORIAL DE PREDICCIONES -->
+  <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border)">
+    <div style="font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:4px">📊 HISTORIAL DE PREDICCIONES</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Predicción del simulador vs resultado real. Se actualiza automáticamente al registrar resultados.</div>
+    <div id="historial-predicciones" style="font-size:13px;color:var(--muted)">Cargando...</div>
   </div>
 
 </div>
@@ -1247,6 +1302,7 @@ async function guardarResultado() {
   if (d.ok) {
     document.getElementById('res-status').textContent = `✅ ${home} ${d.ajuste_home > 0 ? '+' : ''}${d.ajuste_home} ELO · ${away} ${d.ajuste_away > 0 ? '+' : ''}${d.ajuste_away} ELO`;
     cargarAjustes();
+    cargarHistorial();
     // Refrescar rendimientoData
     const r2 = await fetch(`${API}/wc_rendimiento`);
     const d2 = await r2.json();
@@ -1312,7 +1368,207 @@ async function cargarAjustes() {
 }
 
 // Cargar ajustes al abrir tab
-document.addEventListener('DOMContentLoaded', () => { cargarAjustes(); });
+document.addEventListener('DOMContentLoaded', () => {
+  cargarAjustes();
+  cargarFixtureKO();
+  cargarHistorial();
+});
+
+// ── FIXTURE KO ────────────────────────────────────
+window._faseKO = 'R16';
+
+function setFaseKO(fase) {
+  window._faseKO = fase;
+  ['R16','Octavos','Cuartos','Semis','Final'].forEach(f => {
+    const btn = document.getElementById('btn-ko-' + f);
+    if (!btn) return;
+    if (f === fase) {
+      btn.style.borderColor = 'var(--accent2)';
+      btn.style.color = 'var(--accent2)';
+      btn.style.background = 'rgba(34,211,197,0.08)';
+    } else {
+      btn.style.borderColor = 'var(--border2)';
+      btn.style.color = 'var(--muted)';
+      btn.style.background = 'var(--surface2)';
+    }
+  });
+}
+setFaseKO('R16');
+
+function agregarCruceKO() {
+  const home = document.getElementById('ko-home').value.trim();
+  const away = document.getElementById('ko-away').value.trim();
+  const fecha = document.getElementById('ko-fecha').value.trim();
+  const fase = window._faseKO;
+  if (!home || !away) {
+    document.getElementById('ko-status').textContent = '⚠ Completá local y visitante';
+    return;
+  }
+  // Guardar en localStorage
+  const key = 'wc_fixture_ko';
+  const cruces = JSON.parse(localStorage.getItem(key) || '[]');
+  const id = `${fase}_${home}_${away}`.replace(/\s+/g,'_');
+  // Evitar duplicados
+  if (cruces.find(c => c.id === id)) {
+    document.getElementById('ko-status').textContent = '⚠ Ya existe ese cruce';
+    return;
+  }
+  cruces.push({ id, fase, home, away, fecha });
+  localStorage.setItem(key, JSON.stringify(cruces));
+
+  // También agregar al array fixtures en memoria para que aparezca en Análisis Partido
+  const faseMap = { 'R16': '16avos', 'Octavos': 'Octavos de Final', 'Cuartos': 'Cuartos de Final', 'Semis': 'Semifinal', 'Final': 'Final' };
+  fixtures.push({ home, away, fecha: fecha || fase, stage: faseMap[fase] || fase, group: null });
+  buildMatchSelect();
+
+  document.getElementById('ko-home').value = '';
+  document.getElementById('ko-away').value = '';
+  document.getElementById('ko-fecha').value = '';
+  document.getElementById('ko-status').textContent = `✅ ${home} vs ${away} agregado`;
+  cargarFixtureKO();
+}
+
+function cargarFixtureKO() {
+  const key = 'wc_fixture_ko';
+  const cruces = JSON.parse(localStorage.getItem(key) || '[]');
+  const lista = document.getElementById('ko-fixture-lista');
+  if (!lista) return;
+  if (!cruces.length) {
+    lista.innerHTML = '<div style="color:var(--muted);font-size:12px">Sin cruces cargados aún.</div>';
+    return;
+  }
+  const fases = ['R16','Octavos','Cuartos','Semis','Final'];
+  const faseLabels = { 'R16':'16AVOS','Octavos':'OCTAVOS','Cuartos':'CUARTOS','Semis':'SEMIS','Final':'FINAL' };
+  const faseColors = { 'R16':'var(--accent2)','Octavos':'var(--blue)','Cuartos':'var(--purple)','Semis':'var(--accent)','Final':'#ffd166' };
+  let html = '';
+  fases.forEach(fase => {
+    const del_fase = cruces.filter(c => c.fase === fase);
+    if (!del_fase.length) return;
+    html += `<div style="margin-bottom:12px">
+      <div style="font-family:var(--mono);font-size:9px;color:${faseColors[fase]};letter-spacing:3px;margin-bottom:6px">${faseLabels[fase]}</div>
+      ${del_fase.map(c => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--surface2);border-radius:5px;margin-bottom:4px;border:1px solid var(--border)">
+          <span style="font-size:14px;font-weight:600">${getFlag(c.home)} ${c.home} <span style="color:var(--muted);font-size:12px">vs</span> ${getFlag(c.away)} ${c.away}</span>
+          <div style="display:flex;gap:10px;align-items:center">
+            ${c.fecha ? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${c.fecha}</span>` : ''}
+            <button onclick="eliminarCruceKO('${c.id}')"
+                    style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:3px"
+                    title="Eliminar">✕</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  });
+  lista.innerHTML = html;
+}
+
+function eliminarCruceKO(id) {
+  const key = 'wc_fixture_ko';
+  let cruces = JSON.parse(localStorage.getItem(key) || '[]');
+  cruces = cruces.filter(c => c.id !== id);
+  localStorage.setItem(key, JSON.stringify(cruces));
+  document.getElementById('ko-status').textContent = 'Cruce eliminado';
+  cargarFixtureKO();
+}
+
+// Restaurar fixture KO al init
+function restaurarFixtureKO() {
+  const key = 'wc_fixture_ko';
+  const cruces = JSON.parse(localStorage.getItem(key) || '[]');
+  const faseMap = { 'R16': '16avos', 'Octavos': 'Octavos de Final', 'Cuartos': 'Cuartos de Final', 'Semis': 'Semifinal', 'Final': 'Final' };
+  cruces.forEach(c => {
+    fixtures.push({ home: c.home, away: c.away, fecha: c.fecha || c.fase, stage: faseMap[c.fase] || c.fase, group: null });
+  });
+  if (cruces.length) buildMatchSelect();
+}
+
+// ── HISTORIAL DE PREDICCIONES ─────────────────────
+async function cargarHistorial() {
+  const el = document.getElementById('historial-predicciones');
+  if (!el) return;
+  try {
+    const r = await fetch(`${API}/wc_rendimiento`);
+    const d = await r.json();
+    const partidos = d.partidos_lista || [];
+    if (!partidos.length) {
+      el.innerHTML = '<div style="color:var(--muted);font-size:12px">Sin partidos registrados aún.</div>';
+      return;
+    }
+
+    let correctos = 0, total = 0;
+    const rows = partidos.map(p => {
+      // Calcular predicción del simulador para ese partido
+      const eloH = getEloBase(p.home) + (p.elo_home_antes || 0) - getEloBase(p.home); // usar elo_home_antes guardado
+      const eloA = getEloBase(p.away) + (p.elo_away_antes || 0) - getEloBase(p.away);
+      const eloHUsado = p.elo_home_antes || getEloBase(p.home);
+      const eloAUsado = p.elo_away_antes || getEloBase(p.away);
+      const probs = matchProbs(eloHUsado, eloAUsado);
+
+      const predWin = probs.pWin > probs.pDraw && probs.pWin > probs.pLoss ? 'H' :
+                      probs.pDraw >= probs.pWin && probs.pDraw >= probs.pLoss ? 'D' : 'A';
+
+      const gh = p.goles_home, ga = p.goles_away;
+      const realResult = gh > ga ? 'H' : gh < ga ? 'A' : 'D';
+      const acierto = predWin === realResult;
+      if (p.fase !== 'Amistoso') { total++; if (acierto) correctos++; }
+
+      const predLabel = predWin === 'H' ? `Victoria ${p.home}` : predWin === 'A' ? `Victoria ${p.away}` : 'Empate';
+      const realLabel = gh + ' – ' + ga;
+      const faseColor = p.fase === 'Final' ? '#ffd166' : p.fase === 'Semis' ? 'var(--accent)' : p.fase === 'Cuartos' ? 'var(--purple)' : p.fase === 'Octavos' ? 'var(--blue)' : 'var(--accent2)';
+
+      return `<tr>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--border)">
+          <span style="font-family:var(--mono);font-size:9px;color:${faseColor};background:rgba(255,255,255,0.04);padding:2px 6px;border-radius:3px">${p.fase}</span>
+        </td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600">
+          ${getFlag(p.home)} ${p.home} vs ${getFlag(p.away)} ${p.away}
+        </td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px;color:var(--muted)">${predLabel}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text1)">${realLabel}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:center">
+          ${p.fase === 'Amistoso' ? '<span style="color:var(--muted);font-size:11px">—</span>' :
+            acierto ? '<span style="color:var(--green);font-size:16px">✓</span>' : '<span style="color:var(--red);font-size:16px">✗</span>'}
+        </td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px">
+          <span style="color:${p.ajuste_home > 0 ? 'var(--green)' : 'var(--red)'}">${p.home} ${p.ajuste_home > 0 ? '+' : ''}${p.ajuste_home}</span>
+          <span style="color:var(--muted)"> · </span>
+          <span style="color:${p.ajuste_away > 0 ? 'var(--green)' : 'var(--red)'}">${p.away} ${p.ajuste_away > 0 ? '+' : ''}${p.ajuste_away}</span>
+        </td>
+      </tr>`;
+    });
+
+    const pct = total > 0 ? Math.round(correctos / total * 100) : 0;
+    const pctColor = pct >= 60 ? 'var(--green)' : pct >= 45 ? 'var(--accent)' : 'var(--red)';
+
+    el.innerHTML = `
+      <div style="display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:12px 18px;text-align:center">
+          <div style="font-family:var(--display);font-size:32px;color:${pctColor}">${pct}%</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px">ACIERTOS</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:12px 18px;text-align:center">
+          <div style="font-family:var(--display);font-size:32px;color:var(--accent)">${correctos}/${total}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px">RESULTADOS</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:var(--surface2)">
+              <th style="padding:8px 10px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;border-bottom:1px solid var(--border2)">FASE</th>
+              <th style="padding:8px 10px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;border-bottom:1px solid var(--border2)">PARTIDO</th>
+              <th style="padding:8px 10px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;border-bottom:1px solid var(--border2)">PREDICCIÓN</th>
+              <th style="padding:8px 10px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;border-bottom:1px solid var(--border2)">RESULTADO</th>
+              <th style="padding:8px 10px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;border-bottom:1px solid var(--border2)">✓/✗</th>
+              <th style="padding:8px 10px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;border-bottom:1px solid var(--border2)">AJUSTE ELO</th>
+            </tr>
+          </thead>
+          <tbody>${rows.join('')}</tbody>
+        </table>
+      </div>`;
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:12px">Sin datos disponibles.</div>`;
+  }
+}
 </script>
 
 </div>
@@ -1475,6 +1731,7 @@ async function init() {
 
     buildGroups();
     buildMatchSelect();
+    restaurarFixtureKO();
     buildPenaltyGrid();
 
     setProgress(100);

@@ -183,6 +183,43 @@ header {
 .ko-connector { position: absolute; right: -8px; width: 8px; }
 .ko-separator { flex: 1; min-height: 12px; }
 
+/* MOBILE RESPONSIVE */
+@media (max-width: 700px) {
+  .groups-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .standings-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .standings-table { font-size: 10px; }
+  .standings-table th, .standings-table td { padding: 5px 3px; }
+  .standings-table th:first-child, .standings-table td:first-child { padding-left: 6px; }
+  .standings-table .col-pg, .standings-table .col-pe,
+  .standings-table .col-pp, .standings-table .col-gf,
+  .standings-table .col-gc { display: none; }
+  .standings-team-name { font-size: 10px; }
+  .standings-header { font-size: 12px; padding: 7px 8px; letter-spacing: 2px; }
+  .ko-bracket { flex-direction: column; overflow-x: visible; }
+  .ko-round { min-width: unset; display: none; }
+  .ko-round.ko-active { display: flex; }
+  .ko-round-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .ko-round-tab { font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+    padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--muted); cursor: pointer; }
+  .ko-round-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(240,180,41,0.08); }
+  .ko-match-slot { flex-direction: row; flex-wrap: wrap; height: auto !important;
+    align-items: center; gap: 6px; padding: 10px 8px;
+    border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; }
+  .ko-match-slot::after { display: none; }
+  .ko-team { max-width: unset; flex: 1; min-width: 100px; }
+  .ko-score { order: 3; width: 100%; text-align: center; font-size: 13px; }
+  .ko-separator { display: none; }
+  .ko-round-label { display: none; }
+  .nav-tab { font-size: 9px; padding: 10px 6px; letter-spacing: 1px; }
+  .team-name { font-size: 12px; }
+  .team-elo { font-size: 11px; }
+}
+@media (max-width: 400px) {
+  .standings-grid { grid-template-columns: 1fr; }
+  .groups-grid { grid-template-columns: 1fr; }
+}
+
 /* CHAMPION TABLE */
 .champion-table { width: 100%; border-collapse: collapse; }
 .champion-table th {
@@ -2132,8 +2169,8 @@ async function buildStandingsReales() {
       <table class="standings-table">
         <thead><tr>
           <th style="text-align:left">EQUIPO</th>
-          <th>PJ</th><th>PG</th><th>PE</th><th>PP</th>
-          <th>GF</th><th>GC</th><th>DG</th><th>PTS</th>
+          <th>PJ</th><th class="col-pg">PG</th><th class="col-pe">PE</th><th class="col-pp">PP</th>
+          <th class="col-gf">GF</th><th class="col-gc">GC</th><th>DG</th><th>PTS</th>
         </tr></thead>
         <tbody>
           ${teams.map((t,i) => {
@@ -2142,8 +2179,8 @@ async function buildStandingsReales() {
             const clasifica = i < 2;
             return `<tr class="${clasifica ? 'clasifica' : ''}">
               <td><span class="pos-num">${i+1}</span><span class="standings-team-name">${getFlag(t)} ${t}</span></td>
-              <td>${s.pj}</td><td>${s.pg}</td><td>${s.pe}</td><td>${s.pp}</td>
-              <td>${s.gf}</td><td>${s.gc}</td><td>${dg(t) >= 0 ? '+' : ''}${dg(t)}</td>
+              <td>${s.pj}</td><td class="col-pg">${s.pg}</td><td class="col-pe">${s.pe}</td><td class="col-pp">${s.pp}</td>
+              <td class="col-gf">${s.gf}</td><td class="col-gc">${s.gc}</td><td>${dg(t) >= 0 ? '+' : ''}${dg(t)}</td>
               <td class="pts">${p}</td>
             </tr>`;
           }).join('')}
@@ -2177,7 +2214,10 @@ function buildBracketKO() {
 
   // Siempre mostrar el bracket (con TBDs si no hay cruces cargados)
   const maxSlots = [16, 8, 4, 2, 1]; // slots por ronda
-  let bracketHtml = '';
+  const isMobile = window.innerWidth <= 700;
+  let bracketHtml = isMobile
+    ? '<div class="ko-round-tabs">' + labels.map((l,i) => `<span class="ko-round-tab${i===0?' active':''}" onclick="switchKORound(${i})">${l}</span>`).join('') + '</div>'
+    : '';
 
   fases.forEach((fase, ri) => {
     const partidos = groupedByFase[fase] || [];
@@ -2213,11 +2253,11 @@ function buildBracketKO() {
       if (i < nSlots - 1) matchesHtml += `<div class="ko-separator" style="height:${slotHeight * 0.5}px"></div>`;
     }
 
-    bracketHtml += `<div class="ko-round" style="min-height:420px">
+    bracketHtml += `<div class="ko-round${isMobile && ri===0 ? ' ko-active' : ''}" style="min-height:${isMobile?'auto':'420px'}" data-round="${ri}">
       <div class="ko-round-label">${labels[ri]}</div>
       <div class="ko-matches">${matchesHtml}</div>
     </div>
-    <div style="width:20px;display:flex;align-items:center;justify-content:center;padding-top:32px">
+    <div style="width:20px;display:${isMobile?'none':'flex'};align-items:center;justify-content:center;padding-top:32px">
       ${ri < fases.length - 1 ? '<div style="width:1px;height:80%;background:var(--border2)"></div>' : ''}
     </div>`;
   });
@@ -2363,6 +2403,15 @@ function generarSexterosAutomatico() {
   buildMatchSelect();
   buildBracketKO();
   cargarFixtureKO();
+}
+
+function switchKORound(idx) {
+  document.querySelectorAll('.ko-round').forEach((r,i) => {
+    r.classList.toggle('ko-active', i === idx);
+  });
+  document.querySelectorAll('.ko-round-tab').forEach((t,i) => {
+    t.classList.toggle('active', i === idx);
+  });
 }
 
 function selectTeamMatch(team) {

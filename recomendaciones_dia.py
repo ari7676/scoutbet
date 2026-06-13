@@ -3016,15 +3016,19 @@ def wc_ausencias():
                 {"nombre": "Rodrygo", "posicion": "Right Winger", "valor_m": 120, "criticidad": 0.65, "penalty_elo": -52},
                 {"nombre": "Eder Militao", "posicion": "Centre-Back", "valor_m": 50, "criticidad": 0.40, "penalty_elo": -35},
                 {"nombre": "Estevaoo", "posicion": "Right Winger", "valor_m": 60, "criticidad": 0.42, "penalty_elo": -37},
+                # Nuevas bajas confirmadas 11/06
+                {"nombre": "Wesley", "posicion": "Right-Back", "valor_m": 30, "criticidad": 0.28, "penalty_elo": -22},
             ],
-            "penalty_total": -124
+            "penalty_total": -146
         },
         "Netherlands": {
             "ausentes": [
                 {"nombre": "Xavi Simons", "posicion": "Attacking Midfield", "valor_m": 80, "criticidad": 0.58, "penalty_elo": -48},
                 {"nombre": "Matthijs de Ligt", "posicion": "Centre-Back", "valor_m": 35, "criticidad": 0.32, "penalty_elo": -29},
+                # Timber reemplazado por Geertruida, confirmado 11/06
+                {"nombre": "Jurrien Timber", "posicion": "Right-Back", "valor_m": 55, "criticidad": 0.38, "penalty_elo": -30},
             ],
-            "penalty_total": -77
+            "penalty_total": -107
         },
         "France": {
             "ausentes": [
@@ -3036,8 +3040,10 @@ def wc_ausencias():
         "Germany": {
             "ausentes": [
                 {"nombre": "Serge Gnabry", "posicion": "Right Winger", "valor_m": 25, "criticidad": 0.28, "penalty_elo": -25},
+                # Lennart Karl baja 11/06, reemplazado por Ouédraogo
+                {"nombre": "Lennart Karl", "posicion": "Centre-Back", "valor_m": 10, "criticidad": 0.18, "penalty_elo": -14},
             ],
-            "penalty_total": -25
+            "penalty_total": -39
         },
         "Spain": {
             "ausentes": [
@@ -3058,10 +3064,12 @@ def wc_ausencias():
         },
         "Argentina": {
             "ausentes": [
-                # Romero y Nico Paz SI convocados. Solo falta Foyth
+                # Romero y Nico Paz SI convocados.
                 {"nombre": "Juan Foyth", "posicion": "Right-Back", "valor_m": 30, "criticidad": 0.25, "penalty_elo": -23},
+                # Balerdi baja confirmada 11/06 (desgarro sóleo)
+                {"nombre": "Leo Balerdi", "posicion": "Centre-Back", "valor_m": 25, "criticidad": 0.22, "penalty_elo": -18},
             ],
-            "penalty_total": -23
+            "penalty_total": -41
         },
         "Uruguay": {
             "ausentes": [
@@ -3080,14 +3088,38 @@ def wc_ausencias():
         "Mexico": {
             "ausentes": [
                 {"nombre": "Hirving Lozano", "posicion": "Right Winger", "valor_m": 20, "criticidad": 0.28, "penalty_elo": -24},
+                # Malagón (arquero titular) baja por rodilla
+                {"nombre": "Luis Malakon", "posicion": "Goalkeeper", "valor_m": 15, "criticidad": 0.30, "penalty_elo": -24},
             ],
-            "penalty_total": -24
+            "penalty_total": -48
         },
         "United States": {
             "ausentes": [
                 {"nombre": "Gio Reyna", "posicion": "Attacking Midfield", "valor_m": 25, "criticidad": 0.28, "penalty_elo": -24},
             ],
             "penalty_total": -24
+        },
+        "Austria": {
+            "ausentes": [
+                # Baumgartner baja confirmada 11/06 (desgarro muslo), equipo juega con 25
+                {"nombre": "Christoph Baumgartner", "posicion": "Attacking Midfield", "valor_m": 45, "criticidad": 0.48, "penalty_elo": -38},
+            ],
+            "penalty_total": -38
+        },
+        "Japan": {
+            "ausentes": [
+                # Mitoma baja (isquiotibiales), Minamino ya estaba fuera (LCA desde dic)
+                {"nombre": "Kaoru Mitoma", "posicion": "Left Winger", "valor_m": 55, "criticidad": 0.52, "penalty_elo": -42},
+                {"nombre": "Takumi Minamino", "posicion": "Attacking Midfield", "valor_m": 20, "criticidad": 0.28, "penalty_elo": -22},
+            ],
+            "penalty_total": -64
+        },
+        "Scotland": {
+            "ausentes": [
+                # Gilmour baja (rodilla), reemplazado por Tyler Fletcher
+                {"nombre": "Billy Gilmour", "posicion": "Central Midfield", "valor_m": 30, "criticidad": 0.38, "penalty_elo": -30},
+            ],
+            "penalty_total": -30
         },
         "Colombia": {
             "ausentes": [],

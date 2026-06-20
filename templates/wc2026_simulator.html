@@ -2359,24 +2359,27 @@ function generarSexterosAutomatico() {
 
   const g = (l, pos) => clasificados[l]?.[pos] || 'TBD';
 
-  // 16 cruces en orden oficial
+  // 16 cruces en orden oficial FIFA 2026 (según cuadro eliminatorio)
+  // Lado izquierdo (P73-P80), lado derecho (P81-P88)
   const cruces16 = [
-    { home: g('A','p2'), away: g('B','p2'), label: 'P73 · 2°A vs 2°B' },
-    { home: g('E','p1'), away: t3(0),       label: 'P74 · 1°E vs 3°*' },
-    { home: g('F','p1'), away: g('C','p2'), label: 'P75 · 1°F vs 2°C' },
-    { home: g('C','p1'), away: g('F','p2'), label: 'P76 · 1°C vs 2°F' },
-    { home: g('I','p1'), away: t3(1),       label: 'P77 · 1°I vs 3°*' },
-    { home: g('E','p2'), away: g('I','p2'), label: 'P78 · 2°E vs 2°I' },
-    { home: g('A','p1'), away: t3(2),       label: 'P79 · 1°A vs 3°*' },
-    { home: g('L','p1'), away: t3(3),       label: 'P80 · 1°L vs 3°*' },
-    { home: g('D','p1'), away: t3(4),       label: 'P81 · 1°D vs 3°*' },
-    { home: g('G','p1'), away: t3(5),       label: 'P82 · 1°G vs 3°*' },
-    { home: g('K','p2'), away: g('L','p2'), label: 'P83 · 2°K vs 2°L' },
-    { home: g('H','p1'), away: g('J','p2'), label: 'P84 · 1°H vs 2°J' },
-    { home: g('B','p1'), away: t3(6),       label: 'P85 · 1°B vs 3°*' },
-    { home: g('J','p1'), away: g('H','p2'), label: 'P86 · 1°J vs 2°H' },
-    { home: g('K','p1'), away: t3(7),       label: 'P87 · 1°K vs 3°*' },
-    { home: g('D','p2'), away: g('G','p2'), label: 'P88 · 2°D vs 2°G' },
+    // LADO IZQUIERDO
+    { home: g('E','p1'), away: t3(0),       label: 'P73 · 1°E vs 3°*'  },  // 1E vs 3RO
+    { home: g('I','p1'), away: t3(1),       label: 'P74 · 1°I vs 3°*'  },  // 1I vs 3RO
+    { home: g('A','p2'), away: g('B','p2'), label: 'P75 · 2°A vs 2°B'  },  // 2A vs 2B
+    { home: g('F','p1'), away: g('C','p2'), label: 'P76 · 1°F vs 2°C'  },  // 1F vs 2C
+    { home: g('K','p2'), away: g('L','p2'), label: 'P77 · 2°K vs 2°L'  },  // 2K vs 2L
+    { home: g('H','p1'), away: g('J','p2'), label: 'P78 · 1°H vs 2°J'  },  // 1H vs 2J
+    { home: g('D','p1'), away: t3(2),       label: 'P79 · 1°D vs 3°*'  },  // 1D vs 3RO
+    { home: g('G','p1'), away: t3(3),       label: 'P80 · 1°G vs 3°*'  },  // 1G vs 3RO
+    // LADO DERECHO
+    { home: g('C','p1'), away: g('F','p2'), label: 'P81 · 1°C vs 2°F'  },  // 1C vs 2F
+    { home: g('E','p2'), away: g('I','p2'), label: 'P82 · 2°E vs 2°I'  },  // 2E vs 2I
+    { home: g('A','p1'), away: t3(4),       label: 'P83 · 1°A vs 3°*'  },  // 1A vs 3RO
+    { home: g('L','p1'), away: t3(5),       label: 'P84 · 1°L vs 3°*'  },  // 1L vs 3RO
+    { home: g('J','p1'), away: g('H','p2'), label: 'P85 · 1°J vs 2°H'  },  // 1J vs 2H
+    { home: g('D','p2'), away: g('G','p2'), label: 'P86 · 2°D vs 2°G'  },  // 2D vs 2G
+    { home: g('B','p1'), away: t3(6),       label: 'P87 · 1°B vs 3°*'  },  // 1B vs 3RO
+    { home: g('K','p1'), away: t3(7),       label: 'P88 · 1°K vs 3°*'  },  // 1K vs 3RO
   ];
 
   // Cargar en localStorage (reemplazando los 16avos existentes)

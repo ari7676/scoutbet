@@ -2395,26 +2395,27 @@ function generarSexterosAutomatico() {
 
   const g = (l, pos) => clasificados[l]?.[pos] || 'TBD';
 
-  // 16 cruces oficiales FIFA 2026 — orden visual del cuadro (izquierda arriba→abajo, derecha arriba→abajo)
+  // 16 cruces oficiales FIFA 2026 — equipos conocidos hardcodeados, slots pendientes con código
+  const safe = (team, code) => (team && team !== 'TBD') ? team : code;
   const cruces16 = [
-    // LADO IZQUIERDO (P73-P80 en el cuadro)
-    { home: 'Germany',            away: 'Paraguay',             label: 'P75 · 29/06 17:30 · Boston'           },
-    { home: 'France',             away: 'Sweden',               label: 'P78 · 30/06 18:00 · Nueva York'       },
-    { home: 'South Africa',       away: 'Canada',               label: 'P73 · 28/06 16:00 · Los Ángeles'      },
-    { home: 'Netherlands',        away: 'Morocco',              label: 'P76 · 29/06 22:00 · Monterrey'        },
-    { home: g('K','p2'),          away: g('L','p2'),            label: 'P84 · 02/07 20:00 · Toronto'          },
-    { home: 'Spain',              away: g('J','p2'),            label: 'P83 · 02/07 16:00 · Los Ángeles'      },
-    { home: 'United States',      away: 'Bosnia-Herzegovina',   label: 'P82 · 01/07 21:00 · San Francisco'    },
-    { home: 'Belgium',            away: t3(0),                  label: 'P81 · 01/07 17:00 · Seattle'          },
-    // LADO DERECHO (P81-P88 en el cuadro)
-    { home: 'Brazil',             away: 'Japan',                label: 'P74 · 29/06 14:00 · Houston'          },
-    { home: 'Ivory Coast',        away: 'Norway',               label: 'P77 · 30/06 14:00 · Dallas'           },
-    { home: 'Mexico',             away: t3(1),                  label: 'P79 · 30/06 22:00 · Ciudad de México' },
-    { home: g('L','p1'),          away: t3(2),                  label: 'P80 · 01/07 13:00 · Atlanta'          },
-    { home: 'Argentina',          away: 'Cape Verde Islands',   label: 'P87 · 03/07 19:00 · Miami'            },
-    { home: 'Australia',          away: 'Egypt',                label: 'P86 · 03/07 15:00 · Dallas'           },
-    { home: 'Switzerland',        away: t3(3),                  label: 'P85 · 03/07 00:00 · Vancouver'        },
-    { home: g('K','p1'),          away: t3(4),                  label: 'P88 · 03/07 22:30 · Kansas City'      },
+    // LADO IZQUIERDO
+    { home: 'Germany',            away: 'Paraguay',                                label: 'P75 · 29/06 17:30 · Boston'           },
+    { home: 'France',             away: 'Sweden',                                  label: 'P78 · 30/06 18:00 · Nueva York'       },
+    { home: 'South Africa',       away: 'Canada',                                  label: 'P73 · 28/06 16:00 · Los Ángeles'      },
+    { home: 'Netherlands',        away: 'Morocco',                                 label: 'P76 · 29/06 22:00 · Monterrey'        },
+    { home: safe(g('K','p2'),'2°K'), away: safe(g('L','p2'),'2°L'),               label: 'P84 · 02/07 20:00 · Toronto'          },
+    { home: 'Spain',              away: safe(g('J','p2'),'2°J'),                   label: 'P83 · 02/07 16:00 · Los Ángeles'      },
+    { home: 'United States',      away: 'Bosnia-Herzegovina',                      label: 'P82 · 01/07 21:00 · San Francisco'    },
+    { home: 'Belgium',            away: safe(t3(0),'3°*'),                         label: 'P81 · 01/07 17:00 · Seattle'          },
+    // LADO DERECHO
+    { home: 'Brazil',             away: 'Japan',                                   label: 'P74 · 29/06 14:00 · Houston'          },
+    { home: 'Ivory Coast',        away: 'Norway',                                  label: 'P77 · 30/06 14:00 · Dallas'           },
+    { home: 'Mexico',             away: safe(t3(1),'3°*'),                         label: 'P79 · 30/06 22:00 · Ciudad de México' },
+    { home: safe(g('L','p1'),'1°L'), away: safe(t3(2),'3°*'),                     label: 'P80 · 01/07 13:00 · Atlanta'          },
+    { home: 'Argentina',          away: 'Cape Verde Islands',                      label: 'P87 · 03/07 19:00 · Miami'            },
+    { home: 'Australia',          away: 'Egypt',                                   label: 'P86 · 03/07 15:00 · Dallas'           },
+    { home: 'Switzerland',        away: safe(t3(3),'3°*'),                         label: 'P85 · 03/07 00:00 · Vancouver'        },
+    { home: safe(g('K','p1'),'1°K'), away: safe(t3(4),'3°*'),                     label: 'P88 · 03/07 22:30 · Kansas City'      },
   ];
 
   // Cargar en localStorage (reemplazando los 16avos existentes)

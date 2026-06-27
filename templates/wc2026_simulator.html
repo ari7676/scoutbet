@@ -2359,40 +2359,26 @@ function generarSexterosAutomatico() {
 
   const g = (l, pos) => clasificados[l]?.[pos] || 'TBD';
 
-  // 16 cruces oficiales FIFA 2026 (fixture definitivo)
+  // 16 cruces oficiales FIFA 2026 — orden visual del cuadro (izquierda arriba→abajo, derecha arriba→abajo)
   const cruces16 = [
-    // P73: South Africa vs Canada (dom 28/06, 16:00, LA)
-    { home: 'South Africa',       away: 'Canada',               label: 'P73 · 28/06 16:00 · Los Ángeles' },
-    // P74: Brazil vs Japan (lun 29/06, 14:00, Houston)
-    { home: 'Brazil',             away: 'Japan',                label: 'P74 · 29/06 14:00 · Houston' },
-    // P75: Germany vs Paraguay (lun 29/06, 17:30, Boston)
-    { home: 'Germany',            away: 'Paraguay',             label: 'P75 · 29/06 17:30 · Boston' },
-    // P76: Netherlands vs Morocco (lun 29/06, 22:00, Monterrey)
-    { home: 'Netherlands',        away: 'Morocco',              label: 'P76 · 29/06 22:00 · Monterrey' },
-    // P77: Ivory Coast vs Norway (mar 30/06, 14:00, Dallas)
-    { home: 'Ivory Coast',        away: 'Norway',               label: 'P77 · 30/06 14:00 · Dallas' },
-    // P78: France vs Sweden (mar 30/06, 18:00, NY/NJ)
-    { home: 'France',             away: 'Sweden',               label: 'P78 · 30/06 18:00 · Nueva York' },
-    // P79: Mexico vs 3°(CEFHI) (mar 30/06, 22:00, CDMX)
-    { home: 'Mexico',             away: t3(0),                  label: 'P79 · 30/06 22:00 · Ciudad de México' },
-    // P80: 1L vs 3°(EHIJK) (mié 01/07, 13:00, Atlanta)
-    { home: g('L','p1'),          away: t3(1),                  label: 'P80 · 01/07 13:00 · Atlanta' },
-    // P81: Belgium vs 3°(AEHIJ) (mié 01/07, 17:00, Seattle)
-    { home: 'Belgium',            away: t3(2),                  label: 'P81 · 01/07 17:00 · Seattle' },
-    // P82: United States vs Bosnia-Herzegovina (mié 01/07, 21:00, SF)
-    { home: 'United States',      away: 'Bosnia-Herzegovina',   label: 'P82 · 01/07 21:00 · San Francisco' },
-    // P83: Spain vs 2J (jue 02/07, 16:00, LA)
-    { home: 'Spain',              away: g('J','p2'),            label: 'P83 · 02/07 16:00 · Los Ángeles' },
-    // P84: 2K vs 2L (jue 02/07, 20:00, Toronto)
-    { home: g('K','p2'),          away: g('L','p2'),            label: 'P84 · 02/07 20:00 · Toronto' },
-    // P85: Switzerland vs 3°(EFGIJ) (vie 03/07, 00:00, Vancouver)
-    { home: 'Switzerland',        away: t3(3),                  label: 'P85 · 03/07 00:00 · Vancouver' },
-    // P86: Australia vs Egypt (vie 03/07, 15:00, Dallas)
-    { home: 'Australia',          away: 'Egypt',                label: 'P86 · 03/07 15:00 · Dallas' },
-    // P87: Argentina vs Cape Verde Islands (vie 03/07, 19:00, Miami)
-    { home: 'Argentina',          away: 'Cape Verde Islands',   label: 'P87 · 03/07 19:00 · Miami' },
-    // P88: 1K vs 3°(DEIJL) (vie 03/07, 22:30, Kansas City)
-    { home: g('K','p1'),          away: t3(4),                  label: 'P88 · 03/07 22:30 · Kansas City' },
+    // LADO IZQUIERDO (P73-P80 en el cuadro)
+    { home: 'Germany',            away: 'Paraguay',             label: 'P75 · 29/06 17:30 · Boston'           },
+    { home: 'France',             away: 'Sweden',               label: 'P78 · 30/06 18:00 · Nueva York'       },
+    { home: 'South Africa',       away: 'Canada',               label: 'P73 · 28/06 16:00 · Los Ángeles'      },
+    { home: 'Netherlands',        away: 'Morocco',              label: 'P76 · 29/06 22:00 · Monterrey'        },
+    { home: g('K','p2'),          away: g('L','p2'),            label: 'P84 · 02/07 20:00 · Toronto'          },
+    { home: 'Spain',              away: g('J','p2'),            label: 'P83 · 02/07 16:00 · Los Ángeles'      },
+    { home: 'United States',      away: 'Bosnia-Herzegovina',   label: 'P82 · 01/07 21:00 · San Francisco'    },
+    { home: 'Belgium',            away: t3(0),                  label: 'P81 · 01/07 17:00 · Seattle'          },
+    // LADO DERECHO (P81-P88 en el cuadro)
+    { home: 'Brazil',             away: 'Japan',                label: 'P74 · 29/06 14:00 · Houston'          },
+    { home: 'Ivory Coast',        away: 'Norway',               label: 'P77 · 30/06 14:00 · Dallas'           },
+    { home: 'Mexico',             away: t3(1),                  label: 'P79 · 30/06 22:00 · Ciudad de México' },
+    { home: g('L','p1'),          away: t3(2),                  label: 'P80 · 01/07 13:00 · Atlanta'          },
+    { home: 'Argentina',          away: 'Cape Verde Islands',   label: 'P87 · 03/07 19:00 · Miami'            },
+    { home: 'Australia',          away: 'Egypt',                label: 'P86 · 03/07 15:00 · Dallas'           },
+    { home: 'Switzerland',        away: t3(3),                  label: 'P85 · 03/07 00:00 · Vancouver'        },
+    { home: g('K','p1'),          away: t3(4),                  label: 'P88 · 03/07 22:30 · Kansas City'      },
   ];
 
   // Cargar en localStorage (reemplazando los 16avos existentes)
@@ -2406,16 +2392,16 @@ function generarSexterosAutomatico() {
     fixtures.push({ home: c.home, away: c.away, fecha: c.label, stage: '16avos', group: null });
   });
 
-  // OCTAVOS (fechas y sedes oficiales FIFA)
+  // OCTAVOS — orden visual del cuadro
   const octavos = [
-    { home: 'W73', away: 'W75', label: 'P89 · 04/07 14:00 · Houston' },
-    { home: 'W74', away: 'W77', label: 'P90 · 04/07 18:00 · Filadelfia' },
-    { home: 'W76', away: 'W78', label: 'P91 · 05/07 17:00 · Nueva York' },
-    { home: 'W79', away: 'W80', label: 'P92 · 05/07 21:00 · Ciudad de México' },
-    { home: 'W83', away: 'W84', label: 'P93 · 06/07 16:00 · Dallas' },
-    { home: 'W81', away: 'W82', label: 'P94 · 06/07 21:00 · Seattle' },
-    { home: 'W86', away: 'W88', label: 'P95 · 07/07 13:00 · Atlanta' },
-    { home: 'W85', away: 'W87', label: 'P96 · 07/07 17:00 · Vancouver' },
+    { home: 'W73', away: 'W75', label: 'P89 · 04/07 14:00 · Houston'         },  // izq arriba
+    { home: 'W74', away: 'W77', label: 'P90 · 04/07 18:00 · Filadelfia'      },  // der arriba
+    { home: 'W76', away: 'W78', label: 'P91 · 05/07 17:00 · Nueva York'      },  // izq
+    { home: 'W79', away: 'W80', label: 'P92 · 05/07 21:00 · Ciudad de México'},  // der
+    { home: 'W83', away: 'W84', label: 'P93 · 06/07 16:00 · Dallas'          },  // izq
+    { home: 'W81', away: 'W82', label: 'P94 · 06/07 21:00 · Seattle'         },  // der
+    { home: 'W86', away: 'W88', label: 'P95 · 07/07 13:00 · Atlanta'         },  // izq abajo
+    { home: 'W85', away: 'W87', label: 'P96 · 07/07 17:00 · Vancouver'       },  // der abajo
   ];
   octavos.forEach((c,i) => {
     cruces.push({ id: `AUTO_OCT_${i+1}`, fase: 'Octavos', stage: 'Octavos de Final', home: c.home, away: c.away, fecha: c.label });

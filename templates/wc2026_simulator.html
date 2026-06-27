@@ -1019,8 +1019,9 @@ header {
       </div>
       <div>
         <label style="font-size:11px;color:var(--muted)">FASE</label>
-        <select id="res-fase" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+        <select id="res-fase" onchange="toggleKOfields()" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
           <option>Grupos</option>
+          <option>16avos</option>
           <option>Octavos</option>
           <option>Cuartos</option>
           <option>Semis</option>
@@ -1043,6 +1044,36 @@ header {
                style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:18px;text-align:center;font-weight:700">
       </div>
     </div>
+
+    <!-- CAMPOS KO (ocultos en fase Grupos) -->
+    <div id="ko-extra-fields" style="display:none;background:var(--surface2);border-radius:8px;padding:14px;margin-bottom:16px;border:1px solid var(--border2)">
+      <div style="font-size:11px;color:var(--accent2);letter-spacing:2px;margin-bottom:12px">⚡ FASE ELIMINATORIA</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+        <div>
+          <label style="font-size:11px;color:var(--muted)">¿HUBO PRÓRROGA?</label>
+          <select id="res-prorroga" onchange="togglePenalesField()" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+            <option value="no">No — ganó en 90'</option>
+            <option value="si">Sí — hubo prórroga</option>
+          </select>
+        </div>
+        <div id="penales-field" style="display:none">
+          <label style="font-size:11px;color:var(--muted)">¿SE DEFINIÓ POR PENALES?</label>
+          <select id="res-penales" onchange="toggleGanadorField()" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+            <option value="no">No — ganó en prórroga</option>
+            <option value="si">Sí — fue a penales</option>
+          </select>
+        </div>
+        <div id="ganador-field" style="display:none">
+          <label style="font-size:11px;color:var(--muted)">GANADOR POR PENALES</label>
+          <select id="res-ganador-penales" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text1);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">
+            <option value="home">Local</option>
+            <option value="away">Visitante</option>
+          </select>
+        </div>
+      </div>
+      <div id="ko-info" style="font-size:11px;color:var(--muted)">El ganador se actualizará automáticamente en el bracket KO.</div>
+    </div>
+
     <button onclick="guardarResultado()"
             style="background:#e07;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;letter-spacing:1px">
       REGISTRAR RESULTADO
@@ -1394,6 +1425,11 @@ async function guardarResultado() {
     rendimientoData = d2.ajustes || {};
     window._partidos_lista = d2.partidos_lista || [];
     buildStandingsReales();
+    // Si es fase KO, actualizar ganador en el bracket
+    if (fase !== 'Grupos') {
+      const ganador = getGanadorKO(home, away, gh, ga);
+      if (ganador) actualizarGanadorEnBracket(home, away, ganador, partidoId);
+    }
     buildBracketKO();
   } else {
     document.getElementById('res-status').textContent = '❌ Error';
@@ -2440,6 +2476,75 @@ function generarSexterosAutomatico() {
   statusEl.style.color = 'var(--green)';
 
   buildMatchSelect();
+  buildBracketKO();
+  cargarFixtureKO();
+}
+
+function toggleKOfields() {
+  const fase = document.getElementById('res-fase').value;
+  const isKO = fase !== 'Grupos';
+  document.getElementById('ko-extra-fields').style.display = isKO ? 'block' : 'none';
+  if (!isKO) {
+    document.getElementById('res-prorroga').value = 'no';
+    document.getElementById('penales-field').style.display = 'none';
+    document.getElementById('ganador-field').style.display = 'none';
+  }
+}
+
+function togglePenalesField() {
+  const huboProrroga = document.getElementById('res-prorroga').value === 'si';
+  document.getElementById('penales-field').style.display = huboProrroga ? 'block' : 'none';
+  if (!huboProrroga) {
+    document.getElementById('ganador-field').style.display = 'none';
+  }
+}
+
+function toggleGanadorField() {
+  const fueroPenales = document.getElementById('res-penales').value === 'si';
+  document.getElementById('ganador-field').style.display = fueroPenales ? 'block' : 'none';
+}
+
+function getGanadorKO(home, away, gh, ga) {
+  const prorroga = document.getElementById('res-prorroga')?.value || 'no';
+  const penales = document.getElementById('res-penales')?.value || 'no';
+  const ganadorPen = document.getElementById('res-ganador-penales')?.value || 'home';
+
+  if (gh > ga) return home;
+  if (ga > gh) return away;
+  // Empate — fue a prórroga
+  if (prorroga === 'si') {
+    if (penales === 'si') return ganadorPen === 'home' ? home : away;
+    // Ganó en prórroga pero igual empate en goles registrados (inusual) — tomamos el campo
+    return ganadorPen === 'home' ? home : away;
+  }
+  return null; // empate en grupos, sin ganador
+}
+
+function actualizarGanadorEnBracket(home, away, ganador, partidoLabel) {
+  if (!ganador) return;
+  const key = 'wc_fixture_ko';
+  const cruces = JSON.parse(localStorage.getItem(key) || '[]');
+
+  // Encontrar el partido que matchea home/away y actualizar el ganador
+  const idx = cruces.findIndex(c =>
+    (c.home === home && c.away === away) ||
+    (c.home === away && c.away === home)
+  );
+  if (idx === -1) return;
+
+  const partido = cruces[idx];
+  const partNum = partido.label?.match(/P(\d+)/)?.[1] || partido.fecha?.match(/P(\d+)/)?.[1];
+  if (!partNum) return;
+
+  const wCode = `W${partNum}`;
+
+  // Reemplazar wCode por el ganador en todos los partidos siguientes
+  cruces.forEach(c => {
+    if (c.home === wCode) c.home = ganador;
+    if (c.away === wCode) c.away = ganador;
+  });
+
+  localStorage.setItem(key, JSON.stringify(cruces));
   buildBracketKO();
   cargarFixtureKO();
 }

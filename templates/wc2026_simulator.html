@@ -2395,26 +2395,26 @@ function generarSexterosAutomatico() {
 
   const g = (l, pos) => clasificados[l]?.[pos] || 'TBD';
 
-  // 16 cruces oficiales FIFA 2026 — números de partido según cuadro oficial real
+  // 16 cruces oficiales FIFA 2026 — números de partido confirmados según cuadro oficial real
   const cruces16 = [
     // LADO IZQUIERDO
     { home: 'Germany',            away: 'Paraguay',                                label: 'P74 · 29/06 17:30 · Boston'           },
-    { home: 'France',             away: 'Sweden',                                  label: 'P78 · 30/06 18:00 · Nueva York'       },
+    { home: 'France',             away: 'Sweden',                                  label: 'P77 · 30/06 18:00 · Nueva York'       },
     { home: 'South Africa',       away: 'Canada',                                  label: 'P73 · 28/06 16:00 · Los Ángeles'      },
     { home: 'Netherlands',        away: 'Morocco',                                 label: 'P75 · 29/06 22:00 · Monterrey'        },
-    { home: 'Portugal',           away: 'Croatia',                                 label: 'P93 · 02/07 16:00 · —'                },
-    { home: 'Spain',              away: 'Austria',                                 label: 'P83 · 02/07 16:00 · Los Ángeles'      },
-    { home: 'United States',      away: 'Bosnia-Herzegovina',                      label: 'P82 · 01/07 21:00 · San Francisco'    },
-    { home: 'Belgium',            away: 'Senegal',                                 label: 'P81 · 01/07 17:00 · Seattle'          },
+    { home: 'Portugal',           away: 'Croatia',                                 label: 'P83 · 02/07 20:00 · —'                },
+    { home: 'Spain',              away: 'Austria',                                 label: 'P84 · 02/07 16:00 · Los Ángeles'      },
+    { home: 'United States',      away: 'Bosnia-Herzegovina',                      label: 'P81 · 01/07 21:00 · San Francisco'    },
+    { home: 'Belgium',            away: 'Senegal',                                 label: 'P82 · 01/07 17:00 · Seattle'          },
     // LADO DERECHO
     { home: 'Brazil',             away: 'Japan',                                   label: 'P76 · 29/06 14:00 · Houston'          },
-    { home: 'Ivory Coast',        away: 'Norway',                                  label: 'P77 · 30/06 14:00 · Dallas'           },
+    { home: 'Ivory Coast',        away: 'Norway',                                  label: 'P78 · 30/06 14:00 · Dallas'           },
     { home: 'Mexico',             away: 'Ecuador',                                 label: 'P79 · 30/06 22:00 · Ciudad de México' },
     { home: 'England',            away: 'Congo DR',                                label: 'P80 · 01/07 13:00 · Atlanta'          },
-    { home: 'Argentina',          away: 'Cape Verde Islands',                      label: 'P87 · 03/07 19:00 · Miami'            },
-    { home: 'Australia',          away: 'Egypt',                                   label: 'P86 · 03/07 15:00 · Dallas'           },
+    { home: 'Argentina',          away: 'Cape Verde Islands',                      label: 'P86 · 03/07 19:00 · Miami'            },
+    { home: 'Australia',          away: 'Egypt',                                   label: 'P88 · 03/07 15:00 · Dallas'           },
     { home: 'Switzerland',        away: 'Algeria',                                 label: 'P85 · 03/07 00:00 · Vancouver'        },
-    { home: 'Colombia',           away: 'Ghana',                                   label: 'P88 · 03/07 22:30 · Kansas City'      },
+    { home: 'Colombia',           away: 'Ghana',                                   label: 'P87 · 03/07 22:30 · Kansas City'      },
   ];
 
   // Cargar en localStorage (reemplazando los 16avos existentes)
@@ -2428,22 +2428,22 @@ function generarSexterosAutomatico() {
     fixtures.push({ home: c.home, away: c.away, fecha: c.label, stage: '16avos', group: null });
   });
 
-  // OCTAVOS — orden visual del cuadro
+  // OCTAVOS — números confirmados
   const octavos = [
-    { home: 'W74', away: 'W77', label: 'P89 · 04/07 14:00 · Houston'         },  // Paraguay vs Francia/Suecia
-    { home: 'W73', away: 'W75', label: 'P90 · 04/07 18:00 · Filadelfia'      },  // Canada vs Morocco
-    { home: 'W76', away: 'W78', label: 'P91 · 05/07 17:00 · Nueva York'      },  // Brazil vs Portugal/Croacia
-    { home: 'W79', away: 'W80', label: 'P92 · 05/07 21:00 · Ciudad de México'},  // Mexico vs England
-    { home: 'W83', away: 'W84', label: 'P93 · 06/07 16:00 · Dallas'          },  // Spain/Austria vs USA/Bosnia
-    { home: 'W81', away: 'W82', label: 'P94 · 06/07 21:00 · Seattle'         },  // Belgium/Senegal vs ...
-    { home: 'W86', away: 'W88', label: 'P95 · 07/07 13:00 · Atlanta'         },  // Australia/Egypt vs Colombia/Ghana
-    { home: 'W85', away: 'W87', label: 'P96 · 07/07 17:00 · Vancouver'       },  // Switzerland/Algeria vs Argentina/CapeVerde
+    { home: 'W74', away: 'W77', label: 'P89 · 04/07 18:00 · —'  },  // Paraguay vs Francia/Suecia
+    { home: 'W73', away: 'W75', label: 'P90 · 04/07 14:00 · —'  },  // Canada vs Morocco
+    { home: 'W83', away: 'W84', label: 'P93 · 06/07 16:00 · —'  },  // Portugal/Croacia vs Spain/Austria
+    { home: 'W81', away: 'W82', label: 'P94 · 06/07 21:00 · —'  },  // USA/Bosnia vs Belgium/Senegal
+    { home: 'W76', away: 'W78', label: 'P91 · 05/07 17:00 · —'  },  // Brazil vs Ivory Coast/Norway
+    { home: 'W79', away: 'W80', label: 'P92 · 05/07 21:00 · —'  },  // Mexico/Ecuador vs England/Congo
+    { home: 'W86', away: 'W88', label: 'P95 · 07/07 13:00 · —'  },  // Argentina/CapeVerde vs Australia/Egypt
+    { home: 'W85', away: 'W87', label: 'P96 · 07/07 17:00 · —'  },  // Switzerland/Algeria vs Colombia/Ghana
   ];
   octavos.forEach((c,i) => {
     cruces.push({ id: `AUTO_OCT_${i+1}`, fase: 'Octavos', stage: 'Octavos de Final', home: c.home, away: c.away, fecha: c.label });
   });
 
-  // CUARTOS
+  // CUARTOS — números confirmados
   const cuartos = [
     { home: 'W89', away: 'W90', label: 'P97 · 09/07 17:00 · Boston' },
     { home: 'W93', away: 'W94', label: 'P98 · 10/07 16:00 · Los Ángeles' },
